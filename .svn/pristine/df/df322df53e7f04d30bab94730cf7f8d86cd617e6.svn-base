@@ -1,0 +1,305 @@
+//
+//  MWICloudOrderViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudOrderViewController.h"
+#import "MWICloudOrderListModel.h"
+#import "MWICloudOrderListCell.h"
+#import "MWICloudOrderListEditCell.h"
+
+// 导航条右侧按钮点击下拉视图
+#import "MWDropdownMenu.h"
+#import "MWICloudOrderMoreViewController.h"
+#import "MWICloudListFooterView.h"
+
+@interface MWICloudOrderViewController () <UITableViewDataSource, UITableViewDelegate, MWICloudOrderMoreViewControllerDelegate, UIAlertViewDelegate, MWICloudListFooterViewDelegate, MWICloudOrderListEditCellDelegate>
+/**  导航右侧更多按钮 */
+@property (weak, nonatomic) UIButton *rightBarButton;
+/**  导航左侧更多按钮 */
+@property (weak, nonatomic) UIButton *leftBarButton;
+/**  tableView 视图 */
+@property (weak, nonatomic) UITableView *tableView;
+/**  导航右侧更多按钮点击下拉视图 */
+@property (weak, nonatomic) MWDropdownMenu *dropdownView;
+/**  存放订单模型的数组 */
+@property (strong, nonatomic) NSMutableArray *orders;
+
+/**  记录当前状态 cell 是否能否被删除 */
+@property (assign, nonatomic) BOOL isEditing;
+/**  存放 选中 订单模型的数组 */
+@property (strong, nonatomic) NSMutableArray *chooses;
+
+@property (weak, nonatomic) MWICloudListFooterView *footerView;
+@end
+
+@implementation MWICloudOrderViewController
+
+- (NSMutableArray *)orders {
+    if (!_orders) {
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"orderList.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        _orders = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudOrderListModel *model = [MWICloudOrderListModel modelWithDict:dict];
+            [_orders addObject:model];
+        }
+    }
+    return _orders;
+}
+
+- (NSMutableArray *)chooses {
+    if (!_chooses) {
+        self.chooses = [NSMutableArray array];
+    }
+    return _chooses;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.view.backgroundColor = MWICloudColor(230, 230, 230);
+    // 设置导航条
+    [self setupNavigation];
+    // 创建 tableView
+    [self setupTableView];
+    // 创建底部视图
+    [self setupFooterView];
+}
+
+/**   底部删除视图  */
+- (void)setupFooterView {
+    if (self.footerView) return;
+    MWICloudListFooterView *footerView = [MWICloudListFooterView footerView];
+    CGFloat footerViewY = MWScreenHeight - MWICloudFooterViewHeight - MWICloudNavigationHeight;
+    footerView.frame = CGRectMake(0, footerViewY, MWScreenWidth, MWICloudFooterViewHeight);
+    footerView.delegate = self;
+    [self.view addSubview:footerView];
+    self.footerView = footerView;
+    self.footerView.hidden = YES;
+}
+
+/**   tableView视图  */
+- (void)setupTableView {
+    if (self.tableView) {
+        return;
+    }
+    UITableView *tableView = [[UITableView alloc] init];
+    CGFloat tableViewX = 0;
+    CGFloat tableViewY = 0;
+    CGFloat tableViewH = MWScreenHeight - MWICloudNavigationHeight ;
+    tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+    tableView.backgroundColor = [UIColor clearColor];
+    tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    [self.view addSubview:tableView];
+    self.tableView = tableView;
+}
+
+/**
+ *  设置导航条
+ */
+- (void)setupNavigation {
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClick) image:@"backbutton" title:@"返回"];
+    // 尺寸随便写的
+    leftBarButton.frame = CGRectMake(0, 0, 60, 30);
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    [self setupTitleView:@"我的订单"];
+    
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(rightBarButtonClick) image:@"little" selectImage:nil];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+    self.rightBarButton = rightBarButton;
+}
+
+/**
+ *  设置编辑状态下的导航条
+ */
+- (void)setupNavigationWhenEdit {
+    [self setupTitleView:@"我的订单"];
+    
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(cancle) title:@"取消" selectTitle:nil color:MWICloudColor(255, 255, 255) font:13];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+    self.rightBarButton = rightBarButton;
+    
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(choose:) title:@"全选" selectTitle:@"全不选" color:MWICloudColor(255, 255, 255) font:13];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    self.leftBarButton = leftBarButton;
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+- (void)leftBarButtonClick {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)rightBarButtonClick {
+    if (self.dropdownView) return;
+    
+    // 弹出下拉视图
+    MWDropdownMenu *dropdownView = [MWDropdownMenu menu];
+    dropdownView.image = @"home_alertViewbg_left";
+    // 间距是手动调整的
+    dropdownView.spaceX = 57;
+    dropdownView.spaceY = 35;
+    MWICloudOrderMoreViewController *more = [[MWICloudOrderMoreViewController alloc] init];
+    more.delegate = self;
+    dropdownView.contentController = more;
+    
+    [dropdownView showFrom:self.rightBarButton];
+    [self.view addSubview:dropdownView];
+    self.dropdownView = dropdownView;
+}
+
+#pragma mark -- cell 编辑状态时点击  导航右侧  取消按钮, 取消编辑状态
+- (void)cancle {
+    if (self.chooses.count > 0) {
+        [self.chooses removeAllObjects];
+    }
+    
+    // 1. 设置编辑属性
+    self.isEditing = NO;
+    self.footerView.hidden = YES;
+    
+    // 2. 恢复导航条正常显示
+    [self setupNavigation];
+    
+    CGFloat tableViewX = 0;
+    CGFloat tableViewY = 0;
+    CGFloat tableViewH = MWScreenHeight - MWICloudNavigationHeight - MWICloudTabBarHeight;
+    self.tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+    
+    // 3. 刷新表格
+    [self.tableView reloadData];
+}
+
+#pragma mark -- cell 编辑状态时点击  导航左侧  取消按钮, 全选 | 全不选
+- (void)choose:(UIButton *)leftBarButton {
+    if (self.chooses.count > 0) {
+        [self.chooses removeAllObjects];
+    }
+    
+    if (leftBarButton.selected == NO) {     // 点击全选
+        for (MWICloudOrderListModel *model in self.orders) {
+            model.isSelected = YES;
+            [self.chooses addObject:model];
+        }
+    } else {
+        for (MWICloudOrderListModel *model in self.orders) {
+            model.isSelected = NO;
+        }
+    }
+    
+    leftBarButton.selected = !leftBarButton.selected;
+    [self.footerView setTitle:self.chooses.count];
+    [self.tableView reloadData];
+}
+
+#pragma mark - Table view data source
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.orders.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.isEditing == NO) {
+        MWICloudOrderListCell *cell = [MWICloudOrderListCell cellWithTableView:tableView];
+        cell.model = self.orders[indexPath.row];
+        return cell;
+    } else {
+        MWICloudOrderListEditCell *cell = [MWICloudOrderListEditCell cellWithTableView:tableView];
+        cell.delegate = self;
+        cell.model = self.orders[indexPath.row];
+        return cell;
+    }
+}
+
+#pragma mark -- MWICloudOrderListEditCellDelegate 编辑状态 cell 的代理
+- (void)orderListEditCell:(MWICloudOrderListEditCell *)listEditCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == YES) {   // 选中某一行
+        listEditCell.model.isSelected = YES;
+        [self.chooses addObject:listEditCell.model];
+    } else {    // 取消选中某一行
+        listEditCell.model.isSelected = NO;
+        [self.chooses removeObject:listEditCell.model];
+    }
+    // 设置footerView 内部按钮标题
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark -- MWICloudOrderMoreViewControllerDelegate
+- (void)orderMoreViewControllerDidClickRow:(NSInteger)row {
+    switch (row) {
+        case 0: {     // 投诉
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"010-67726887" message:nil delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"呼叫", nil];
+            [alertView show];
+            break;
+        }
+        case 1:     // 删除列表
+            [self editOrders];
+            break;
+            
+        default:
+            break;
+    }
+    
+    // 点击下拉框后, 视图消失
+    [self.dropdownView dismiss];
+}
+
+#pragma mark -- UIAlertViewDelegate 
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 1) {
+#warning 呼叫 010-67726887
+        NSLog(@"呼叫 010-67726887 ");
+    }
+}
+
+/**  编辑所有的订单信息 */
+- (void)editOrders {
+    // 更新 tableView 的尺寸
+    CGFloat tableViewX = 0;
+    CGFloat tableViewY = 0;
+    CGFloat tableViewH = MWScreenHeight - MWICloudFooterViewHeight - MWICloudNavigationHeight;
+    self.tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+    
+    self.footerView.hidden = NO;
+    
+    // 设置编辑属性为 YES
+    self.isEditing = YES;
+    
+    // 更改导航条布局
+    [self setupNavigationWhenEdit];
+    
+    [self.tableView reloadData];
+}
+
+#pragma mark --- MWICloudListFooterViewDelegate 底部删除按钮点击的代理
+- (void)iCloudListFooterView:(MWICloudListFooterView *)iCloudListFooterView didClickDeleteButton:(UIButton *)button {
+    if (self.chooses.count == 0) {
+        [UIAlertView alertViewShowForEmptyChoose];
+        return;
+    }
+    
+    // 1. 删除 tableView 中的数据
+    for (MWICloudOrderListModel *model in self.chooses) {
+        [self.orders removeObject:model];
+    }
+    [self.tableView reloadData];
+#warning 后端删除订单列表中的数据
+}
+@end

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>缩略图</key>
+		<string>获赞</string>
+		<key>任务名称</key>
+		<string>海量获赞</string>
+		<key>任务描述</key>
+		<string>根据获赞档次奖励积分和映币</string>
+		<key>任务分数</key>
+		<string></string>
+		<key>任务映币</key>
+		<string></string>
+	</dict>
+	<dict>
+		<key>缩略图</key>
+		<string>浏览</string>
+		<key>任务名称</key>
+		<string>海量浏览</string>
+		<key>任务描述</key>
+		<string>根据浏览量档次奖励积分和映币</string>
+		<key>任务分数</key>
+		<string></string>
+		<key>任务映币</key>
+		<string></string>
+	</dict>
+	<dict>
+		<key>缩略图</key>
+		<string>活动</string>
+		<key>任务名称</key>
+		<string>参与活动</string>
+		<key>任务描述</key>
+		<string>参与映像举办的各项活动</string>
+		<key>任务分数</key>
+		<string></string>
+		<key>任务映币</key>
+		<string></string>
+	</dict>
+	<dict>
+		<key>缩略图</key>
+		<string>精选</string>
+		<key>任务名称</key>
+		<string>首页精选</string>
+		<key>任务描述</key>
+		<string>影片作品选为映像首页推荐</string>
+		<key>任务分数</key>
+		<string></string>
+		<key>任务映币</key>
+		<string></string>
+	</dict>
+</array>
+</plist>

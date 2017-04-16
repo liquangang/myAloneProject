@@ -1,0 +1,36 @@
+//
+//  SuttitleCell.m
+//  M-Cut
+//
+//  Created by Crab00 on 15/8/19.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "SubtitleCell.h"
+
+@implementation SubtitleCell
+@synthesize tag;
+
+- (void)awakeFromNib {
+    // Initialization code
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+-(void)setContent:(NSString*)content
+{   
+    self.FirstT.text  = content;
+//    self.SecondT.text  = [content substringWithRange:NSMakeRange(5,4)];
+//    self.ThirdT.text  = [content substringWithRange:NSMakeRange(10,4)];
+}
+- (IBAction)EditSubtitle:(id)sender {
+//    NSLog(@"%@",self.FirstT.text);
+//    self.selected = true;
+//    NSLog(@"%ld",(long)[self.ParentTC indexPathForCell:(UITableViewCell*)[[sender superview]superview]].row);
+    [self.delegate Editbuttonttouched:self.FirstT.text Index:self.tag];
+}
+@end

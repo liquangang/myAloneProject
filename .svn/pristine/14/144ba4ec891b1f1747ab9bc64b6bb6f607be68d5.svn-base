@@ -1,0 +1,35 @@
+//
+//  MWFooterUploadView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWFooterUploadView;
+
+typedef enum {
+    /** 上传按钮点击 */
+    MWFooterUploadViewButtonTypeUpload,
+    /** 云空间按钮点击 */
+    MWFooterUploadViewButtonTypeICloud
+}MWFooterUploadViewButtonType;
+
+@protocol MWFooterUploadViewDelegate <NSObject>
+
+@optional
+- (void)footerUploadView:(MWFooterUploadView *)uploadView didClickButton:(MWFooterUploadViewButtonType)type;
+@end
+
+
+@interface MWFooterUploadView : UIView
+
+@property (weak, nonatomic) id<MWFooterUploadViewDelegate> delegate;
+
++ (instancetype)uploadView;
+/**
+ *  设置内部上传按钮标题
+ */
+- (void)setTitleWithFilesCount:(NSInteger)count;
+@end

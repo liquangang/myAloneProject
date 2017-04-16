@@ -1,0 +1,175 @@
+/*
+ *      登录按钮点击进入该页面
+ *      登录界面
+ *
+ */
+
+#import "LoginViewController.h"
+#import "VideoDBOperation.h"
+#import "UserEntity.h"
+
+@interface LoginViewController ()
+//记录是否登录接口执行过
+@property (nonatomic, assign) BOOL isLogin;
+@end
+
+
+@implementation LoginViewController
+@synthesize tfTelephone,tfPassword;
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.isLogin = NO;
+    self.navigationController.tabBarController.tabBar.hidden = YES;
+    [self setviewborder:self.imViewUp];
+
+//    privateLoginCacheInformationObject = [[PrivateLoginCacheInformationObject alloc] init];
+//    privateLoginCacheInformationObject = [[APPUserPrefs Singleton] APP_LoginCacheInformationDBSearch];
+//    tfTelephone.text = privateLoginCacheInformationObject.userTel;
+//    tfPassword.text = privateLoginCacheInformationObject.userTelPassword;
+    
+    //标题
+    UILabel *label = [[UILabel alloc] init];
+    label.text = @"手机登录";
+    label.font = ISFont_17;
+    label.textColor = [UIColor whiteColor];
+    CGSize labelSize = [label.text sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:17], NSFontAttributeName, nil]];
+    label.frame = CGRectMake(0, 0, labelSize.width, labelSize.height);
+    self.navigationItem.titleView = label;
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+#pragma mark - 返回按钮点击方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+-(void)setviewborder:(UIView*)myview
+{
+    myview.layer.masksToBounds = YES;
+    myview.layer.cornerRadius = 5;
+    myview.layer.borderWidth = 1;
+    myview.layer.borderColor = [[UIColor grayColor] CGColor];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+}
+
+#pragma mark--------- 设置未播放视频数量的通知
+
+// 从数据库读取 --- 没有播放的视频数量改变发出通知, 有 MovierTabBarViewController 中的 badgeView 设置未播放视频数量
+- (void)personalNoPlayVideoNumChange:(NSNumber *)num {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setValue:num forKey:@"UserNoPlayVideo"];
+    [defaults synchronize];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PersonalNotPlayVideoCountFromDB object:nil userInfo:nil];
+}
+#pragma mark--------- 设置未播放视频数量的通知
+
+- (IBAction)login:(id)sender
+{
+    NSString * telephone = tfTelephone.text;
+    NSString * password = tfPassword.text;
+//    int ret = -1;
+//    ret = [[APPUserPrefs Singleton] login:telephone userPassword:password isEncrypt:false];
+    
+    if (!self.isLogin) {
+        SoapOperation *soapctl = [SoapOperation Singleton];
+        NSString* ver = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+        [soapctl WS_Login:telephone Password:password withVersion:ver Encrypt:false Success:^(MovierDCInterfaceSvc_VDCSession *ws_session) {
+            self.isLogin = YES;
+            //初始化userentity
+            [[UserEntity sharedSingleton] Applogin:telephone appPwd:password LoginType:LoginTypePhone];
+            [UserEntity sharedSingleton].sessionId = [[NSString alloc] initWithFormat:@"%@",ws_session.nSessionID];
+            [UserEntity sharedSingleton].customerId = [NSString stringWithFormat:@"%@",ws_session.nCustomerID];
+            [UserEntity sharedSingleton].ossDir = ws_session.szRootDir;
+            [UserEntity sharedSingleton].ossKey = ws_session.szKey;
+            [soapctl WS_GetossConfig:ws_session Success:^(MovierDCInterfaceSvc_VDCOSSConfig *ossconfig) {
+                [UserEntity sharedSingleton].ossBucket = ossconfig.szBucket;
+                [UserEntity sharedSingleton].ossID = ossconfig.szID;
+                [UserEntity sharedSingleton].ossKey = ossconfig.szKey;
+                [UserEntity sharedSingleton].ossEndpoint = ossconfig.szEndpoint;
+                [[APPUserPrefs Singleton] StartOrderT];
+                //向后台发送cid和deviceToken
+                [[SoapOperation Singleton] WS_operatedevicelistWithOperationType:1 Success:^(NSNumber *num) {
+                    NSLog(@"向后台注册cid和deviceToken成功");
+                } Fail:^(NSError *error) {
+                    NSLog(@"向后台注册cid和deviceToken失败---%@", error);
+                }];
+            } Fail:^(NSError *error) {
+                NSLog(@"get oss config error!");
+                NSLog(@"%@",[error localizedDescription]);
+            }];
+            
+            NSNumber *num = [[VideoDBOperation Singleton] getNoPlayVideoNum];
+            [self personalNoPlayVideoNumChange:num];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                //            [self performSegueWithIdentifier:@"toTabView" sender:self];
+                self.tabBarController.tabBar.hidden = NO;
+                [self.navigationController popToRootViewControllerAnimated:YES];
+            });
+            
+            //        [self performSegueWithIdentifier:@"toTabView" sender:self];
+            
+            
+        } Fail:^(NSNumber *loginstatus,NSError *error) {
+            NSLog(@"soap login error! ret = %@",loginstatus);
+            NSLog(@"%@",[error localizedDescription]);
+            if ([loginstatus isEqualToNumber:[NSNumber numberWithInt:MOVIERDC_SERVER_INVALIDUSERORPWD]]) {
+                NSString *message = [[NSString alloc] initWithFormat:@"登录失败，用户名或密码错误!"];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示!" message:message delegate:nil cancelButtonTitle:@"OK"otherButtonTitles:nil];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [alert show];
+                });
+                
+            }else{
+                NSString *message = [[NSString alloc] initWithFormat:@"登陆失败，请重新登陆!(%@)",loginstatus];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示!" message:message delegate:nil cancelButtonTitle:@"OK"otherButtonTitles:nil];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [alert show];
+                });
+            }
+        }];
+        
+        
+    }
+    
+    
+//    return NOW_LOGOUT_HASLOGIN;
+//    if (ret == NOW_LOGIN) {
+//#pragma mark -- 跳转到主控制器MovierTabBarViewController, 在这里应该获取到用户没有播放的视频数量, 通知MovierTabBarViewController修改提示数字
+//        NSNumber *num = [[VideoDBOperation Singleton] getNoPlayVideoNum];
+//        [self personalNoPlayVideoNumChange:num];
+//        [self performSegueWithIdentifier:@"toTabView" sender:self];
+//    }else{
+//        UIAlertView *alert = [[UIAlertView alloc]
+//                              initWithTitle:@"MessageBox"
+//                              message:@"登陆失败，请重新登陆！"
+//                              delegate:nil
+//                              cancelButtonTitle:@"OK"
+//                              otherButtonTitles:nil];
+////        [alert show];
+//    }
+}
+
+- (IBAction)outDone:(id)sender{
+    [sender resignFirstResponder];
+}
+
+- (void)dealloc
+{
+    [super dealloc];
+}
+
+
+@end

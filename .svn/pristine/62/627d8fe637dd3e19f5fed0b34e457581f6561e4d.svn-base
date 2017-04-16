@@ -1,0 +1,57 @@
+//
+//  NewFolderAddMaterialViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/4.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "NewFolderAddMaterialViewController.h"
+#import "LocalMaterialsViewController.h"
+@interface NewFolderAddMaterialViewController ()
+
+@end
+
+@implementation NewFolderAddMaterialViewController
+-(void)viewWillAppear:(BOOL)animated{
+    
+    [super viewWillAppear:animated];
+    self.navigationController.tabBarController.tabBar.hidden = YES;
+    // [self.navigationController.tabBarController.tabBar removeFromSuperview];
+    //[self.tabBarController ]
+}
+-(void)viewWillDisappear:(BOOL)animated{
+    
+    [super viewWillDisappear: animated];
+    self.navigationController.tabBarController.tabBar.hidden = NO;
+    //[self.navigationController.tabBarController.tabBar addSubview:b];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+ 
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+- (IBAction)uploadButtonAction:(id)sender {
+    
+
+//    LocalMaterialsViewController *locaMatVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalMaterialVCStoryboardID"];
+//    [self.navigationController pushViewController:locaMatVC animated:YES];
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

@@ -1,0 +1,38 @@
+//
+//  IcloudStorageViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/30.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+//#import "OSS.h"
+#import "MBProgressHUD.h"
+#import "UserEntity.h"
+#import "RKTabView.h"
+
+@interface IcloudStorageViewController : UIViewController<UITableViewDataSource,UITableViewDelegate,OSSClientZhangDelegate,UIActionSheetDelegate,UIImagePickerControllerDelegate,MBProgressHUDDelegate,RKTabViewDelegate>
+@property (nonatomic, strong) IBOutlet RKTabView *TopTabView;
+@property (strong,nonatomic) OSSClientZhang *client;
+@property (strong,nonatomic) NSString *bucketName;
+@property (strong,nonatomic) NSString *prefix;
+@property (strong,nonatomic) NSString *cloudId;
+@property (strong,nonatomic) NSString *cloudKey;
+@property (strong,nonatomic) NSString *endPoint;
+@property (strong,nonatomic) NSMutableArray *buckets;
+@property (strong,nonatomic) NSMutableArray *objects;
+@property (strong,nonatomic) NSMutableArray *folders;
+@property (strong,nonatomic) NSMutableArray *selectedobjs;
+@property (strong,nonatomic) NSMutableArray *objectsURL;
+@property (strong,nonatomic) NSIndexPath *indexPaths;
+@property (nonatomic) BOOL isOpen;
+@property (nonatomic) NSInteger countButtonClick;
+
+@property (retain, nonatomic) IBOutlet UIButton *icloudFolderButton;
+@property (retain, nonatomic) IBOutlet UITableView *icloudTabV;
+@property (retain, nonatomic) IBOutlet UIButton *transportButton;
+@property (retain,nonatomic) IBOutlet UIButton *addFolderButton;
+- (IBAction)addFoldersButtonAction:(id)sender;
+
+@end

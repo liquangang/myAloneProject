@@ -1,0 +1,13 @@
+//
+//  PersonalVideoOrder.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/4.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "PersonalVideoOrder.h"
+
+@implementation PersonalVideoOrder
+
+@end

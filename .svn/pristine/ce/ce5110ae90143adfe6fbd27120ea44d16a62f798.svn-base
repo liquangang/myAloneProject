@@ -1,0 +1,117 @@
+
+
+
+//
+//  ActivityViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/8/17.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "ActivityViewController.h"
+#import "ActivityTableViewCell.h"
+#import "SoapOperation.h"
+#import "MJRefresh.h"
+#import "CustomeClass.h"
+#import "VideoLabelDetailViewController.h"
+
+@interface ActivityViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *activityTable;
+/** 界面数据源*/
+@property (nonatomic, strong) NSMutableArray * activityDataMuArray;
+@end
+
+@implementation ActivityViewController
+
+- (NSMutableArray *)activityDataMuArray{
+    if (!_activityDataMuArray) {
+        _activityDataMuArray = [NSMutableArray new];
+    }
+    return _activityDataMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    
+    self.title = @"活动";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    [self.activityTable addFooterWithCallback:^{
+        [self downloadDataWithStart:self.activityDataMuArray.count];
+    }];
+    
+    [self.activityTable addHeaderWithCallback:^{
+        [self downloadDataWithStart:0];
+    }];
+    
+    [self downloadDataWithStart:0];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [self.tabBarController.tabBar setHidden:YES];
+}
+
+- (void)downloadDataWithStart:(NSInteger)startIndex{
+    [CustomeClass hudShowWithView:self.view Tag:11];
+    
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_getlabelsbyparentidWithLabelId:self.activityLabelId Offset:startIndex Count:66 Success:^(NSMutableArray *serverDataArray) {
+        if (startIndex == 0) {
+            [weakSelf.activityDataMuArray removeAllObjects];
+        }
+        [weakSelf.activityDataMuArray addObjectsFromArray:[serverDataArray copy]];
+        MAINQUEUEUPDATEUI({
+            [weakSelf.activityTable footerEndRefreshing];
+            [weakSelf.activityTable headerEndRefreshing];
+            if (serverDataArray.count == 0) {
+                [CustomeClass showMessage:@"没有更多活动了" ShowTime:1.5];
+            }else{
+                [weakSelf.activityTable reloadData];
+            }
+            [CustomeClass hudHiddenWithView:self.view Tag:11];
+        })
+    } Fail:^(NSError *error) {
+        [CustomeClass hudHiddenWithView:self.view Tag:11];
+        RELOADSERVERDATA([weakSelf downloadDataWithStart:startIndex];);
+    }];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - table回调
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 215;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.activityDataMuArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return [ActivityTableViewCell getActivityCellWithTable:tableView ActivityInfo:self.activityDataMuArray[indexPath.row]];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    NSDictionary * labelDetailInfo = self.activityDataMuArray[indexPath.row];
+    VideoLabelDetailViewController * videoLabelDetailVc = [VideoLabelDetailViewController new];
+    videoLabelDetailVc.labelId = labelDetailInfo[@"label_id"];
+    videoLabelDetailVc.labelName = labelDetailInfo[@"label_name"];
+    videoLabelDetailVc.activityDes = labelDetailInfo[@"des"];
+    [self.navigationController pushViewController:videoLabelDetailVc animated:YES];
+}
+
+@end

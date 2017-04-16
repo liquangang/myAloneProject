@@ -1,0 +1,17 @@
+//
+//  MWICloudOrderListCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import <UIKit/UIKit.h>
+// 订单模型
+@class MWICloudOrderListModel;
+
+@interface MWICloudOrderListCell : UITableViewCell
+@property (strong, nonatomic) MWICloudOrderListModel *model;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

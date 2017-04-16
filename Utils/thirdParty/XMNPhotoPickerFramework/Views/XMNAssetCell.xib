@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="XMNAssetCell" id="NU2-Pk-TBh" customClass="XMNAssetCell">
+            <rect key="frame" x="0.0" y="0.0" width="80" height="80"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="80" height="80"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="vEd-S4-8nP"/>
+                    <view alpha="0.69999999999999996" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bD5-Zz-Mnt">
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" placeholderIntrinsicWidth="18" placeholderIntrinsicHeight="18" image="video_icon" translatesAutoresizingMaskIntoConstraints="NO" id="kA8-lw-mk4"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e7A-WE-yQk">
+                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="e7A-WE-yQk" secondAttribute="bottom" id="7X6-Kl-ZYI"/>
+                            <constraint firstItem="e7A-WE-yQk" firstAttribute="leading" secondItem="bD5-Zz-Mnt" secondAttribute="leading" constant="30" id="IXP-za-ejY"/>
+                            <constraint firstItem="kA8-lw-mk4" firstAttribute="leading" secondItem="bD5-Zz-Mnt" secondAttribute="leading" constant="4" id="PHF-nr-tmc"/>
+                            <constraint firstItem="e7A-WE-yQk" firstAttribute="top" secondItem="bD5-Zz-Mnt" secondAttribute="top" id="bYe-ik-nL8"/>
+                            <constraint firstAttribute="trailing" secondItem="e7A-WE-yQk" secondAttribute="trailing" constant="4" id="ogA-IX-EBY"/>
+                            <constraint firstAttribute="height" constant="18" id="p3f-he-0Xk"/>
+                            <constraint firstAttribute="bottom" secondItem="kA8-lw-mk4" secondAttribute="bottom" id="qRl-kg-NTd"/>
+                            <constraint firstItem="kA8-lw-mk4" firstAttribute="top" secondItem="bD5-Zz-Mnt" secondAttribute="top" id="yQi-oo-LJa"/>
+                        </constraints>
+                    </view>
+                    <button contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lJE-dn-xaX">
+                        <state key="normal" backgroundImage="photo_state_normal"/>
+                        <state key="selected" backgroundImage="photo_state_selected"/>
+                        <connections>
+                            <action selector="_handleButtonAction:" destination="NU2-Pk-TBh" eventType="touchUpInside" id="TZb-HS-w1S"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="bD5-Zz-Mnt" secondAttribute="bottom" id="Et5-AE-SV7"/>
+                <constraint firstItem="vEd-S4-8nP" firstAttribute="top" secondItem="NU2-Pk-TBh" secondAttribute="top" id="Fak-lE-5vw"/>
+                <constraint firstAttribute="trailing" secondItem="vEd-S4-8nP" secondAttribute="trailing" id="OwY-fZ-onA"/>
+                <constraint firstAttribute="bottom" secondItem="vEd-S4-8nP" secondAttribute="bottom" id="TjC-XT-o6g"/>
+                <constraint firstItem="vEd-S4-8nP" firstAttribute="leading" secondItem="NU2-Pk-TBh" secondAttribute="leading" id="ceo-Wp-JpJ"/>
+                <constraint firstItem="lJE-dn-xaX" firstAttribute="top" secondItem="NU2-Pk-TBh" secondAttribute="top" id="fXM-zw-ZgA"/>
+                <constraint firstAttribute="trailing" secondItem="lJE-dn-xaX" secondAttribute="trailing" id="nKF-ml-7iK"/>
+                <constraint firstItem="bD5-Zz-Mnt" firstAttribute="leading" secondItem="NU2-Pk-TBh" secondAttribute="leading" id="rzF-Dr-5QL"/>
+                <constraint firstAttribute="trailing" secondItem="bD5-Zz-Mnt" secondAttribute="trailing" id="wh1-Mv-wTt"/>
+            </constraints>
+            <size key="customSize" width="84" height="125"/>
+            <connections>
+                <outlet property="photoImageView" destination="vEd-S4-8nP" id="p01-U8-NVh"/>
+                <outlet property="photoStateButton" destination="lJE-dn-xaX" id="eb3-Iw-SMF"/>
+                <outlet property="videoLengthLabel" destination="e7A-WE-yQk" id="AMO-mr-vBq"/>
+                <outlet property="videoView" destination="bD5-Zz-Mnt" id="RAG-3m-tdG"/>
+            </connections>
+            <point key="canvasLocation" x="-382" y="-62"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="photo_state_normal" width="27" height="27"/>
+        <image name="photo_state_selected" width="27" height="27"/>
+        <image name="video_icon" width="17" height="17"/>
+    </resources>
+    <simulatedMetricsContainer key="defaultSimulatedMetrics">
+        <simulatedStatusBarMetrics key="statusBar"/>
+        <simulatedOrientationMetrics key="orientation"/>
+        <simulatedScreenMetrics key="destination" type="retina4_7.fullscreen"/>
+    </simulatedMetricsContainer>
+</document>

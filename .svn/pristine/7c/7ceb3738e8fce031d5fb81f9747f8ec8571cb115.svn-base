@@ -1,0 +1,30 @@
+//
+//  MWFooterUploadAlbumView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWFooterUploadAlbumView;
+
+typedef enum {
+    /**  新建文件夹 */
+    MWFooterUploadAlbumViewButtonTypeNewFolder,
+    /**  选定 */
+    MWFooterUploadAlbumViewButtonTypeChoose
+}MWFooterUploadAlbumViewButtonType;
+
+@protocol MWFooterUploadAlbumViewDelegate <NSObject>
+
+@optional
+- (void)uploadAlbumView:(MWFooterUploadAlbumView *)uploadAlbumView didClickButton:(MWFooterUploadAlbumViewButtonType)type;
+@end
+
+@interface MWFooterUploadAlbumView : UIView
+
+@property (weak, nonatomic) id<MWFooterUploadAlbumViewDelegate> delegate;
+
++ (instancetype)uploadAlbumView;
+@end

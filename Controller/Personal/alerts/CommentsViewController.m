@@ -1,0 +1,292 @@
+//
+//  CommentsViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/6/30.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "CommentsViewController.h"
+//自定义评论cell
+#import "CommentsCell.h"
+//自定义回复cell
+#import "CommentsSecondCell.h"
+//消息model
+#import "MessageObj.h"
+#import "VideoDBOperation.h"
+#import "SoapOperation.h"
+#import "Video.h"
+#import "ISPlaceholderTextView.h"
+#import "CustomTextView.h"
+#import "CustomeClass.h"
+#import "MyVideoViewController.h"
+#import "VideoDetailViewController.h"
+
+@interface CommentsViewController ()<UITableViewDelegate, UITableViewDataSource, UITextViewDelegate, UITextViewDelegate>
+@property (weak, nonatomic) IBOutlet UIButton *sendBtn;
+@property (weak, nonatomic) IBOutlet UITextView *inputTextView;
+@property (weak, nonatomic) IBOutlet UIView *backView;
+@property (weak, nonatomic) IBOutlet UITableView *commentTable;
+/** 数据源*/
+@property (nonatomic, strong) NSMutableArray * commentsMuArray;
+///** 回复输入部分*/
+//@property (nonatomic, strong) CustomTextView * inputTextView;
+/** 是否正在编辑*/
+@property (nonatomic, assign) BOOL isEdit;
+/** 回复的那条数据*/
+@property (nonnull, strong) MessageObj * replyMesObj;
+/** 键盘高度*/
+@property (nonatomic, assign) CGFloat currentkeyboardHeight;
+@end
+
+static NSString * cellId = @"commentsCell";
+static NSString * cellId2 = @"commentsSecondCell";
+
+@implementation CommentsViewController
+
+#pragma mark - 数据源懒加载
+- (NSMutableArray *)commentsMuArray{
+    if (!_commentsMuArray) {
+        _commentsMuArray = [NSMutableArray new];
+    }
+    return _commentsMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self initUI];
+    
+    [self downloadData];
+}
+
+#pragma mark - downloadData
+- (void)downloadData{
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [weakSelf.commentsMuArray addObjectsFromArray:[[VideoDBOperation Singleton] getCommentDataAndCommentReplyData]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf.commentTable reloadData];
+        });
+    });
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    self.title = @"评论";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    REGISTEREDNOTI(keyboardChange:, UIKeyboardDidChangeFrameNotification);
+    self.currentkeyboardHeight = 0;
+    
+    ADDTAPGESTURE(self.view, hiddenKeyboard)
+}
+
+- (void)hiddenKeyboard:(UITapGestureRecognizer *)tap{
+    [self.view endEditing:YES];
+}
+
+- (void)keyboardChange:(NSNotification *)noti{
+    CGFloat keyboardHeight = [[noti.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height;
+    int changeHeight = [[NSString stringWithFormat:@"%g", self.currentkeyboardHeight] intValue] - [[NSString stringWithFormat:@"%g", keyboardHeight] intValue];
+    if (changeHeight == 0) {
+        [UIView animateWithDuration:0.3 animations:^{
+            self.backView.frame = CGRectMake(0, ISScreen_Height - 44, ISScreen_Width, 44);
+            self.backView.hidden = YES;
+            self.commentTable.frame = CGRectMake(0, 0, ISScreen_Width, ISScreen_Height - 64);
+        }];
+        
+        self.currentkeyboardHeight = 0;
+        return;
+    }
+    [UIView animateWithDuration:0.3 animations:^{
+        self.backView.frame = CGRectMake(0, self.backView.frame.origin.y + changeHeight, ISScreen_Width, 44);
+        self.backView.hidden = NO;
+        self.commentTable.frame = CGRectMake(0, 0, ISScreen_Width,  self.commentTable.frame.size.height + changeHeight - 44);
+    }];
+    
+    self.currentkeyboardHeight = keyboardHeight;
+}
+
+- (IBAction)sengReply:(id)sender {
+    __weak typeof(self) weakSelf = self;
+    SoapOperation *ws = [SoapOperation Singleton];
+    [ws WS_SubmitCommentByid:[NSNumber numberWithInteger:[weakSelf.replyMesObj.videoid integerValue]] Session:nil Reply:[NSNumber numberWithInt:[self.replyMesObj.srccontentid intValue]] Content:weakSelf.inputTextView.text Success:^{
+        DEBUGLOG(@"上传回复成功");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CustomeClass showMessage:@"回复成功" ShowTime:1.5];
+            [weakSelf.view endEditing:YES];
+        });
+    } Fail:^(NSError *error) {
+        DEBUGLOG(@"上传回复失败");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CustomeClass showMessage:@"回复失败" ShowTime:1.5];
+            [weakSelf.view endEditing:YES];
+        });
+    }];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - tableDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    MessageObj * mesObj = self.commentsMuArray[indexPath.section];
+    if ([mesObj.term isEqualToString:@"评论了你"]) {
+        CommentsCell * cell = [CommentsCell getCommentCellWithMesObj:mesObj table:tableView];
+        return 148 + (cell.commentContentTextViewHeight.constant - 14);
+    }
+    CommentsSecondCell * cell = [CommentsSecondCell getCommentReplyCellWithTable:tableView MessageObj:mesObj];
+    return 182 + (cell.commentReplyedContentHeight.constant - 14) + (cell.commentContentTextViewHeight.constant - 14);
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    if (self.commentsMuArray.count - 1 == section) {
+        return 1;
+    }
+    return 12;
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section{
+    view.tintColor = [UIColor clearColor];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    BACKPROPMTVIEW(self.commentsMuArray.count == 0, 1000, @"您还没有收到评论", self.commentTable);
+    return self.commentsMuArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    MessageObj * mesObj = self.commentsMuArray[indexPath.section];
+    if ([mesObj.term isEqualToString:@"评论了你"]) {
+        CommentsCell * cell = [CommentsCell getCommentCellWithMesObj:mesObj table:tableView];
+         __weak typeof(self) weakSelf = self;
+        [cell pushToVideoVc:^{
+            [weakSelf pushVideoVc:cell.pushVideoId];
+        }];
+        [cell pushtoPersonalVc:^{
+            [weakSelf pushPersonVc:cell.pushPersonId];
+        }];
+        [cell replyComment:^{
+            [weakSelf sendReplyComment:cell.mesObj];
+        }];
+        return cell;
+    }else{
+        CommentsSecondCell * cell = [CommentsSecondCell getCommentReplyCellWithTable:tableView MessageObj:mesObj];
+        __weak typeof(self) weakSelf = self;
+        [cell pushToVideoVc:^{
+            [weakSelf pushVideoVc:cell.pushVideoId];
+        }];
+        [cell pushtoPersonalVc:^{
+            [weakSelf pushPersonVc:cell.pushPersonId];
+        }];
+        [cell replyComment:^{
+            [weakSelf sendReplyComment:cell.mesObj];
+        }];
+        return cell;
+    }
+}
+
+- (void)sendReplyComment:(MessageObj *)mesObj{
+        [self.inputTextView becomeFirstResponder];
+        self.inputTextView.text = [NSString stringWithFormat:@"@%@：", mesObj.srcnickname];
+        self.replyMesObj = mesObj;
+}
+
+- (void)pushPersonVc:(NSString *)personId{
+    
+    MyVideoViewController * otherVideoVc = [MyVideoViewController new];
+    otherVideoVc.isShowOtherUserVideo = YES;
+    otherVideoVc.userId = personId;
+    [self.navigationController pushViewController:otherVideoVc animated:YES];
+    
+//    __weak typeof(self) weakSelf = self;
+//    [[SoapOperation Singleton] WS_GetPersonalVideos:nil Customer:[NSNumber numberWithInt:[personId intValue]] Start:0 Count:@(1) Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+//        dispatch_async(dispatch_get_main_queue(), ^{
+////            OtherPeopleViewController *other = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"OthersVCStoryBoardID"];
+//            if (array.item.count > 0) {
+////                MovierDCInterfaceSvc_VDCVideoInfoEx * videoInforEx = array.item[0];
+////                [[Video Singleton] setWSContent:videoInforEx];
+//                [weakSelf.navigationController pushViewController:other animated:YES];
+//            }
+//            else {
+//                UIAlertView * alert = [[UIAlertView alloc] initWithTitle:nil message:@"该用户视频没有公开" delegate:self cancelButtonTitle:@"ok" otherButtonTitles: nil];
+//                [alert show];
+//            }
+//        });
+//    } Fail:^(NSError *error) {
+//        
+//    }];
+}
+
+- (void)pushVideoVc:(NSString *)videoId{
+    //请求视频界面所需数据
+//    MovierDCInterfaceSvc_IDArray * idArray = [MovierDCInterfaceSvc_IDArray new];
+//    [idArray.item addObject:videoId];
+//    [[SoapOperation Singleton] WS_GetVideosInfo:nil IDarray:idArray Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+//        MovierDCInterfaceSvc_VDCVideoInfoEx *collectpageVideoOrder = [[MovierDCInterfaceSvc_VDCVideoInfoEx alloc] init];
+//        collectpageVideoOrder = array.item[0];
+//        [Video Singleton].videoID = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoID intValue]];
+//        [Video Singleton].videoName = collectpageVideoOrder.szVideoName;
+//        [Video Singleton].ownerID = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nOwnerID intValue]];
+//        [Video Singleton].ownerName = collectpageVideoOrder.szOwnerName;
+//        [Video Singleton].ownerAcatar = collectpageVideoOrder.szAcatar;
+//        [Video Singleton].videoLabelName = collectpageVideoOrder.szVideoName;
+//        [Video Singleton].videoCreateTime = collectpageVideoOrder.szCreateTime;
+//        [Video Singleton].videoThumbnailUrl = [collectpageVideoOrder.szThumbnail stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+//        [Video Singleton].videoReferenceUrl = [collectpageVideoOrder.szReference stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+//        [Video Singleton].videoNumberOfPraise = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nPraise intValue]];
+//        [Video Singleton].videoNumberOfShare = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nShareNum intValue]];
+//        [Video Singleton].videoNumberOfFavorite = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nFavoritesNum intValue]];
+//        [Video Singleton].videoCollectStatus =  [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoStatus intValue]];
+//        [Video Singleton].videoShare = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoShare intValue]];
+//        int videoID = [collectpageVideoOrder.nVideoID intValue];
+//        [[SoapOperation Singleton] WS_IncreaseVisit:@(videoID) Success:^(NSNumber *num) {
+//            [Video Singleton].videoPlayCount = [NSString stringWithFormat:@"%@", num];
+//        } Fail:^(NSError *error) {
+//            NSLog(@"------%s-----%@", __func__, error);
+//        }];
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            // PersonalMovieDetailPreviewViewController 点击个人图标无反应
+//            HomeVideoDetailViewController *detail = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"MovieDetailPreviewStoryboardID1"];
+//            detail.isVideoPublic = [Video Singleton].videoShare;
+//            detail.videoId = videoID;
+//            NSLog(@"videoID--------%d", videoID);
+//            [self.navigationController pushViewController:detail animated:YES];
+//        });
+//    } Fail:^(NSError *error) {
+//        
+//    }];
+    WEAKSELF2
+    [[SoapOperation Singleton] getvideosbyvideoidarrWithIdArray:@[@([videoId intValue])] Success:^(NSMutableArray *serverDataArray) {
+        MAINQUEUEUPDATEUI({
+            NSMutableDictionary * videoInfoEx = serverDataArray[0];
+            [[Video Singleton] setVideoWithVideoInfo:videoInfoEx];
+            VideoDetailViewController * videoDetailVc = [VideoDetailViewController new];
+            videoDetailVc.videoInfo = videoInfoEx;
+            [self.navigationController pushViewController:videoDetailVc animated:YES];
+        })
+    } Fail:^(NSError *error) {
+        RELOADSERVERDATA([weakSelf pushVideoVc:videoId];);
+    }];
+}
+
+
+@end

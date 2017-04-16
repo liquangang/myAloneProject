@@ -1,0 +1,29 @@
+//
+//  WaterLayout.h
+//  M-Cut
+//
+//  Created by liquangang on 16/10/7.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+/*
+ *
+ *  说明：高度block必须实现 使用set方法实现；其余的不设置默认有1列，其余数据默认为0；
+ *
+ */
+
+@interface WaterLayout : UICollectionViewLayout
+/** 列数*/
+@property (nonatomic, assign) NSInteger rowCount;
+/** 行距*/
+@property (nonatomic, assign) CGFloat lineSpace;
+/** 列之间的间距*/
+@property (nonatomic, assign) CGFloat rowSpace;
+/** 每个的间距*/
+@property (nonatomic, assign) UIEdgeInsets itemEdgeInset;
+
+/** 获得高度block（必须实现）*/
+@property (nonatomic, copy) CGFloat(^itemHeightBlock)(NSIndexPath * itemIndex);
+@end

@@ -1,0 +1,888 @@
+//
+//  LogOutPersonViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/4/16.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+#define WIDTH self.navigationController.navigationBar.bounds.size.width
+#define CELLHEIGHT cell.contentView.bounds.size.height
+
+#import "LogOutPersonViewController.h"
+#import "UserLoginViewController.h"
+#import "LoginViewController.h"
+#import "APPUserPrefs.h"
+#import "MyCenterCell.h"
+// 添加微信登陆
+#import "WXApi.h"
+#import "UMSocial.h"
+#import "PerfectPersonalInfoViewController.h"
+#import "HomeViewController.h"
+#import "UpdateSql.h"
+#import "MC_OrderAndMaterialCtrl.h"
+
+//跳转的三个界面
+#import "PersonalViewController.h"
+#import "MyFavourateViewController.h"
+#import "DraftboxTableViewController.h"
+#import "InstructionsViewController.h"
+//旧页面
+#import "EditMyInforTableViewController.h"
+//新页面
+#import "EditPersonalInfoViewController.h"
+#import "MyCollectViewController.h"
+//新设置界面
+#import "SetNewViewController.h"
+//我的等级页面
+#import "MylevelViewController.h"
+//手机绑定界面
+#import "TelephoneBindingViewController.h"
+//我的任务界面
+#import "MyTaskViewController.h"
+//我的映币界面
+#import "MyCoinViewController.h"
+//消息通知界面
+#import "AlertsViewController.h"
+//我的影片（2016.07.04新增）
+#import "MyVideoViewController.h"
+//我的好友（2016.07.05新增）
+#import "MyFriendViewController.h"
+#import "CustomeClass.h"
+#import "ServiceTermsViewController.h"
+
+#import "VideoDetailViewController.h"
+
+#import "VideoDetailSecondTableViewController.h"
+
+#import "TakeVideoViewController.h"
+
+#import "LoginAndRegister.h"
+#import "CouponViewController.h"
+
+@interface LogOutPersonViewController() <UMSocialUIDelegate, UIAlertViewDelegate>
+-(IBAction)gotoMyInforMationView:(id)sender;
+@property (nonatomic,strong) PersonalViewController *personVC;
+@property (nonatomic, assign) int noPlayMovieNum;
+/**  保存当前用户的id*/
+@property (nonatomic, assign) int customerId;
+@end
+
+@implementation LogOutPersonViewController
+
+
+
+-(IBAction)gotoMyInforMationView:(id)sender
+{
+    // 解决用户没有登录时点击头像按钮可以看到用户信息的问题
+    if (![[UserEntity sharedSingleton] isAppHasLogin]) {
+//        [self popViewAnimation];
+        [self showLoginAndRegisterWindow];
+        return;
+    }
+    
+    //跳转到个人信息编辑页面
+    //旧页面
+//    UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+//    EditMyInforTableViewController *editMyInfo = [mainStoryboard instantiateViewControllerWithIdentifier:@"EditMyInforTableViewController"];
+    //新页面
+    EditPersonalInfoViewController * editMyInfo = [EditPersonalInfoViewController new];
+    editMyInfo.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:editMyInfo animated:YES];
+
+}
+
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    self.tabBarController.tabBar.hidden = NO;
+//    [self refreshInfo];
+    [self setUserInfo];
+}
+
+- (void)hiddenLoginAndRegisterWindow:(NSNotification *)noti{
+    [super hiddenLoginAndRegisterWindow:noti];
+    [LoginAndRegister getSessionWhenUserAlreadyLogin];
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+    //禁止侧滑手势
+    if (!self.tabBarController.tabBar.hidden) {
+        if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+            self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+        }
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    //打开侧滑手势
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    }
+}
+
+/** 每次进入该页面时设置用户的信息*/
+- (void)setUserInfo{
+    if (![UserEntity sharedSingleton].isAppHasLogin) {
+        [avatar setImage:[UIImage imageNamed:@"head"]];
+        _UserSingature.text = @"";
+        _UserName.text = @"";
+        [_UserName reloadInputViews];
+        [_UserSingature reloadInputViews];
+        self.userLevelImage.image = nil;
+        self.withoutLoginLabel.hidden = NO;
+        return;
+    }
+    self.withoutLoginLabel.hidden = YES;
+    [LoginAndRegister getSessionWhenUserAlreadyLogin];
+}
+
+- (void)setWithoutLoginLabel{
+    //如果登录了隐藏未登录提示
+    if ([UserEntity sharedSingleton].isAppHasLogin) {
+        self.withoutLoginLabel.hidden = YES;
+    }else{
+        self.withoutLoginLabel.hidden = NO;
+    }
+}
+
+- (IBAction)headPortraitClick:(id)sender {
+    if (![[UserEntity sharedSingleton] isAppHasLogin]) {
+//        [self popViewAnimation];
+        [self showLoginAndRegisterWindow];
+    }
+}
+
+- (IBAction)settingButtonClick:(id)sender {
+    if ([[UserEntity sharedSingleton] isAppHasLogin]) {
+        //旧界面
+//        UIViewController *settingVC =[self.storyboard instantiateViewControllerWithIdentifier:@"SettingStoryboard"] ;
+        //新界面
+        SetNewViewController * settingVC = [SetNewViewController new];
+        settingVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:settingVC animated:YES];
+        [self popBackViewAnimation];
+        [self performSelector:@selector(windowHidden) withObject:self afterDelay:.5];
+    }else
+//        [self popViewAnimation];
+        [self showLoginAndRegisterWindow];
+}
+/**
+  *   设置导航条title
+  */
+- (void)setupNav{
+    
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = @"我的";
+    titleView.textColor = [UIColor whiteColor];
+    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
+    attrs[NSFontAttributeName] = [UIFont systemFontOfSize:20];
+    titleView.size = [titleView.text boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:attrs context:nil].size;
+    self.navigationItem.titleView = titleView;
+}
+-(void)refreshInfo{
+    avatar.userInteractionEnabled=YES;
+    avatar.layer.cornerRadius = 53.0/2;
+    avatar.clipsToBounds = YES;
+    if ([[UserEntity sharedSingleton] isAppHasLogin]&&[UserEntity sharedSingleton].appLoginType==LoginTypePhone) {
+        [self loginWithIphone];
+        
+    }else if ([[UserEntity sharedSingleton] isAppHasLogin]&&[UserEntity sharedSingleton].appLoginType==LoginTypeWeChat){
+        [self loginWithThirtParty];
+    }else{
+        [avatar setImage:[UIImage imageNamed:@"head"]];
+        _UserSingature.text = @"";
+        [_UserName reloadInputViews];
+        [_UserSingature reloadInputViews];
+        self.userLevelImage.image = nil;
+    }
+//    if ([UserEntity sharedSingleton].isAppHasLogin) {
+//        [self fillUseEntity:[SoapOperation Singleton].WS_Session];
+//    }else{
+//        [avatar setImage:DEFAULTHEADIMAGE];
+//        _UserSingature.text = @"";
+//        [_UserName reloadInputViews];
+//        [_UserSingature reloadInputViews];
+//        self.userLevelImage.image = [UIImage new];
+//    }
+}
+
+- (void)loginWithIphone{
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton]WS_Login:[UserEntity sharedSingleton].appUserName Password:[UserEntity sharedSingleton].appUserPWD withVersion:[UpDateSql getAPPVersion] Encrypt:([UserEntity sharedSingleton].appLoginType==LoginTypePhone)?NO:YES Success:^(MovierDCInterfaceSvc_VDCSession *ws_session) {
+        [self fillUseEntity:ws_session];
+    } Fail:^(NSNumber *LoginStatus, NSError *error) {
+        RELOADSERVERDATA([weakSelf loginWithIphone];)
+    }];
+}
+
+- (void)loginWithThirtParty{
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_Login:[UserEntity sharedSingleton].appUserName ThirdPartyType:@"1" Token:[UserEntity sharedSingleton].appUserPWD Openid:[UserEntity sharedSingleton].appUserName APPVersion:[UpDateSql getAPPVersion] SubVersion:[UpDateSql getAPPVersion] Success:^(MovierDCInterfaceSvc_VDCSession* ws_session) {
+        [self fillUseEntity:ws_session];
+    } Fail:^(NSNumber *LoginStatus,NSError *error) {
+        RELOADSERVERDATA([weakSelf loginWithThirtParty];)
+    }];
+}
+
+
+-(void)fillUseEntity:(MovierDCInterfaceSvc_VDCSession*)ws_session{
+    [UserEntity sharedSingleton].customerId = [NSString stringWithFormat:@"%@",ws_session.nCustomerID ];
+    [[SoapOperation Singleton]WS_QueryUserInfo:^(MovierDCInterfaceSvc_VDCCustomerInfo *info) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [avatar sd_setImageWithURL:[NSURL URLWithString:info.szAcatar] placeholderImage:[UIImage imageNamed:@"head"] options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+            _UserName.text = info.szNickname;
+            _UserSingature.text = info.szSignature;
+            [UserEntity sharedSingleton].szNickname = info.szNickname;
+            [UserEntity sharedSingleton].szSignature = info.szSignature;
+            [UserEntity sharedSingleton].szAcatar = info.szAcatar;
+            [self setWithoutLoginLabel];
+        });
+    } Fail:^(NSError *error) {
+        NSLog(@"Login view WS_QueryUserInfo error= %@ ! ",[error localizedDescription]);
+    }];
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetmyscoreinshiancoinWithSuccess:^(MovierDCInterfaceSvc_VDCMyScoreInshianCoin *integralAndLevelInfo) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            weakSelf.userLevelImage.image = [UIImage imageNamed:[NSString stringWithFormat:@"userLevelImage%@", integralAndLevelInfo.nLevel]];
+        });
+    } Fail:^(NSError *error) {
+        DEBUGLOG(error)
+    }];
+
+}
+
+/** 更新用户等级图片*/
+- (void)updateLevel{
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetmyscoreinshiancoinWithSuccess:^(MovierDCInterfaceSvc_VDCMyScoreInshianCoin *integralAndLevelInfo) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+                        weakSelf.userLevelImage.image = [UIImage imageNamed:[NSString stringWithFormat:@"userLevelImage%@", integralAndLevelInfo.nLevel]];
+        });
+    } Fail:^(NSError *error) {
+        DEBUGLOG(error)
+    }];
+}
+
+- (void)changePropmtLabel:(NSNotification *)notice{
+    [self setPropmt];
+}
+
+- (void)setPropmt{
+    [self setFrendMesLabel];
+    [self setNoticeLabel];
+    [self setNoPlayVideoPromptLabel];
+}
+
+- (void)removePrompt:(NSNotification *)notice{
+    //隐藏所有提示label
+    for (int i = 1; i < 4; i++) {
+        UILabel * label = (id)[self.view viewWithTag:i];
+        label.hidden = YES;
+    }
+}
+
+#pragma mark - addPromptLabel
+- (void)addPromptLabelWithCellTag:(NSInteger)cellTag LabelTag:(NSInteger)promptLabelTag{
+    MyCenterCell * cell = (id)[self.view viewWithTag:cellTag];
+    UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(ISScreen_Width / 6 * 5 + 6, CELLHEIGHT / 2 - CELLHEIGHT / 6, CELLHEIGHT / 3, CELLHEIGHT / 3)];
+    [cell.contentView addSubview:label];
+    label.textColor = [UIColor whiteColor];
+    label.layer.cornerRadius = CELLHEIGHT / 6;
+    label.textAlignment = NSTextAlignmentCenter;
+    label.tag = promptLabelTag;
+    label.font = [UIFont boldSystemFontOfSize:8];
+    if ([[UserEntity sharedSingleton] isAppHasLogin]) {
+        if ([cell.iconNameLabel.text isEqualToString:@"我的影片"]) {
+            [self setNoPlayVideoPromptLabel];
+        }else if([cell.iconNameLabel.text isEqualToString:@"消息通知"]){
+            [self setNoticeLabel];
+        }else{
+            [self setFrendMesLabel];
+        }
+    }
+}
+
+/** 设置我的好友未读消息数量*/
+- (void)setFrendMesLabel{
+    UILabel * label = (id)[self.view viewWithTag:2];
+    label.layer.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1].CGColor;
+    label.layer.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1].CGColor;
+    label.text = [NSString stringWithFormat:@"%ld", (long)[[VideoDBOperation Singleton] selectAllNoReadFriendPrivateMesNum]];
+    if ([label.text intValue] <= 0) {
+        label.layer.backgroundColor = [UIColor clearColor].CGColor;
+        label.text = @"";
+    }
+}
+
+/** 设置未观看视频的消息数量*/
+- (void)setNoPlayVideoPromptLabel{
+    UILabel * label = (id)[self.view viewWithTag:1];
+    label.layer.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1].CGColor;
+    label.layer.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1].CGColor;
+    label.text = [NSString stringWithFormat:@"%ld", (long)[[VideoDBOperation Singleton] getNoPlayNewVideoNum]];
+    if ([label.text intValue] <= 0) {
+        label.layer.backgroundColor = [UIColor clearColor].CGColor;
+        label.text = @"";
+    }
+}
+
+/** 设置消息通知label未读数量*/
+- (void)setNoticeLabel{
+    UILabel * label = (id)[self.view viewWithTag:3];
+    label.layer.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1].CGColor;
+    NSInteger praiseNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:PRAISETERM];
+    NSInteger commentsNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:COMMENTSTERM];
+    NSInteger careNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:CARETERM];
+    NSInteger replyNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:REPLYTERM];
+    NSInteger collectNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:COLLECTTERM];
+    NSInteger systemNum = [[VideoDBOperation Singleton] getAllNoReadDataWithDataTerm:SYSTEMMESTERM];
+    label.text = [NSString stringWithFormat:@"%ld", praiseNum + commentsNum + careNum + collectNum + systemNum + replyNum];
+    if ([label.text intValue] <= 0) {
+        label.layer.backgroundColor = [UIColor clearColor].CGColor;
+        label.text = @"";
+    }
+}
+
+/** 跳转到消息通知界面*/
+- (void)pushToMessageVc:(NSNotification *)noti{
+    AlertsViewController * alertsVc = [AlertsViewController new];
+    alertsVc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:alertsVc animated:YES];
+}
+
+/** 跳转到好友界面*/
+- (void)pushToFriendVc:(NSNotification *)noti{
+    MyFriendViewController * myFriendVc = [MyFriendViewController new];
+    myFriendVc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:myFriendVc animated:YES];
+}
+
+- (void)pushToMyVideoVc:(NSNotification *)noti{
+    MyVideoViewController * myVideoVc = [MyVideoViewController new];
+    myVideoVc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:myVideoVc animated:YES];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    avatar.userInteractionEnabled=YES;
+    avatar.layer.cornerRadius = 53.0/2;
+    avatar.clipsToBounds = YES;
+    
+    //注册接收跳转到消息通知界面的通知
+    REGISTEREDNOTI(pushToMessageVc:, PUSHTOMESSAGEVC);
+    //注册接收跳转到好友界面的通知
+    REGISTEREDNOTI(pushToFriendVc:, PUSHTOFRIENDVC);
+    
+    //注册接受在当前页面时修改提示信息的通知
+    REGISTEREDNOTI(changePropmtLabel:, UPDATEPROPMTLABELTEXT);
+    //注册跳转到我的视频界面的通知
+    REGISTEREDNOTI(pushToMyVideoVc:, PUSHTOVIDEOVC);
+    /** 注册更新用户信息通知*/
+    REGISTEREDNOTI(updateUserInfo:, @"updateUserInfo");
+    
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"MyCellDataSource" ofType:@"plist"];
+    
+    NSArray *dataSource = [NSArray arrayWithContentsOfFile:path];
+    self.TableContent = dataSource;
+    [self setupNav];
+    
+    UITapGestureRecognizer *singleTap1 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(headPortraitClick:)];
+    [avatar addGestureRecognizer:singleTap1];
+   
+    secondWindow = [[UIWindow alloc]initWithFrame:CGRectMake(0, 0,SCREEN_WIDTH, SCREEN_HEIGHT)];
+    secondWindow.windowLevel= UIWindowLevelAlert;
+    secondWindow.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"backgroud_shadow"]];
+    secondWindow.userInteractionEnabled = YES;
+    customLoginAlertView = [[[NSBundle mainBundle]loadNibNamed:@"CustomLoginAlertView" owner:nil options:nil] lastObject];
+    customLoginAlertView.layer.masksToBounds = YES;
+    customLoginAlertView.layer.cornerRadius = 4;
+    [customLoginAlertView.iphoneLoginButtonClick addTarget:self action:@selector(UsePhoneLoginButtonClick) forControlEvents:UIControlEventTouchUpInside];
+    [customLoginAlertView.iphoneRegisterButtonClick addTarget:self action:@selector(RegisterButtonClick) forControlEvents:UIControlEventTouchUpInside];
+    [customLoginAlertView.agreementButtton addTarget:self action:@selector(agreementButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    
+    // 检查手机环境
+    [self check];
+    
+//    customLoginAlertView.frame = CGRectMake((self.view.width - 240)/2, self.view.height, 240, 200);
+    [secondWindow addSubview:customLoginAlertView];
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(processGestureRecongnizer:)];
+    [tapGesture setNumberOfTouchesRequired:1];
+    [tapGesture setNumberOfTapsRequired:1];
+    [secondWindow addGestureRecognizer:tapGesture];
+}
+
+- (void)updateUserInfo:(NSNotification *)noti{
+    self.withoutLoginLabel.hidden = YES;
+    [avatar sd_setImageWithURL:[NSURL URLWithString:[UserEntity sharedSingleton].szAcatar] placeholderImage:[UIImage imageNamed:@"head"] options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+    _UserName.text = [UserEntity sharedSingleton].szNickname;
+    _UserSingature.text = [UserEntity sharedSingleton].szSignature;
+    [self updateLevel];
+}
+
+- (void)agreementButtonAction{
+    [self windowHidden];
+    UIStoryboard *setStroyBoard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+    ServiceTermsViewController *serviceTermsVC =[setStroyBoard instantiateViewControllerWithIdentifier:@"ServiceTermsVCStoryBoardID"];
+    serviceTermsVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:serviceTermsVC animated:YES];
+}
+
+#pragma mark -- 检查手机环境
+- (void)check {
+    // 1. 判断是手机还是模拟器
+    UIDevice *device =[UIDevice currentDevice];
+    NSLog(@"%@",[device model]);
+    // 如果是模拟器, 提示在真机上运行
+    if (([[device model] isEqualToString:@"iPad Simulator"]||[[device model]isEqualToString:@"iPhone Simulator"])) {
+        // 模拟器环境
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"请在真机上运行" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
+        [alertView show];
+    } else {    // 真机环境
+        if( ![WXApi isWXAppInstalled]) {    // 如果没有安装微信
+            customLoginAlertView.WeChatLoginButton.hidden = YES;
+        } else {    // 执行登陆操作
+            customLoginAlertView.WeChatLoginButton.hidden = NO;
+            [customLoginAlertView.WeChatLoginButton addTarget:self action:@selector(weChatLoginButtonClick) forControlEvents:UIControlEventTouchUpInside];
+        }
+    }
+}
+
+/**
+ *  微信登陆按钮点击, 能执行这个方法, 手机一定安装了微信
+ */
+- (void)weChatLoginButtonClick {
+    // 从微信获取数据
+    [UMSocialControllerService defaultControllerService].socialUIDelegate = self;
+    UMSocialSnsPlatform *snsPlatform = [UMSocialSnsPlatformManager getSocialPlatformWithName:UMShareToWechatSession];
+    snsPlatform.loginClickHandler(self,[UMSocialControllerService defaultControllerService],YES,^(UMSocialResponseEntity *response){
+        
+//        NSLog(@"%@----response-----%d", response.data, response.responseType);
+        if (response.responseCode == UMSResponseCodeSuccess) {
+#pragma mark -- 测试
+//            NSLog(@"%@-------------", [UMSocialAccountManager socialAccountDictionary]);
+//            UMSocialAccountEntity *snsAccount = [[UMSocialAccountManager socialAccountDictionary] valueForKey:UMShareToWechatSession];
+//            NSLog(@"username is %@, uid is %@, token is %@ url is %@",snsAccount.userName,snsAccount.usid,snsAccount.accessToken,snsAccount.iconURL);
+#pragma mark -- 原有代码
+            [[UMSocialDataService defaultDataService] requestSnsInformation:UMShareToWechatSession  completion:^(UMSocialResponseEntity *response){
+                NSLog(@"SnsInformation is %@",response.data);
+                NSLog(@"profile_image_url ---- %@", response.data[@"profile_image_url"]);
+                // 1. 给映像服务器发送请求, 注册账号/或者登陆
+                [self registerFromServer:response.data];
+                
+            }];
+#pragma mark -- 原有代码
+            // 1. 退出登陆界面
+            [self popBackViewAnimation];
+            [self performSelector:@selector(windowHidden) withObject:self afterDelay:.5];
+
+        } else {
+            [self showMessage:@"从微信获取信息失败"];
+        }
+    });
+}
+
+
+- (void)showMessage:(NSString *)msg {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:nil message:msg delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        [alertView show];
+    });
+
+}
+
+#pragma mark -- 拿到微信的数据到服务器注册
+/**
+ *  @return 返回注册结果, 0成功, 其他失败
+ */
+- (void)registerFromServer:(NSDictionary *)data {
+    // openid
+    NSString *openid = [data[@"openid"] length] == 0 ? @"" : data[@"openid"];
+    // 测试账号, openid 随便写一个字符串, 就可以注册新账号
+//    NSString *openid = @"dldkhgfvhnvjsdafhkjnhsanfhnhjhgfyhghvk";
+    NSString *access_token = [data[@"access_token"] length] == 0 ? @"" : data[@"access_token"];
+    
+    //https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
+    NSString * URLString = [NSString stringWithFormat:@"https://api.weixin.qq.com/sns/userinfo?access_token=%@&openid=%@",access_token,openid];
+    NSURLRequest *request1 = [[NSURLRequest alloc]initWithURL:[NSURL URLWithString:URLString] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
+    NSData *received = [NSURLConnection sendSynchronousRequest:request1 returningResponse:nil error:nil];
+    
+    NSDictionary *wechatinfo = [NSJSONSerialization JSONObjectWithData:received options:0 error:nil];
+    
+    NSLog(@"%@",wechatinfo);
+    
+//    NSString *str = [[NSString alloc]initWithData:received encoding:NSUTF8StringEncoding];
+    /*
+    NSURL * URL = [NSURL URLWithString:[URLString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    NSURLRequest * request = [[NSURLRequest alloc]initWithURL:URL];
+    NSURLResponse * response = nil;
+    NSError * error = nil;
+    NSDictionary *abc = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        NSLog(@"error: %@",[error localizedDescription]);
+    }else{
+        NSLog(@"response : %@",response);
+        NSLog(@"backData : %@",[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding]);
+    }*/
+    
+    // 用户名
+    NSString *screen_name = [wechatinfo[@"nickname"] length] == 0 ? @"" : wechatinfo[@"nickname"];
+    // 头像
+    NSString *Profile = [wechatinfo[@"headimgurl"] length] == 0 ? @"" : wechatinfo[@"headimgurl"];
+    //此处未使用
+//    NSString *Country = [wechatinfo[@"country"] length] == 0 ? @"" : wechatinfo[@"country"];
+    NSString *City = [wechatinfo[@"city"] length] == 0 ? @"" : wechatinfo[@"city"];
+    NSString *Province = [wechatinfo[@"province"] length] == 0 ? @"" : wechatinfo[@"province"];
+    int gender = [wechatinfo[@"sex"] intValue];
+    if (gender == 0) {
+        gender = 1;
+    } else if (gender == 1) {
+        gender = 2;
+    }
+    NSString *unionid = [wechatinfo[@"unionid"] length] == 0 ? @"" : wechatinfo[@"unionid"];
+    
+    MovierDCInterfaceSvc_VDCThirdPartyAccount *account = [[MovierDCInterfaceSvc_VDCThirdPartyAccount alloc]init];
+    account.szNickName = screen_name;//[screen_name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szAcatar = [Profile stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szAccount = unionid;//[unionid stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szLocationProvince = Province;//[Province stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szLocationCity = City;//[City stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szSignature = @"";
+    account.szPwd = [access_token stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.nGender = [NSNumber numberWithInt:gender];
+    account.nThirdPartyType = [NSNumber numberWithInt:1];//微信定义为1
+    
+    [[SoapOperation Singleton] WS_Login:account.szAccount ThirdPartyType:@"1" Token:account.szPwd Openid:account.szAccount APPVersion:[UpDateSql getAPPVersion] SubVersion:[UpDateSql getAPPVersion] Success:^(MovierDCInterfaceSvc_VDCSession* ws_session) {
+        //初始化userentity
+        [[UserEntity sharedSingleton] Applogin:account.szAccount appPwd:account.szPwd LoginType:LoginTypeWeChat];
+        [UserEntity sharedSingleton].sessionId = [[NSString alloc] initWithFormat:@"%@",ws_session.nSessionID];
+        [UserEntity sharedSingleton].customerId = [NSString stringWithFormat:@"%@",ws_session.nCustomerID];
+        [UserEntity sharedSingleton].ossDir = ws_session.szRootDir;
+        [UserEntity sharedSingleton].ossKey = ws_session.szKey;
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            [avatar sd_setImageWithURL:[NSURL URLWithString:account.szAcatar] placeholderImage:[UIImage imageNamed:@"head"] options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+//            _UserName.text = account.szNickName;
+//            _UserSingature.text = @"";
+//        });
+        
+        [self fillUseEntity:ws_session];
+        [[SoapOperation Singleton] WS_GetossConfig:ws_session Success:^(MovierDCInterfaceSvc_VDCOSSConfig *ossconfig) {
+            [UserEntity sharedSingleton].ossBucket = ossconfig.szBucket;
+            [UserEntity sharedSingleton].ossID = ossconfig.szID;
+            [UserEntity sharedSingleton].ossKey = ossconfig.szKey;
+            [UserEntity sharedSingleton].ossEndpoint = ossconfig.szEndpoint;
+            [[APPUserPrefs Singleton] StartOrderT];
+            
+            //传输cid和devicetoken给后台
+            [[SoapOperation Singleton] WS_operatedevicelistWithOperationType:1 Success:^(NSNumber *num) {
+                NSLog(@"向后台发送cid和deviceToken成功");
+            } Fail:^(NSError *error) {
+                NSLog(@"向后台发送cid和deviceToken失败---%@", error);
+            }];
+            
+        } Fail:^(NSError *error) {
+            NSLog(@"get oss config error!");
+            NSLog(@"%@",[error localizedDescription]);
+        }];
+    } Fail:^(NSNumber *LoginStatus,NSError *error) {
+        if ([LoginStatus isEqualToNumber:@(MOVIERDC_SERVER_INVALIDUSERORPWD)]) {
+            //跳转注册页面
+            [self userRegister:data andDetail:wechatinfo];
+        };
+    }];
+}
+
+// 登录
+//- (void)loadingUseInfo:(NSNumber *)ret  withinfo:(NSDictionary*)data{
+//    NSLog(@"%@-----", ret);
+//    if (ret == 0) {   // 第一次注册, 注册成功后, 跳转到个人用户信息完善界面
+//        [self userRegister:data];
+//    } else if ([ret isEqualToNumber:[NSNumber numberWithInt:34]]==YES) {   // 已经成功注册过, 判断用户是否登出
+//        [self userLogin];
+//    } else {    // 注册失败
+//        [self showMessage:@"注册失败"];
+//    }
+//}
+
+- (void)userRegister:(NSDictionary *)data andDetail:wechatinfo{
+    
+//    NSString *screen_name = [data[@"screen_name"] length] == 0 ? @"" : data[@"screen_name"];
+//    // openid
+//    NSString *openid = [data[@"openid"] length] == 0 ? @"" : data[@"openid"];
+//    // 头像
+////    NSString *profile = [data[@"profile_image_url"] length] == 0 ? @"" : data[@"profile_image_url"];
+////    NSString *location = [data[@"location"] length] == 0 ? @"" : data[@"location"];
+//    NSString *access_token = [data[@"access_token"] length] == 0 ? @"" : data[@"access_token"];
+//
+//    int gender = [data[@"gender"] intValue];
+//    if (gender == 0) {
+//        gender = 1;
+//    } else if (gender == 1) {
+//        gender = 2;
+//    }
+    
+    // 保存用户名和密码
+//    [self saveUserInfo:username pwd:pwd];
+    
+    // 跳转到个人信息完善界面
+    UIStoryboard *stroyboard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+    PerfectPersonalInfoViewController *infoVC = [stroyboard instantiateViewControllerWithIdentifier:@"PerfectPersonalInfoVCStoryBoardID"];
+    infoVC.isFromLogVc = YES;
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:infoVC];
+    
+    // 把从微信获取到得信息传递到个人信息(字典数据)设置界面
+    infoVC.info = data;
+    infoVC.detail = wechatinfo;
+    [self presentViewController:nav animated:YES completion:nil];
+    
+    // 1. 给服务器发送登录请求
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//        int soapRet = soap_call_ns__thirdpartygetsecret4c(DCSoap, [_szEndPoint UTF8String], nil, third._szAccount, 1, third._szPwd, third._szAccount, &ret);
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            if (soapRet == 0) {     // 验证成功, 跳转到个人信息完善界面
+//                NSString *username = [NSString stringWithCString:ret._stStringArr.__ptr[0] encoding:NSUTF8StringEncoding];
+//                NSString *pwd = [NSString stringWithCString:ret._stStringArr.__ptr[1] encoding:NSUTF8StringEncoding];
+//                // 登陆
+//                int status = [[APPUserPrefs Singleton] login:username userPassword:pwd isEncrypt:true];
+//                if (status == NOW_LOGIN) {
+//                    // 保存用户名和密码
+//                    [self saveUserInfo:username pwd:pwd];
+//                    
+//                    // 跳转到个人信息完善界面
+//                    UIStoryboard *stroyboard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+//                    PerfectPersonalInfoViewController *infoVC = [stroyboard instantiateViewControllerWithIdentifier:@"PerfectPersonalInfoVCStoryBoardID"];
+//                    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:infoVC];
+//                    
+//                    // 把从微信获取到得信息传递到个人信息(字典数据)设置界面
+//                    infoVC.info = data;
+//                    [self presentViewController:nav animated:YES completion:nil];
+//                } else {
+//                    [self showMessage:@"登陆失败"];
+//                }
+//            } else {    // 获取微信信息失败
+//                [self showMessage:@"获取微信信息失败"];
+//            }
+//        });
+//    });
+}
+
+
+/**
+ *  跳转到主界面
+ */
+- (void)gotoMainView {
+//    [self dismissViewControllerAnimated:YES completion:nil];
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    MovierTabBarViewController *main = [storyboard instantiateViewControllerWithIdentifier:@"MainTabView"];
+    [self presentViewController:main animated:YES completion:nil];
+}
+
+/**
+ *  保存用户名和密码
+ */
+- (void)saveUserInfo:(NSString *)username pwd:(NSString *)pwd {
+    [[NSUserDefaults standardUserDefaults] setObject:username forKey:@"appUserName"];
+    [[NSUserDefaults standardUserDefaults] setObject:pwd forKey:@"appUserPWD"];
+    [[NSUserDefaults standardUserDefaults] setInteger:LoginTypeWeChat forKey:@"appLoginType"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+-(void)WeChatRegister{
+    UIStoryboard *setsb = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+    PerfectPersonalInfoViewController *loginVC =[setsb instantiateViewControllerWithIdentifier:@"Login"] ;
+    [self.navigationController pushViewController:loginVC animated:YES];
+    [self popBackViewAnimation];
+    [self performSelector:@selector(windowHidden) withObject:self afterDelay:0.2];
+}
+
+- (void)UsePhoneLoginButtonClick{
+    LoginViewController *loginVC =[self.storyboard instantiateViewControllerWithIdentifier:@"Login"] ;
+    [self.navigationController pushViewController:loginVC animated:YES];
+    [self popBackViewAnimation];
+    [self performSelector:@selector(windowHidden) withObject:self afterDelay:.5];
+}
+
+- (void)RegisterButtonClick{
+    TelephoneViewController *telephoneVC =[self.storyboard instantiateViewControllerWithIdentifier:@"telephone"] ;
+    [self.navigationController pushViewController:telephoneVC animated:YES];
+    [self popBackViewAnimation];
+    [self performSelector:@selector(windowHidden) withObject:self afterDelay:.5];
+}
+
+
+- (void)processGestureRecongnizer:(UIGestureRecognizer *)gesture
+{
+    if ([gesture isKindOfClass:[UITapGestureRecognizer class]]) {
+        [self popBackViewAnimation];
+        [self performSelector:@selector(windowHidden) withObject:self afterDelay:1];
+    }
+}
+#pragma mark -- window 隐藏
+- (void)windowHidden{
+
+     [secondWindow setHidden:YES];
+}
+#pragma mark -- 从下往上弹出动画
+-(void)popViewAnimation{
+    [UIView beginAnimations:@"popViewAnimation" context:NULL];
+    [UIView setAnimationDuration:.5];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+    [secondWindow makeKeyAndVisible];
+    customLoginAlertView.frame = CGRectMake((self.view.width - 240)/2, (self.view.height - 200)/2, 240, 200);
+    [UIView commitAnimations];
+}
+
+#pragma mark -- 由上往下弹回动画
+-(void)popBackViewAnimation{
+    [UIView beginAnimations:@"popBackViewAnimation" context:NULL];
+    [UIView setAnimationDuration:.2];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+    customLoginAlertView.frame = CGRectMake((self.view.width - 240)/2, SCREEN_HEIGHT, 240, 200);
+    [UIView commitAnimations];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+#pragma mark --tableviewDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return [[self.TableContent objectAtIndex:section] count];
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return [self.TableContent count];
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.bounds.size.width, 2)];
+//    view.backgroundColor = [UIColor colorWithRed:209.0/255.0 green:211.0/255.0 blue:212.0/255.0 alpha:2];
+    view.backgroundColor = [UIColor groupTableViewBackgroundColor];
+    return view;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    if (section != 0)
+    {
+        return 4;
+    }
+    
+    return 0;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    return 44;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    //    声明静态字符串型对象，用来标记重用单元格
+    static NSString *TableSampleIdentifier = @"PersonalRoot";
+    //    用TableSampleIdentifier表示需要重用的单元
+    MyCenterCell *cell = [tableView dequeueReusableCellWithIdentifier:TableSampleIdentifier
+                                                            forIndexPath:indexPath];
+    NSArray *Section = [self.TableContent objectAtIndex:indexPath.section];
+    NSDictionary *dic = [Section objectAtIndex:indexPath.row];
+    [cell.iconImageView setImage:[UIImage imageNamed:[[dic allKeys] lastObject]]];
+    [cell.iconNameLabel setText:[[dic allValues] lastObject]];
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    //需求：当用户制作的影片完成时，在改cell上用一个label进行提示
+    if ([cell.iconNameLabel.text isEqualToString:@"我的影片"]) {
+        cell.tag = 10000;
+        [self addPromptLabelWithCellTag:10000 LabelTag:1];
+    }
+    if ([cell.iconNameLabel.text isEqualToString:@"消息通知"]) {
+        cell.tag = 100000;
+        [self addPromptLabelWithCellTag:100000 LabelTag:3];
+    }
+    if ([cell.iconNameLabel.text isEqualToString:@"我的好友"]) {
+        cell.tag = 1000000;
+        [self addPromptLabelWithCellTag:1000000 LabelTag:2];
+    }
+    return  cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    MyCenterCell * cell = [tableView cellForRowAtIndexPath:indexPath];
+    UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    if([cell.iconNameLabel.text isEqualToString:@"常见问题"]){
+        UIStoryboard *setStroyBoard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+        InstructionsViewController *instructionsVC = [setStroyBoard instantiateViewControllerWithIdentifier:@"InstructionsVCStoryboardID"];
+        instructionsVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:instructionsVC animated:YES];
+        return;
+    }
+    if(![[UserEntity sharedSingleton] isAppHasLogin]){
+        [self showLoginAndRegisterWindow];
+        return;
+    }
+    if ([cell.iconNameLabel.text isEqualToString:@"我的影片"]) {
+        //我的影片（2016.07.04新增）
+        MyVideoViewController * myVideoVc = [MyVideoViewController new];
+        myVideoVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:myVideoVc animated:YES];
+    }else if([cell.iconNameLabel.text isEqualToString:@"我的收藏"]){
+        MyCollectViewController *collect = [mainStoryboard instantiateViewControllerWithIdentifier:@"CollectTable"];
+        collect.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:collect animated:YES];
+
+    }else if ([cell.iconNameLabel.text isEqualToString:@"草稿箱"])
+    {
+        DraftboxTableViewController *draftVC = [mainStoryboard instantiateViewControllerWithIdentifier:@"DraftboxTable"];
+        draftVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:draftVC animated:YES];
+    }
+    else if([cell.iconNameLabel.text isEqualToString:@"我的等级"]){
+        MylevelViewController * myLevelVc = [MylevelViewController new];
+        myLevelVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:myLevelVc animated:YES];
+    }
+    else if ([cell.iconNameLabel.text isEqualToString:@"我的任务"]){
+        MyTaskViewController * myTaskVc = [MyTaskViewController new];
+        myTaskVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:myTaskVc animated:YES];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"我的映币"]){
+        MyCoinViewController * myCoinVc = [MyCoinViewController new];
+        myCoinVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:myCoinVc animated:YES];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"我的好友"]){
+        //跳转我的好友界面
+        MyFriendViewController * myFriendVc = [MyFriendViewController new];
+        myFriendVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:myFriendVc animated:YES];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"消息通知"]){
+        //挑战消息通知界面
+        AlertsViewController * alertsVc = [AlertsViewController new];
+        alertsVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:alertsVc animated:YES];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"定位测试"]){
+        //播放器新界面
+        TakeVideoViewController * videoDetailVc = [TakeVideoViewController new];
+//        UIStatusBarStyleLightContent
+        videoDetailVc.hidesBottomBarWhenPushed = YES;
+//        [self.navigationController pushViewController:videoDetailVc animated:YES];
+        [self presentViewController:videoDetailVc animated:YES completion:nil];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"播放器测试2"]){
+        VideoDetailSecondTableViewController * videoDetailSecondVc = [VideoDetailSecondTableViewController new];
+        videoDetailSecondVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:videoDetailSecondVc animated:YES];
+    }else if ([cell.iconNameLabel.text isEqualToString:@"我的奖品"]){
+        CouponViewController * couponVc = [CouponViewController new];
+        couponVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:couponVc animated:YES];
+    }
+}
+
+@end

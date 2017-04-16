@@ -1,0 +1,108 @@
+//
+//  addFriendsViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/19.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "addFriendsViewController.h"
+
+@interface addFriendsViewController ()
+@property(assign,nonatomic)BOOL isIPhoneCommunicationButton;
+@property (retain, nonatomic) IBOutlet UITableView *addFriendsTabV;
+
+@property (retain, nonatomic) IBOutlet UIImageView *headPortraitsImgV;
+
+@end
+
+@implementation addFriendsViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    //设置默认值
+    _isIPhoneCommunicationButton = YES;
+    
+    
+    // self.addFriendsTabV.contentInset = UIEdgeInsetsMake(-1.0f, 0.0f, 0.0f, 0.0);
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+
+//tableView有多少分区
+//返回有多少个Sections
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+//每个分区对应多少行
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 100;
+}
+
+
+//新建某一行并返回
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+
+
+    if (_isIPhoneCommunicationButton) {
+        
+        static NSString *AddFriendsIdentifier_iphone = @"AddFriendsIdentifier_iphone";
+        UITableViewCell *cell_IphoneFriends = [tableView dequeueReusableCellWithIdentifier:AddFriendsIdentifier_iphone];
+       
+        return cell_IphoneFriends;
+        
+    }else{
+       
+        static NSString *AddFriendsIdentifier_weixin= @"AddFriendsIdentifier_weixin";
+        UITableViewCell *cell_WeixinFriends = [tableView dequeueReusableCellWithIdentifier:AddFriendsIdentifier_weixin];
+        
+        
+        //    if (cell_IphoneFriends == nil) {
+        //        cell_IphoneFriends = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:AddFriendsIdentifier_iphone];
+        //    }
+        return cell_WeixinFriends;
+    }
+}
+- (IBAction)iPhoneCommunicationButtonAction:(id)sender {
+    
+    _isIPhoneCommunicationButton = !_isIPhoneCommunicationButton;
+    [_addFriendsTabV reloadData];
+}
+
+- (IBAction)weiXinButtonAction:(id)sender {
+    
+    _isIPhoneCommunicationButton = !_isIPhoneCommunicationButton;
+     [_addFriendsTabV reloadData];
+}
+
+- (IBAction)addButtonAction:(id)sender {
+    
+     NSLog(@"addFriens");
+}
+
+- (IBAction)focusButtonAction:(id)sender {
+    NSLog(@"focus");
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end
+
+

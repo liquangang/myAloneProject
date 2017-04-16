@@ -1,0 +1,23 @@
+//
+//  PersonalCollectionViewCell.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/5.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface PersonalTableViewCell : UITableViewCell
+@property (retain, nonatomic) IBOutlet UIImageView *videoImagView;
+
+@property (retain,nonatomic) IBOutlet UIImageView *ownerAcatarImage;
+@property (retain,nonatomic) IBOutlet UILabel *videoNameLabel;
+@property (retain,nonatomic) IBOutlet UILabel *ownerNameLabel;
+@property (retain,nonatomic) IBOutlet UILabel *videoNumberOfPraiseLabel;
+@property (retain,nonatomic) IBOutlet UILabel *videoNumberOfShareLabel;
+
+@property (retain, nonatomic) IBOutlet UIButton *isNewVideo;
+@property (weak, nonatomic) IBOutlet UILabel *videoPlayNumLabel;
+
+@end

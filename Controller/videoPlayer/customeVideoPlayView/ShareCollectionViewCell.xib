@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="ShareCollectionViewCell">
+            <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="yKd-MY-h7q">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="40" id="Gkm-J0-Fp1"/>
+                            <constraint firstAttribute="width" constant="40" id="jBE-Vp-zPL"/>
+                        </constraints>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="11r-5c-xcz">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="11" id="MaI-h8-yi4"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="9"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+            </view>
+            <constraints>
+                <constraint firstItem="yKd-MY-h7q" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="4RW-1b-n9h"/>
+                <constraint firstItem="yKd-MY-h7q" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="5P4-v5-YX2"/>
+                <constraint firstAttribute="trailing" secondItem="11r-5c-xcz" secondAttribute="trailing" id="dp1-HR-aeH"/>
+                <constraint firstItem="11r-5c-xcz" firstAttribute="top" secondItem="yKd-MY-h7q" secondAttribute="bottom" constant="6" id="g2w-9e-wks"/>
+                <constraint firstItem="11r-5c-xcz" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="uQu-AN-Qp7"/>
+            </constraints>
+            <size key="customSize" width="75" height="75"/>
+            <connections>
+                <outlet property="shareImage" destination="yKd-MY-h7q" id="cme-fs-xAw"/>
+                <outlet property="shareTitle" destination="11r-5c-xcz" id="7tr-TH-dQD"/>
+            </connections>
+            <point key="canvasLocation" x="-295.5" y="-113.5"/>
+        </collectionViewCell>
+    </objects>
+</document>

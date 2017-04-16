@@ -1,0 +1,16 @@
+//
+//  MWICloudListViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/5.
+//  文件传输列表
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MWICloudListViewController : UIViewController
+/**
+ *  选择哪个列表  0:上传列表      1:下载列表      其他:错误
+ */
+@property (assign, nonatomic) NSUInteger selectedIndex;
+@end

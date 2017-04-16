@@ -1,0 +1,24 @@
+//
+//  MWDropdownViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//
+//  云空间排序按钮下拉视图
+
+#import <UIKit/UIKit.h>
+
+@protocol MWDropdownViewControllerDelegate <NSObject>
+
+@optional
+/**
+ *  点击每一行进行排序操作
+ *
+ *  @param row 0:按文件类型排序  1:按文件名称排序  2:按时间倒序排序
+ */
+- (void)dropdownViewControllerDidClickRow:(NSUInteger)row;
+@end
+
+@interface MWDropdownViewController : UITableViewController
+@property (weak, nonatomic) id<MWDropdownViewControllerDelegate> delegate;
+@end

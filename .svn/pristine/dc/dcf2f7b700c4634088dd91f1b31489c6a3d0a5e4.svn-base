@@ -1,0 +1,40 @@
+//
+//  PersonalInformationSet.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/1.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface PersonalInformationSet : NSObject
+@property (strong,nonatomic) NSString *szCustomerID;//用户ID
+@property (strong,nonatomic) NSString *szCustomerName;//用户名
+@property (nonatomic) int nGender;//用户性别
+@property (nonatomic) int nBirthdayY;//用户生日年
+@property (nonatomic) int nBirthdayM;//用户生日月
+@property (nonatomic) int nBirthdayD;//用户生日日
+@property (strong,nonatomic) NSString *szLocationProvince;//用户所在省
+@property (strong,nonatomic) NSString *szLocationCity;//用户所在市
+@property (strong,nonatomic) NSString *szTel;//用户电话号码
+@property (strong,nonatomic) NSString *szEmail;//用户邮箱
+@property (strong,nonatomic) NSString *szQQ;//用户QQ
+@property (nonatomic) int nPrivilege;//用户权限
+@property (nonatomic) int nScore;
+@property (nonatomic) int nStatus;
+@property (strong,nonatomic) NSString *szRootDir;//用户oss根目录
+@property (strong,nonatomic) NSString *szBucketName;//用户oss包名
+@property (strong,nonatomic) NSString *szPassword;//用户密码
+@property (strong,nonatomic) NSString *szNickname;//用户昵称
+@property (strong,nonatomic) NSString *szSignature;//用户个性签名
+@property (strong,nonatomic) NSString *szAcatar;//用户头像
+
+@property (strong,nonatomic) NSString *userHeadPortraitUrl;//用户头像
+@property (strong,nonatomic) NSString *userNickName;//用户昵称
+@property (strong,nonatomic) NSString *userSex;//用户性别
+@property (strong,nonatomic) NSString *userRegion;//用户省
+@property (strong,nonatomic) NSString *LocationCity;//用户市
+@property (strong,nonatomic) NSString *userCelebratedDictum;//用户个性签名
+
+@end

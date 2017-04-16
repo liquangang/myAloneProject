@@ -1,0 +1,93 @@
+//
+//  ISCutProViewController.h
+//  M-Cut
+//
+//  Created by 李亚飞 on 15/11/24.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//  替换 CutProViewController
+
+#import <UIKit/UIKit.h>
+#import <MediaPlayer/MediaPlayer.h>
+#import <AVFoundation/AVFoundation.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+//#import "MBProgressHUD.h" 
+#import "UserEntity.h"
+#import "APPUserPrefs.h"
+#import "UIViewExt.h"
+#import "LocalMaterialsViewController.h"
+#import "CutProCollectionViewCell.h"
+#import "UzysAssetsPickerController.h"
+#import "NewAndDraftboxView.h"
+#import "UINavigationController+SGProgress.h"
+#import "MVRightOverSlider.h"
+#import "HaveLoginAndRegisterWindowViewController.h"
+
+typedef void(^updateKeepVoiceButton)();
+
+// ISStyleDetail 风格选择详情
+@class NewNSOrderDetail, ISStyleDetail;
+
+@interface ISCutProViewController : HaveLoginAndRegisterWindowViewController{
+    NSInteger UserMaterialNum;
+}
+
+@property (nonatomic, copy) updateKeepVoiceButton updateKeepVoice;
+- (void)updateKeepVoiceStateWithBlock:(updateKeepVoiceButton)myBlock;
+
+@property (strong,nonatomic) NSMutableArray *deleteMaterialArray;
+
+//@property (nonatomic,strong) UIWindow *window;
+@property (nonatomic,retain) LocalMaterialsViewController *localMVC;
+@property (retain,nonatomic) IBOutlet UIButton *cancelButton;
+@property (nonatomic) BOOL bl;
+@property (retain,nonatomic) IBOutlet UILongPressGestureRecognizer *longPressRecognizer;
+@property (retain,nonatomic) CutProCollectionViewCell *cutProCollectionCell;
+@property (retain,nonatomic) IBOutlet UIButton *makeSureButton;
+@property (retain,nonatomic) IBOutlet UIButton *cloudButton;
+@property (assign,nonatomic) BOOL isTrigger;
+
+@property (assign,nonatomic) int sumcount;
+@property (strong,nonatomic) NSString *locationDate;
+@property (strong, nonatomic) MPMoviePlayerController *moviePlayerController;
+@property (strong, nonatomic) UIImage *image;
+@property (strong, nonatomic) NSURL *movieURL;
+@property (copy, nonatomic) NSString *lastChosenMediaType;
+
+//@property (retain,nonatomic) NSMutableArray *imageOrigArray;
+
+
+@property (retain,nonatomic) NSString *bucketName;
+@property (retain,nonatomic) NSString *prefix;
+@property (retain,nonatomic) NSString *cloudId;
+@property (retain,nonatomic) NSString *cloudKey;
+@property (retain,nonatomic) NSString *endPoint;
+@property (retain,nonatomic) NSMutableArray *buckets;
+@property (retain,nonatomic) NSMutableArray *objects;
+@property (retain,nonatomic) NSMutableArray *folders;
+@property (retain,nonatomic) NSMutableArray *selectedobjs;
+@property (retain,nonatomic) NSMutableArray *objectsURL;
+
+#pragma mark ------------
+@property (retain,nonatomic) UIWindow *customWindow;
+@property (assign,nonatomic) int isVideo;
+@property (strong,nonatomic) UIImagePickerController *imagePicker;
+@property (strong,nonatomic) NewNSOrderDetail *newsNSOrderDetail;
+@property(nonatomic)float recommondvalue;//记录视频素材总时长
+@property(nonatomic)float SetDurationValue;//记录视频素材总时长
+@property (weak, nonatomic) IBOutlet MVRightOverSlider *sliderbutton;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *sliderWidthC;
+@property (weak, nonatomic) IBOutlet UILabel *labelRecommand;//显示拖动时长
+/**  记录上次传递的进度 */
+@property (assign, nonatomic) float lastProgress;
+
+///**  标记是否是从风格详情返回 */
+//@property (assign, nonatomic)  BOOL isTransFromStyleDetail;
+///**  风格类型 */
+@property (strong, nonatomic) ISStyleDetail *styleDetail;
+/**  记录从概览界面跳转 */
+@property (assign, nonatomic)  BOOL isTransFromPreview;
+@property(assign,nonatomic)BOOL next2Preview;
+@property(assign,nonatomic)BOOL HideTabbar;
+/** 记录是否需要对保留原声按钮进行操作*/
+@property (nonatomic, assign) BOOL isNeedUpdateKeepVoiceButton;
+@end

@@ -1,0 +1,127 @@
+//
+//  UserEntity.m
+//  MYPassValue
+//
+//  Created by arbin on 14-12-28.
+//  Copyright (c) 2014年 Movier. All rights reserved.
+//
+
+#import "UserEntity.h"
+#import "VideoDBOperation.h"
+#import "UploadImageManager.h"
+#import "ISConst.h"
+
+@implementation UserEntity
+
+@synthesize ossBucket;
+@synthesize ossEndpoint;
+@synthesize ossID;
+@synthesize ossKey;
+@synthesize ossDir;
+@synthesize sessionId;
+@synthesize sessionKey;
+@synthesize customerId;
+@synthesize appUserName;
+@synthesize appUserPWD;
+@synthesize vdcLoginret;
+@synthesize szAcatar;
+@synthesize szNickname;
+@synthesize szSignature;
+
+// 登陆类型
+@synthesize appLoginType;
+
+
++ (UserEntity *)sharedSingleton
+{
+    static UserEntity *sharedSingleton;
+    
+    @synchronized(self)
+    {
+        if (!sharedSingleton)
+            sharedSingleton = [[UserEntity alloc] init];
+        return sharedSingleton;
+    }
+}
+
+- (id)init
+{
+    if(self = [super init])
+    {
+        self.vdcLoginret = -1;
+        BOOL isLogin = [[NSUserDefaults standardUserDefaults] boolForKey:@"userIsLogin"];
+        
+        if (isLogin || self.appUserName.length == 0) {
+            self.appUserName = [[NSUserDefaults standardUserDefaults] objectForKey:@"appUserName"];
+            self.appUserPWD = [[NSUserDefaults standardUserDefaults] objectForKey:@"appUserPWD"];
+            self.appLoginType = [[NSUserDefaults standardUserDefaults] integerForKey:@"appLoginType"];
+        }
+    }
+    return self;
+}
+
+- (BOOL)isAppHasLogin{
+    //    NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
+    
+    return [[NSUserDefaults standardUserDefaults] boolForKey:@"userIsLogin"];
+    //    NSString *name = [userDefault objectForKey:@"appUserName"];
+    //    if ([name isEqualToString:@""] || name ==nil) {
+    //        return false;
+    //    }else{
+    //        self.appUserName = name;
+    //        self.appUserPWD = [userDefault objectForKey:@"appUserPWD"];
+    //        self.appLoginType = [userDefault integerForKey:@"appLoginType"];
+    //        return true;
+    //    }
+}
+
+//用户登出
+-(void)Applogout{
+    //通知相关页面更新用户未观看的影片数量
+    [[NSNotificationCenter defaultCenter] postNotification:[[NSNotification alloc] initWithName:@"appuserlogout" object:nil userInfo:nil]];
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    //移除UserDefaults中存储的用户信息
+    [userDefaults removeObjectForKey:@"appUserName"];
+    [userDefaults removeObjectForKey:@"appUserPWD"];
+    [userDefaults removeObjectForKey:@"appLoginType"];
+    // 记录用户没有播放的视频数
+    [userDefaults removeObjectForKey:@"UserNoPlayVideo"];
+    [userDefaults setBool:NO forKey:@"userIsLogin"];
+    [userDefaults synchronize];
+    self.appUserName = nil;
+    self.appUserPWD = nil;
+    self.appLoginType = 0;
+    vdcLoginret = -1;
+    
+    //更新用户个部分的提示数字
+    [[VideoDBOperation Singleton] setBadgeNum];
+}
+
+//用户登录
+-(void)Applogin:(NSString *)appusername appPwd:(NSString *)appPwd LoginType:(LoginType)typeLoginType{
+    self.appUserName = appusername;
+    self.appUserPWD = appPwd;
+    self.vdcLoginret = 1;
+    self.appLoginType = typeLoginType;
+    
+    //获取userDefault单例
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    
+    //通知相关页面更新用户未观看的影片数量
+    [[NSNotificationCenter defaultCenter] postNotification:[[NSNotification alloc] initWithName:@"appuserchange" object:nil userInfo:nil]];
+    
+    //登陆成功后把用户名和密码存储到UserDefault
+    [userDefaults setObject:self.appUserName forKey:@"appUserName"];
+    [userDefaults setObject:self.appUserPWD forKey:@"appUserPWD"];
+    [userDefaults setInteger:typeLoginType forKey:@"appLoginType"]; //2代表微信 1代表手
+    [userDefaults setBool:YES forKey:@"userIsLogin"];
+    [userDefaults synchronize];
+    
+    //更新用户个部分的提示数字
+    [[VideoDBOperation Singleton] setBadgeNum];
+    
+    //启动后台上传云资服务
+    [SINGLETON(UploadImageManager) startUploadImage];
+}
+
+@end

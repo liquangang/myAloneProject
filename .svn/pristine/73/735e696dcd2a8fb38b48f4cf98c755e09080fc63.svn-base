@@ -1,0 +1,16 @@
+//
+//  MWBadgeView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/22.
+//
+//  底部没有播放过的视频的提示数字
+
+#import <UIKit/UIKit.h>
+
+@interface MWBadgeView : UIView
+/**
+ *  提示显示的数字,
+ */
+@property (assign, nonatomic) NSInteger badgeValue;
+@end

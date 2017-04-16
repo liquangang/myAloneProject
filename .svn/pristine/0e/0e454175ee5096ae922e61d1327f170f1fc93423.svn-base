@@ -1,0 +1,61 @@
+//
+//  MWCreateNewFolder.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/6.
+//
+//  使用单例封装的文件夹操作工具类
+
+#import <Foundation/Foundation.h>
+#import "Singleton.h"
+
+// 文件模型
+@class MWICloudModel;
+
+@interface MWICloudFolderTool : NSObject
+
+@property (strong, nonatomic) MWICloudModel *model;
+
+Singleton_interface(MWICloudFolderTool)
+/**
+ *  保存选择的文件, 里面存放的是文件模型
+ */
+@property (strong, nonatomic) NSMutableArray *chooses;
+/**
+ *  文件下载列表
+ */
+@property (strong, nonatomic) NSMutableArray *downloadList;
+/**
+ *  文件上传列表
+ */
+@property (strong, nonatomic) NSMutableArray *uploadList;
+
+/**
+ *  对文件重命名 ---  根据传入的文件名称到数组中查找, 有相同的名字后面加(数字), 没有直接返回
+ *
+ *  @param oldName    原来的文件名
+ *  @param expectName 用户期望的文件名
+ *  @param names      当前目录下的所有文件名
+ *
+ *  @return 新的文件名
+ */
+- (NSString *)rename:(NSString *)oldName expectName:(NSString *)expectName inNames:(NSMutableArray *)names;
+
+/**
+ *  新建文件夹
+ *  根据传入的文件名称到数组中查找, 有相同的名字后面加(数字), 没有直接返回
+ *
+ *  @param filename 传入的文件名
+ *  @param names    文件名数组
+ *  @return 新的文件名
+ */
+- (NSString *)fileName:(NSString *)filename inNames:(NSMutableArray *)names;
+
+/**
+ *  返回一个在当前目录下创建的文件模型
+ *
+ *  @param filename 用户输入的文件名
+ *  @param names    当前路径下的所有文件夹名称(避免创建名称相同的文件夹)
+ */
+- (MWICloudModel *)createNewFolder:(NSString *)filename currentPathFolderNames:(NSMutableArray *)names;
+@end

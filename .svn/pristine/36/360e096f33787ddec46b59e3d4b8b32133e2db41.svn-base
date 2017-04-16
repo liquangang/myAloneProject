@@ -1,0 +1,121 @@
+
+//
+//  CameraView.m
+//  M-Cut
+//
+//  Created by apple on 16/10/9.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "CameraView.h"
+#import <AudioToolbox/AudioToolbox.h>
+
+@interface CameraView()
+//取消按钮
+@property (nonatomic, strong) UIButton * cancleButton;
+//拍照按钮
+@property (nonatomic, strong) UIButton * takeVideoButton;
+//使用该视频
+@property (nonatomic, strong) UIButton * useVideoButton;
+//拍摄暂停label
+@property (nonatomic, strong) UILabel * takePropmtLabel;
+@end
+
+@implementation CameraView
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.backgroundColor = [UIColor blackColor];
+        
+        //取消按钮
+        self.cancleButton = [[UIButton alloc] init];
+        [self addSubview:self.cancleButton];
+        [self.cancleButton setTitle:@"取消"
+                           forState:UIControlStateNormal];
+        self.cancleButton.frame = CGRectMake(0,
+                                             0,
+                                             ISScreen_Width / 3,
+                                             self.bounds.size.height);
+        self.cancleButton.backgroundColor = [UIColor blackColor];
+        [self.cancleButton setTitleColor:[UIColor whiteColor]
+                                forState:UIControlStateNormal];
+        [self.cancleButton addTarget:self
+                              action:@selector(cancleButtonAction)
+                    forControlEvents:UIControlEventTouchUpInside];
+        //拍照提示label
+        self.takePropmtLabel = [[UILabel alloc] initWithFrame:CGRectMake(ISScreen_Width / 2 - 25,
+                                                                         0,
+                                                                         50,
+                                                                         16)];
+        [self addSubview:self.takePropmtLabel];
+        self.takePropmtLabel.backgroundColor = [UIColor blackColor];
+        self.takePropmtLabel.font = [UIFont systemFontOfSize:9];
+        self.takePropmtLabel.textColor = [UIColor whiteColor];
+        self.takePropmtLabel.textAlignment = NSTextAlignmentCenter;
+        self.takePropmtLabel.text = @"点击拍摄";
+        //拍照按钮
+        self.takeVideoButton = [[UIButton alloc] init];
+        [self addSubview:self.takeVideoButton];
+        self.takeVideoButton.frame = CGRectMake(ISScreen_Width / 2 - 25,
+                                                16,
+                                                50,
+                                                50);
+        [self.takeVideoButton setImage:[UIImage imageNamed:@"pauseTakeVideoImage"]
+                              forState:UIControlStateNormal];
+        [self.takeVideoButton setImage:[UIImage imageNamed:@"startTakeVideoImage"]
+                              forState:UIControlStateSelected];
+        [self.takeVideoButton addTarget:self
+                                 action:@selector(takeVideoButtonAction)
+                       forControlEvents:UIControlEventTouchUpInside];
+        //使用该视频
+        self.useVideoButton = [[UIButton alloc] init];
+        [self addSubview:self.useVideoButton];
+        self.useVideoButton.frame = CGRectMake(ISScreen_Width / 3 * 2,
+                                               0,
+                                               ISScreen_Width / 3,
+                                               self.bounds.size.height);
+        [self.useVideoButton setTitleColor:[UIColor whiteColor]
+                                  forState:UIControlStateNormal];
+        [self.useVideoButton setTitle:@"使用视频"
+                             forState:UIControlStateNormal];
+        [self.useVideoButton addTarget:self
+                                action:@selector(useVideoButtonAction)
+                      forControlEvents:UIControlEventTouchUpInside];
+        self.useVideoButton.hidden = YES;
+    }
+    return self;
+}
+
+/*
+ *  取消按钮点击方法
+ */
+- (void)cancleButtonAction{
+    self.cancleBlock();
+}
+
+/*
+ *  拍照按钮点击方法
+ */
+- (void)takeVideoButtonAction{
+    //系统声音
+    AudioServicesPlaySystemSound(1117);
+    //震动
+    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    self.takeVideoButton.selected = !self.takeVideoButton.selected;
+    if (self.takeVideoButton.selected) {
+        self.useVideoButton.hidden = YES;
+    }else{
+        self.useVideoButton.hidden = NO;
+        self.takePropmtLabel.text = @"点击拍摄";
+    }
+    self.takeVideoBlock(self.takePropmtLabel, self.takeVideoButton);
+}
+
+/*
+ *  使用视频按钮点击方法
+ */
+- (void)useVideoButtonAction{
+    self.useVideoBlock();
+}
+@end

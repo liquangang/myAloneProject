@@ -1,0 +1,69 @@
+//
+//  ViewController.h
+//  UIImagePickerController
+//
+//  Created by Kenshin Cui on 14/04/05.
+//  Copyright (c) 2014年 cmjstudio. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import <MediaPlayer/MediaPlayer.h>
+#import <AVFoundation/AVFoundation.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "UserOrder.h"
+#import "OSS.h"
+#import "OssTemp.h"
+#import "MBProgressHUD.h"
+#import "UserEntity.h"
+
+
+@interface ViewController : UIViewController<OSSClientDelegate,UIActionSheetDelegate,UIImagePickerControllerDelegate,MBProgressHUDDelegate>
+@property (strong, nonatomic) IBOutlet UIImageView *imageView1;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView2;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView3;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView4;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView5;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView6;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView7;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView8;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView9;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView10;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView11;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView12;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView13;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView14;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView15;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView16;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView17;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView18;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView19;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView20;
+
+@property (strong,nonatomic) NSString *locationDate;
+@property (strong,nonatomic) NSOrderDetail *nsOrderDetail;
+
+@property (strong, nonatomic) MPMoviePlayerController *moviePlayerController;
+@property (strong, nonatomic) UIImage *image;
+@property (strong, nonatomic) NSURL *movieURL;
+@property (copy, nonatomic) NSString *lastChosenMediaType;
+@property (strong,nonatomic) NSMutableArray *imageViewArray;//imageview
+@property (strong,nonatomic) NSMutableArray *imageUrlArray;//oss
+@property (strong,nonatomic) NSMutableArray *imageLocalUrlArray;//本地imageurl
+@property (strong,nonatomic) NSMutableArray *imageLocalArray;//本地图片
+
+
+
+
+@property (strong,nonatomic) OSSClient *client;
+@property (strong,nonatomic) NSString *bucketName;
+@property (strong,nonatomic) NSString *prefix;
+@property (strong,nonatomic) NSString *cloudId;
+@property (strong,nonatomic) NSString *cloudKey;
+@property (strong,nonatomic) NSString *endPoint;
+@property (strong,nonatomic) NSMutableArray *buckets;
+@property (strong,nonatomic) NSMutableArray *objects;
+@property (strong,nonatomic) NSMutableArray *folders;
+@property (strong,nonatomic) NSMutableArray *selectedobjs;
+@property(strong,nonatomic) NSMutableArray *objectsURL;
+@end
+

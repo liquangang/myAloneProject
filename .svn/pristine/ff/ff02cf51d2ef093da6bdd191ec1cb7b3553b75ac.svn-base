@@ -1,0 +1,85 @@
+#import "MailboxViewController.h"
+#import "LoginViewController.h"
+#import "APPUserPrefs.h"
+#import "ValidateFuc.h"
+
+@interface MailboxViewController ()
+@property (retain, nonatomic) LoginViewController *loginViewController;
+@property (retain, nonatomic) UIWindow *window;
+
+@end
+
+@implementation MailboxViewController
+
+@synthesize userName,userMailbox,userPassword,loginViewController,window;
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)outDone:(id)sender{
+    [sender resignFirstResponder];
+}
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (IBAction)registers:(id)sender{
+    int ret = -1;
+    if ([ValidateFuc validateEmail:userMailbox.text]&&[ValidateFuc validateUserName:userName.text]) {
+        ret = [APPUserPrefs registersByMailbox:userName UserPassword:userPassword UserMailbox:userMailbox];
+        if (ret == 0) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                                  initWithTitle:@"MessageBox"
+                                  message:@"注册成功！"
+                                  delegate:nil
+                                  cancelButtonTitle:@"OK"
+                                  otherButtonTitles:nil];
+            [alert show];
+            LoginViewController *loginVC =[self.storyboard instantiateViewControllerWithIdentifier:@"Login"] ;
+            [self.navigationController pushViewController:loginVC animated:YES];
+        }else{
+            UIAlertView *alert = [[UIAlertView alloc]
+                                  initWithTitle:@"MessageBox"
+                                  message:@"登录失败！请修改用户名或邮箱"
+                                  delegate:nil
+                                  cancelButtonTitle:@"OK"
+                                  otherButtonTitles:nil];
+            
+            [alert show];
+        }
+    }else if([ValidateFuc validateEmail:userMailbox.text]==false){
+        UIAlertView *alert = [[UIAlertView alloc]
+                              initWithTitle:@"MessageBox"
+                              message:@"邮箱输入有误！"
+                              delegate:nil
+                              cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil];
+        
+        [alert show];
+    }else
+    {
+        UIAlertView *alert = [[UIAlertView alloc]
+                              initWithTitle:@"MessageBox"
+                              message:@"用户名输入有误！长度大于5，小于20个字符的数字和字母组合"
+                              delegate:nil
+                              cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil];
+        
+        [alert show];
+    }
+
+}
+@end

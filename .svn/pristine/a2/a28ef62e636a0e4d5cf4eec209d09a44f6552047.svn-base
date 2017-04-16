@@ -1,0 +1,125 @@
+//
+//  CustomeClass.h
+//  M-Cut
+//
+//  Created by apple on 16/6/13.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import <AddressBook/AddressBook.h>
+
+typedef void(^RETURNADDRESSBOOKDATA)(NSDictionary * dataDic);
+
+
+#define ADDRESSBOOKPERMISSIONS @"addressBookPermissions"
+#define ADDRESSBOOKDATA        @"addressbookdata"
+
+@interface AddressBookModel : NSObject
+CUSTOMEPORPERTY(name);
+@property (nonatomic, assign) int recordId;
+CUSTOMEPORPERTY(tel);
+CUSTOMEPORPERTY(email);
+CUSTOMEPORPERTY(inshowName);
+CUSTOMEPORPERTY(iconUrl);
+CUSTOMEPORPERTY(userId);
+CUSTOMEPORPERTY(friendType);
+@end
+
+
+
+@interface CustomeClass : NSObject
+/**
+ *  根据传入的格式获取当前时间
+ *  格式例子：yyyy-MM-dd HH：mm：ss
+ *  @param timeFormatter 需要的时间格式
+ */
++ (NSString *)getCurrentTimeWithFormatter:(NSString *)timeFormatter;
+
+/**
+ *  展示提示框
+ *  message 展示内容 
+ *  showTime 展示时间
+ */
++ (void)showMessage:(NSString *)message ShowTime:(NSInteger)showTime;
+
+/**
+ *  二进制转十进制
+ *  binary 需要转的二进制字符串
+ *@return   转完的十进制字符串
+ */
++ (NSString *)toDecimalSystemWithBinarySystem:(NSString *)binary;
+
+/**
+ *  十进制转二进制
+ *  binary 需要转的十进制字符串
+ *@return   转完的二进制字符串
+ */
++ (NSString *)toBinarySystemWithDecimalSystem:(NSString *)decimal;
+
+/**
+ *@brief  返回当前网络状态
+ *@return   网络状态字符串
+ */
++ (NSString *)currentInterentStatus;
+
+/**
+ *@brief    showhud
+ *@param    hudSuperView hud加载的view
+ *@param    hudTag hud的tag
+ */
++ (void)hudShowWithView:(UIView *)hudSuperView Tag:(NSInteger)hudTag;
+
+/**
+ *@brief    hidden hud
+ *@param    hudSuperView hud加载的view
+ *@param    hudTag hud的tag
+ */
++ (void)hudHiddenWithView:(UIView *)hudSuperView Tag:(NSInteger)hudTag;
+
+/**
+ *@brief    获取通讯录中的数据
+ *@param    dataBlock 带结果的block
+ */
++ (void)loadAddressBookDataWithBlock:(RETURNADDRESSBOOKDATA)dataBlock;
+
+/**
+ *@brief    根据颜色返回图片
+ *@param    color 需要的图片的颜色
+ *@param    color 需要的图片的区域
+ *@return   根据颜色生成的图片
+ */
++ (UIImage *)createImageWithColor:(UIColor *)color Rect:(CGRect)myRect;
+
+/**
+ *@brief    过滤特殊字符
+ *@param    str 需要过滤的字符串
+ *@return   过滤完成的字符串
+ */
++ (NSString *)filterStringWithStr:(NSString *)str;
+
+/**
+ *@brief    读取plist文件(以字典的方式存储数据)
+ *@param    fileName plist文件名
+ *@return   读到的数据
+ */
++ (NSDictionary *)getPlistfileDataWithFileName:(NSString *)fileName;
+
+/**
+ *@brief    写入数据到plist（数据用字典存储）
+ *@param    fileName plist文件名
+ *@param    dataDic  要保存的数据
+ */
++ (void)writeToPlistWithFileName:(NSString *)fileName Data:(NSDictionary *)dataDic;
+
+/**
+ *@brief    强制旋转屏幕
+ *@param    orientation 要旋转到的方向
+ */
++ (void)orientationToPortrait:(UIInterfaceOrientation)orientation;
+
+/**
+ *@brief    获得系统版本
+ */
++ (float)getIOSVersion;
+@end

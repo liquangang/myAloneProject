@@ -1,0 +1,28 @@
+//
+//  MWICloudModel.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/24.
+//
+//
+
+#import "MWICloudModel.h"
+
+@implementation MWICloudModel
+
++ (instancetype)modelWithDict:(NSDictionary *)dict {
+    MWICloudModel *model = [[self alloc] init];
+    model.file_createtime = dict[@"file_createtime"];
+    model.file_name = dict[@"file_name"];
+    model.file_type = dict[@"file_type"];
+    model.size = [dict[@"size"] longLongValue];
+    
+    model.isEditing = [[dict objectForKey:@"isEditing"] boolValue];
+    model.isUploading = [[dict objectForKey:@"isUploading"] boolValue];
+    model.isDownloading = [[dict objectForKey:@"isDownloading"] boolValue];
+    return model;
+}
+
+
+@end
+

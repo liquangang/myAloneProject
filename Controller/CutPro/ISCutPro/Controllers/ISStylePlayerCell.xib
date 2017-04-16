@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="333" id="KGk-i7-Jjw" customClass="ISStylePlayerCell">
+            <rect key="frame" x="0.0" y="0.0" width="377" height="333"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <frame key="frameInset" width="377" height="332"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rfb-Kb-R8K">
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="默认封面" translatesAutoresizingMaskIntoConstraints="NO" id="tfU-Ih-UJU">
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="tfU-Ih-UJU" secondAttribute="height" multiplier="1:1" id="20h-7g-hTt"/>
+                                    <constraint firstAttribute="height" constant="36" id="6u6-m6-lo7"/>
+                                    <constraint firstAttribute="width" constant="36" id="zwD-Mr-KTF"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="4"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="映像·让记忆更精彩" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XGv-iA-UcY">
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="18" id="2VJ-7s-dxj"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="XGv-iA-UcY" firstAttribute="top" secondItem="tfU-Ih-UJU" secondAttribute="bottom" constant="15" id="3Fz-Hf-nx5"/>
+                            <constraint firstItem="tfU-Ih-UJU" firstAttribute="centerX" secondItem="rfb-Kb-R8K" secondAttribute="centerX" id="Rt0-qr-j9M"/>
+                            <constraint firstItem="tfU-Ih-UJU" firstAttribute="centerY" secondItem="rfb-Kb-R8K" secondAttribute="centerY" id="auC-xj-4HG"/>
+                            <constraint firstItem="XGv-iA-UcY" firstAttribute="leading" secondItem="rfb-Kb-R8K" secondAttribute="leading" id="bbD-x8-vga"/>
+                            <constraint firstAttribute="trailing" secondItem="XGv-iA-UcY" secondAttribute="trailing" id="cAy-h8-sjF"/>
+                        </constraints>
+                    </view>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="e91-kC-Skg">
+                        <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                    </imageView>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cqk-z0-gpz">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="66" id="Bld-VC-5rb"/>
+                            <constraint firstAttribute="width" constant="66" id="WtP-fQ-PLa"/>
+                        </constraints>
+                        <state key="normal" image="play"/>
+                    </button>
+                </subviews>
+                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                <constraints>
+                    <constraint firstItem="rfb-Kb-R8K" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="2Pk-nu-gEa"/>
+                    <constraint firstAttribute="bottom" secondItem="rfb-Kb-R8K" secondAttribute="bottom" id="4HV-hK-mSW"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="e91-kC-Skg" secondAttribute="trailing" constant="-8" id="9Cu-JF-KGb"/>
+                    <constraint firstItem="Cqk-z0-gpz" firstAttribute="centerX" secondItem="H2p-sc-9uM" secondAttribute="centerX" id="FjC-0r-1uR"/>
+                    <constraint firstItem="rfb-Kb-R8K" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="IDy-vk-f9n"/>
+                    <constraint firstItem="Cqk-z0-gpz" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="bwI-ey-9sZ"/>
+                    <constraint firstAttribute="trailing" secondItem="rfb-Kb-R8K" secondAttribute="trailing" id="cPy-iF-Htu"/>
+                    <constraint firstItem="e91-kC-Skg" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" constant="-8" id="fng-bK-NnK"/>
+                    <constraint firstItem="e91-kC-Skg" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="-8" id="hDy-hd-f58"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="e91-kC-Skg" secondAttribute="bottom" constant="-8" id="kEU-aZ-utQ"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="coverView" destination="rfb-Kb-R8K" id="WEV-Eo-TwA"/>
+                <outlet property="playButton" destination="Cqk-z0-gpz" id="f9Y-MC-ntP"/>
+                <outlet property="thumbImage" destination="e91-kC-Skg" id="uFt-7B-LLz"/>
+            </connections>
+            <point key="canvasLocation" x="-81" y="173"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="play" width="58" height="58"/>
+        <image name="默认封面" width="30" height="30"/>
+    </resources>
+</document>

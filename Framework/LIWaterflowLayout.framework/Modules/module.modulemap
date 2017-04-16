@@ -1,0 +1,6 @@
+framework module LIWaterflowLayout {
+  umbrella header "LIWaterflowLayout.h"
+
+  export *
+  module * { export * }
+}

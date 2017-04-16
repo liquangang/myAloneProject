@@ -1,0 +1,25 @@
+//
+//  CameraView.h
+//  M-Cut
+//
+//  Created by apple on 16/10/9.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface CameraView : UIView
+/*
+ *  取消按钮block
+ */
+@property (nonatomic, copy) void(^cancleBlock)();
+/*
+ *  拍照按钮block
+ */
+@property (nonatomic, copy) void(^takeVideoBlock)(UILabel * timeLabel,
+                                                  UIButton * takeVideoButton);
+/*
+ *  使用视频按钮block
+ */
+@property (nonatomic, copy) void(^useVideoBlock)();
+@end

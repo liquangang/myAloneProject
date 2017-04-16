@@ -1,0 +1,125 @@
+//
+//  PreviewViewController.m
+//  M-Cut
+//
+//  Created by 李亚飞 on 15/11/3.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import "PreviewViewController.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+#import <MediaPlayer/MediaPlayer.h>
+
+@interface PreviewViewController ()
+/**  返回事件 */
+- (IBAction)back;
+/**  右上角选择按钮点击事件 */
+- (IBAction)choose:(UIButton *)sender;
+/**  右上角选择按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseBtn;
+/**  图片显示的 imageView */
+@property (weak, nonatomic) UIImageView *imageView;
+/**  视频播放预览 */
+@property (strong, nonatomic) MPMoviePlayerController *movie;
+/**  图片是否全屏显示 */
+@property (assign, nonatomic) BOOL isFullScreen;
+
+/**  顶部的 view */
+@property (weak, nonatomic) IBOutlet UIView *topView;
+
+@end
+
+@implementation PreviewViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    NSString *type = [self.asset valueForProperty:ALAssetPropertyType];
+    if ([type isEqualToString:ALAssetTypePhoto]) {  //  图片预览
+        [self setupPhotoPreview:self.asset];
+    } else if ([type isEqualToString:ALAssetTypeVideo]) {   // 视频预览
+        [self setupVideoPreView:self.asset];
+    }
+    // 设置选择按钮的初始状态
+    self.chooseBtn.selected = self.status;
+}
+
+// 加载图片预览
+- (void)setupPhotoPreview:(ALAsset *)asset {
+    // 获取图片
+    UIImage *image = [UIImage imageWithCGImage:asset.aspectRatioThumbnail];
+    // 创建 imageView 添加图片预览
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 64, SCREEN_WIDTH, SCREEN_HEIGHT - 64)];
+    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    
+    // 设置 imageView 可以和用户交互
+    imageView.userInteractionEnabled = YES;
+    
+    // 为 imageView 添加 点击  手势, 在预览时可以全屏显示
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickImage:)];
+    [imageView addGestureRecognizer:tap];
+    imageView.image = image;
+    
+    [self.view addSubview:imageView];
+    self.imageView = imageView;
+}
+
+- (void)clickImage:(UITapGestureRecognizer *)tap {
+    if (self.isFullScreen == YES) {     // 当前状态全屏显示, 点击之后恢复原来状态
+        self.topView.hidden = NO;
+        self.isFullScreen = NO;
+    } else {    // 普通预览状态, 点击之后全屏显示
+        self.topView.hidden = YES;
+        self.isFullScreen = YES;
+    }
+}
+
+// 加载视频预览
+- (void)setupVideoPreView:(ALAsset *)asset {
+    self.movie = [[MPMoviePlayerController alloc] initWithContentURL:asset.defaultRepresentation.url];
+    self.movie.controlStyle = MPMovieControlStyleDefault;
+    [self.movie prepareToPlay];
+    self.movie.view.frame = CGRectMake(0, 64, SCREEN_WIDTH, SCREEN_HEIGHT - 64);
+    [self.movie thumbnailImageAtTime:1.0 timeOption:MPMovieTimeOptionNearestKeyFrame];
+    [self.view addSubview:self.movie.view];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.    
+}
+
+- (IBAction)back {
+    // 将当前选择按钮的状态传递到上个界面, 设置选中传递进来位置的 cell 选中---只有选择状态才需要进行操作
+    if (self.chooseBtn.selected == YES) {
+        self.ChooseBlock(YES);
+    } else {
+        self.ChooseBlock(NO);
+    }
+        
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (IBAction)choose:(UIButton *)sender {
+    if (self.count >= 20) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示:" message:@"每段影片最多添加20个素材。" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
+        [alert show];
+        return;
+    }
+    
+    // 获得当前点击的 asset, 如果重复不进行选取
+    NSString *assetUrl = [[self.asset valueForProperty:ALAssetPropertyAssetURL] description];
+    for (NSString *tempAssetUrl in self.paths) {
+        if ([assetUrl isEqualToString:tempAssetUrl]) {
+            [UIAlertView alertViewshowMessage:@"素材已经添加" cancleButton:nil confirmButton:@"确定"];
+            return;
+        }
+    }
+    sender.selected = !sender.selected;
+}
+
+- (void)materialStatus:(void (^)(BOOL))choose {
+    self.ChooseBlock = choose;
+}
+
+@end
+

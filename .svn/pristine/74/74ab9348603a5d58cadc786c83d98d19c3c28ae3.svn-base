@@ -1,0 +1,136 @@
+//
+//  VideoSecondCell.m
+//  M-Cut
+//
+//  Created by apple on 16/7/27.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "VideoSecondCell.h"
+#import <UIImageView+WebCache.h>
+#import "UserEntity.h"
+#import "VideoDBOperation.h"
+
+
+static NSString * videoCellId2 = @"VideoSecondCell";
+
+@implementation VideoSecondCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
++ (id)getVideoSecondCellWithtable:(UITableView *)myTable VideoInfo:(NSMutableDictionary *)videoInfo{
+    VideoSecondCell * cell = [myTable dequeueReusableCellWithIdentifier:videoCellId2];
+    if (!cell) {
+        cell = XIBCELL(videoCellId2)
+    }
+    
+    /*
+     影片信息对象
+     MovierDCInterfaceSvc_VDCKeyValueArr
+     
+     MovierDCInterfaceSvc_VDCKeyValue
+     
+     po serverDataMuArray[0]
+     "customer_avatar" = "http://movier-vdctest.oss-cn-beijing.aliyuncs.com/movier/sysres/9846.jpg";
+     "customer_nickname" = "\U6d4b\U8bd5003";
+     location = "";
+     "video_commentsnum" = 8;
+     "video_createtime" = "2016-05-07 15:31:27";
+     "video_desc" = "";
+     "video_favoritesnum" = 0;
+     "video_id" = 15984;
+     "video_name" = "\U8ba8\U538c\U7684\U9633\U5149";
+     "video_owner" = 9846;
+     "video_praise" = 17;
+     "video_reference" = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier-users/9846de9e3122c83cf00a8b2e70/\U7cfb\U7edf\U6587\U4ef6\U5939/order-generate/2016-5-7/1462606287576.mp4";
+     "video_sharenum" = 0;
+     "video_thumbnail" = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier-users/9846de9e3122c83cf00a8b2e70/\U7cfb\U7edf\U6587\U4ef6\U5939/order-generate/2016-5-7/1462606287576.jpg";
+     visitcount = 2682;
+     */
+    [cell.videoImage sd_setImageWithURL:[NSURL URLWithString:STRTOUTF8([videoInfo objectForKey:@"video_thumbnail"])] placeholderImage:DEFAULTVIDEOTHUMAIL options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+    cell.videoOwerName.text = [videoInfo objectForKey:@"customer_nickname"];
+    cell.videoTimeLabel.text = [videoInfo objectForKey:@"video_createtime"];
+    [cell.videoOwerHeadImage sd_setImageWithURL:[NSURL URLWithString:[videoInfo objectForKey:@"customer_avatar"]] placeholderImage:DEFAULTHEADIMAGE options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+    cell.videoCommentsNumLabel.text = [videoInfo objectForKey:@"video_commentsnum"];
+    cell.videoPraiseNumLabel.text = [videoInfo objectForKey:@"video_praise"];
+    cell.videoNameLabel.text = [videoInfo objectForKey:@"video_name"];
+    if ([[videoInfo objectForKey:@"video_owner"] intValue] != [CURRENTUSERID intValue]) {
+        cell.videoPropmtImage.hidden = YES;
+    }else{
+        //根据数据库检索结果展示是否是新影片
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            NSString * readStatus = [[VideoDBOperation Singleton] getNewVideoReadStatus:[NSString stringWithFormat:@"%@", [videoInfo objectForKey:@"video_id"]]];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ([readStatus isEqualToString:@"已观看"] || [readStatus isEqualToString:@"表中没有该影片"]) {
+                    //已观看
+                    cell.videoPropmtImage.hidden = YES;
+                }else{
+                    //未观看
+                    cell.videoPropmtImage.hidden = NO;
+                }
+                
+            });
+        });
+    }
+    return cell;
+}
+- (IBAction)videoPlayAction:(id)sender {
+}
+
++ (id)getCollectSecondCellWithTable:(UITableView *)myTable VideoInfo:(MovierDCInterfaceSvc_VDCVideoInfoEx *)videoInfo{
+    VideoSecondCell * cell = [myTable dequeueReusableCellWithIdentifier:videoCellId2];
+    if (!cell) {
+        cell = XIBCELL(videoCellId2)
+    }
+    /*
+        需要展示的控件
+     @property (weak, nonatomic) IBOutlet UILabel *videoOwerName;
+     @property (weak, nonatomic) IBOutlet UIImageView *videoOwerHeadImage;
+     @property (weak, nonatomic) IBOutlet UILabel *videoPraiseNumLabel;
+     @property (weak, nonatomic) IBOutlet UILabel *videoCommentsNumLabel;
+     @property (weak, nonatomic) IBOutlet UIImageView *videoPropmtImage;
+     @property (weak, nonatomic) IBOutlet UIButton *videoPlayButton;
+     @property (weak, nonatomic) IBOutlet UILabel *videoTimeLabel;
+     @property (weak, nonatomic) IBOutlet UILabel *videoNameLabel;
+     @property (weak, nonatomic) IBOutlet UIImageView *videoImage;
+     
+     数据对象
+     NSNumber * nVideoID;
+     NSString * szVideoName;
+     NSNumber * nOwnerID;
+     NSString * szOwnerName;
+     NSString * szAcatar;
+     NSString * szVideoLabel;
+     NSString * szCreateTime;
+     NSString * szThumbnail;
+     NSString * szReference;
+     NSString * szSignature;
+     NSNumber * nPraise;
+     NSNumber * nShareNum;
+     NSNumber * nFavoritesNum;
+     NSNumber * nCommentsNum;
+     NSNumber * nVideoStatus;
+     NSNumber * nVideoShare;
+     NSNumber * nVisitCount;
+     MovierDCInterfaceSvc_VDCLabelForVideo * stLabels;
+     */
+    
+    [cell setCellWithVideoInfoEx:videoInfo];
+    return cell;
+}
+
+- (void)setCellWithVideoInfoEx:(MovierDCInterfaceSvc_VDCVideoInfoEx *)videoInfo{
+    self.videoOwerName.text = videoInfo.szOwnerName;
+    [self.videoOwerHeadImage sd_setImageWithURL:[NSURL URLWithString:videoInfo.szAcatar] placeholderImage:DEFAULTHEADIMAGE options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+    self.videoPraiseNumLabel.text = [NSString stringWithFormat:@"%@", videoInfo.nPraise];
+    self.videoCommentsNumLabel.text = [NSString stringWithFormat:@"%@", videoInfo.nCommentsNum];
+    self.videoPropmtImage.hidden = YES;
+    self.videoTimeLabel.text = videoInfo.szCreateTime;
+    self.videoNameLabel.text = videoInfo.szVideoName;
+    [self.videoImage sd_setImageWithURL:[NSURL URLWithString:STRTOUTF8(videoInfo.szThumbnail)] placeholderImage:DEFAULTVIDEOTHUMAIL options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+}
+
+@end

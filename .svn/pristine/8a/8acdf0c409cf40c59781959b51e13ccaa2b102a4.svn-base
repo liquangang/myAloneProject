@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="MWICloudHeaderView">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="50"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OHL-dq-DlK" userLabel="添加">
+                    <rect key="frame" x="0.0" y="0.0" width="120" height="50"/>
+                    <state key="normal" image="icloud_new-folder">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="addClick" destination="iN0-l3-epB" eventType="touchUpInside" id="iwV-c5-2Xm"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dOg-0X-KvH" userLabel="排序">
+                    <rect key="frame" x="120" y="0.0" width="120" height="50"/>
+                    <state key="normal" image="icloud_sort">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="sortClick" destination="iN0-l3-epB" eventType="touchUpInside" id="DNy-UB-WmM"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9yX-CS-RRc" userLabel="上传">
+                    <rect key="frame" x="240" y="0.0" width="120" height="50"/>
+                    <state key="normal" image="icloud_upload">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="uploadClick" destination="iN0-l3-epB" eventType="touchUpInside" id="EXp-CF-ufc"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="kkg-jr-6pJ" userLabel="搜索">
+                    <rect key="frame" x="360" y="0.0" width="120" height="50"/>
+                    <state key="normal" image="icloud_search">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="searchClick" destination="iN0-l3-epB" eventType="touchUpInside" id="Otz-Dh-3w3"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FiW-nO-LMc" userLabel="传输列表">
+                    <rect key="frame" x="480" y="0.0" width="120" height="50"/>
+                    <state key="normal" image="icloud_transfer-list">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="listClick" destination="iN0-l3-epB" eventType="touchUpInside" id="3gf-5f-VcG"/>
+                    </connections>
+                </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JvP-V7-rSt" userLabel="分割线1">
+                    <rect key="frame" x="120" y="10" width="1" height="30"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="1" id="WtE-v9-kMc"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ch6-D8-Ztg" userLabel="分割线2">
+                    <rect key="frame" x="240" y="10" width="1" height="28"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="1" id="GJa-ZR-1tK"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ml6-79-f8G" userLabel="分割线3">
+                    <rect key="frame" x="360" y="10" width="1" height="30"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="1" id="J3g-UV-O3A"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ecC-Ll-OtL" userLabel="分割线4">
+                    <rect key="frame" x="480" y="10" width="1" height="28"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="1" id="Xgu-K5-DiX"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PVW-FC-3dl">
+                    <rect key="frame" x="120" y="49" width="240" height="1"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="1" id="byc-ea-NbA"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="ml6-79-f8G" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="10" id="0Ds-Xv-d13"/>
+                <constraint firstItem="ml6-79-f8G" firstAttribute="leading" secondItem="9yX-CS-RRc" secondAttribute="trailing" id="1Fb-JN-Ksw"/>
+                <constraint firstItem="PVW-FC-3dl" firstAttribute="leading" secondItem="OHL-dq-DlK" secondAttribute="trailing" id="3KK-tg-cOZ"/>
+                <constraint firstAttribute="bottom" secondItem="ml6-79-f8G" secondAttribute="bottom" constant="10" id="3ZV-oq-EEh"/>
+                <constraint firstItem="9yX-CS-RRc" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="3ja-2L-0oH"/>
+                <constraint firstItem="kkg-jr-6pJ" firstAttribute="leading" secondItem="9yX-CS-RRc" secondAttribute="trailing" id="BrA-Eo-hv6"/>
+                <constraint firstItem="dOg-0X-KvH" firstAttribute="leading" secondItem="OHL-dq-DlK" secondAttribute="trailing" id="CBf-uD-Sfe"/>
+                <constraint firstItem="OHL-dq-DlK" firstAttribute="width" secondItem="dOg-0X-KvH" secondAttribute="width" id="CXP-dz-tDj"/>
+                <constraint firstItem="dOg-0X-KvH" firstAttribute="leading" secondItem="OHL-dq-DlK" secondAttribute="trailing" id="Dch-Pa-EuE"/>
+                <constraint firstItem="dOg-0X-KvH" firstAttribute="width" secondItem="9yX-CS-RRc" secondAttribute="width" id="Dwx-Yo-bQm"/>
+                <constraint firstAttribute="bottom" secondItem="ecC-Ll-OtL" secondAttribute="bottom" constant="12" id="F6d-hB-mgp"/>
+                <constraint firstItem="kkg-jr-6pJ" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="Hfu-tJ-HS0"/>
+                <constraint firstItem="kkg-jr-6pJ" firstAttribute="leading" secondItem="9yX-CS-RRc" secondAttribute="trailing" id="KEw-pG-CE2"/>
+                <constraint firstItem="ecC-Ll-OtL" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="10" id="Miw-GV-2Ww"/>
+                <constraint firstItem="ml6-79-f8G" firstAttribute="leading" secondItem="PVW-FC-3dl" secondAttribute="trailing" id="NlX-Ng-qdt"/>
+                <constraint firstItem="9yX-CS-RRc" firstAttribute="width" secondItem="kkg-jr-6pJ" secondAttribute="width" id="QH3-Ny-Tw9"/>
+                <constraint firstAttribute="bottom" secondItem="dOg-0X-KvH" secondAttribute="bottom" id="RN0-CC-eG8"/>
+                <constraint firstAttribute="bottom" secondItem="PVW-FC-3dl" secondAttribute="bottom" id="Sio-7Q-MxO"/>
+                <constraint firstItem="9yX-CS-RRc" firstAttribute="leading" secondItem="dOg-0X-KvH" secondAttribute="trailing" id="TvF-dq-6Pw"/>
+                <constraint firstItem="FiW-nO-LMc" firstAttribute="leading" secondItem="kkg-jr-6pJ" secondAttribute="trailing" id="U2X-qa-0Q0"/>
+                <constraint firstItem="9yX-CS-RRc" firstAttribute="leading" secondItem="dOg-0X-KvH" secondAttribute="trailing" id="UhQ-Mo-vjN"/>
+                <constraint firstAttribute="bottom" secondItem="kkg-jr-6pJ" secondAttribute="bottom" id="WNm-2G-dvz"/>
+                <constraint firstItem="ch6-D8-Ztg" firstAttribute="leading" secondItem="dOg-0X-KvH" secondAttribute="trailing" id="Z0B-q2-o5K"/>
+                <constraint firstAttribute="bottom" secondItem="FiW-nO-LMc" secondAttribute="bottom" id="ZSS-8u-jI7"/>
+                <constraint firstItem="JvP-V7-rSt" firstAttribute="leading" secondItem="OHL-dq-DlK" secondAttribute="trailing" id="bZh-Vx-gJG"/>
+                <constraint firstItem="FiW-nO-LMc" firstAttribute="leading" secondItem="kkg-jr-6pJ" secondAttribute="trailing" id="cMD-wO-WPE"/>
+                <constraint firstAttribute="bottom" secondItem="OHL-dq-DlK" secondAttribute="bottom" id="chh-K5-IPQ"/>
+                <constraint firstItem="OHL-dq-DlK" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="dsd-dF-1cD"/>
+                <constraint firstItem="dOg-0X-KvH" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="eBc-zF-9qH"/>
+                <constraint firstItem="FiW-nO-LMc" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="eZ5-fo-Gnc"/>
+                <constraint firstItem="ch6-D8-Ztg" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="10" id="gvx-RB-OWW"/>
+                <constraint firstItem="JvP-V7-rSt" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="10" id="hZX-9x-jVn"/>
+                <constraint firstAttribute="bottom" secondItem="JvP-V7-rSt" secondAttribute="bottom" constant="10" id="hhg-He-xoY"/>
+                <constraint firstAttribute="bottom" secondItem="9yX-CS-RRc" secondAttribute="bottom" id="iDL-gI-4Ov"/>
+                <constraint firstAttribute="bottom" secondItem="ch6-D8-Ztg" secondAttribute="bottom" constant="12" id="iQs-0t-RK3"/>
+                <constraint firstItem="OHL-dq-DlK" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="nE1-bc-E7c"/>
+                <constraint firstItem="FiW-nO-LMc" firstAttribute="width" secondItem="kkg-jr-6pJ" secondAttribute="width" id="vYh-Nf-Bhl"/>
+                <constraint firstAttribute="trailing" secondItem="FiW-nO-LMc" secondAttribute="trailing" id="vdI-7Y-n1X"/>
+                <constraint firstItem="ecC-Ll-OtL" firstAttribute="leading" secondItem="kkg-jr-6pJ" secondAttribute="trailing" id="zaf-KD-4Sc"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <connections>
+                <outlet property="add" destination="OHL-dq-DlK" id="q34-5i-48Y"/>
+                <outlet property="sort" destination="dOg-0X-KvH" id="71l-aR-SBt"/>
+            </connections>
+            <point key="canvasLocation" x="447" y="161"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="icloud_new-folder" width="75" height="46"/>
+        <image name="icloud_search" width="75" height="46"/>
+        <image name="icloud_sort" width="75" height="46"/>
+        <image name="icloud_transfer-list" width="75" height="46"/>
+        <image name="icloud_upload" width="75" height="46"/>
+    </resources>
+</document>

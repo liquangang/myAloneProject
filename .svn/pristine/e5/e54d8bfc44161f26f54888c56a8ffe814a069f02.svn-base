@@ -1,0 +1,21 @@
+//
+//  MWChooseAlbumCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel;
+
+@interface MWChooseAlbumCell : UICollectionViewCell
+
+/**  内部的选择按钮, 用来标记 cell 是否被选中 */
+@property (weak, nonatomic) UIButton *chooseButton;
+
+@property (strong, nonatomic) MWICloudModel *model;
+
++ (instancetype)cellWithCollectionView:(UICollectionView *)collection indexPath:(NSIndexPath *)indexPath;
+
+@end

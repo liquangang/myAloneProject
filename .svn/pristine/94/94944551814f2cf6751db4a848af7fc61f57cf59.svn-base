@@ -1,0 +1,86 @@
+//
+//  MWICloudFooterView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/25.
+//
+//
+
+#import "MWICloudExpanView.h"
+
+@interface MWICloudExpanView()
+/**
+ *  容量数字Label, 宽度需要改变
+ */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *capacityLabelWidth;
+@property (weak, nonatomic) IBOutlet UILabel *capacityLabel;
+
+/**
+ *  容量使用百分比 Label, 宽度需要改变
+ */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *percentLabelWidth;
+@property (weak, nonatomic) IBOutlet UILabel *percentLabel;
+
+/**
+ * 进度View
+ */
+@property (weak, nonatomic) IBOutlet UIProgressView *capacityView;
+/**
+ *  扩容按钮
+ */
+- (IBAction)expanClick:(id)sender;
+@end
+
+@implementation MWICloudExpanView
++ (instancetype)iCloudFooterView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWICloudExpanView" owner:nil options:nil] lastObject];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+
+    }
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        
+    }
+    return self;
+}
+
+- (void)setProgress:(CGFloat)currentCapacity totalCapacity:(CGFloat)totalCapacity {
+    
+    CGFloat percent = currentCapacity / totalCapacity;
+    if (percent > 0.7) {
+        self.capacityView.progressTintColor = [UIColor redColor];
+        self.percentLabel.textColor = [UIColor redColor];
+    }
+    // 容量数字显示 label
+    NSString *capacityText = [NSString stringWithFormat:@"(%.2fG/%.2fG ", currentCapacity, totalCapacity];
+    self.capacityLabel.text = capacityText;
+    self.capacityLabelWidth.constant = [capacityText sizeWithWidth:MAXFLOAT font:[UIFont systemFontOfSize:12]].width;
+    
+    // 容量百分比显示 label
+    NSString *percentText = [NSString stringWithFormat:@" %.2f%%", percent];
+    self.percentLabel.text = percentText;
+    self.percentLabelWidth.constant = [percentText sizeWithWidth:MAXFLOAT font:[UIFont systemFontOfSize:12]].width;
+    
+    self.capacityView.progress = currentCapacity / totalCapacity;
+}
+
+- (void)setCurrentCapacity:(CGFloat)currentCapacity {
+    _currentCapacity = currentCapacity;
+}
+
+- (void)setTotalCapacity:(CGFloat)totalCapacity {
+    _totalCapacity = totalCapacity;
+}
+
+- (IBAction)expanClick:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(iCloudExpanView:didClickExpandButton:)]) {
+        [self.delegate iCloudExpanView:self didClickExpandButton:sender];
+    }
+}
+@end

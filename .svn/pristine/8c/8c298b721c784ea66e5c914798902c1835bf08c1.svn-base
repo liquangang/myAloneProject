@@ -1,0 +1,45 @@
+//
+//  OtherPrizeTableViewCell.m
+//  M-Cut
+//
+//  Created by apple on 16/10/22.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "OtherPrizeTableViewCell.h"
+
+@implementation OtherPrizeTableViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
+/**
+ *  兑换分享券
+ */
+- (IBAction)exchangeButtonAction:(id)sender {
+    self.exchangeBlock(exchangeCoupon);
+}
+
+/**
+ *  兑换邀请券
+ */
+- (IBAction)exchangeButton2Action:(id)sender {
+    self.exchangeBlock(exchangeInvitation);
+}
+
+/**
+ *  获得cell
+ */
++ (instancetype)OtherPrizeTableViewCellWithTable:(UITableView *)superTable
+                                     ResuableStr:(NSString *)resuableStr
+{
+    OtherPrizeTableViewCell * cell = [superTable dequeueReusableCellWithIdentifier:resuableStr];
+    if (!cell) {
+        cell = XIBCELL(@"OtherPrizeTableViewCell")
+    }
+    return cell;
+}
+
+@end

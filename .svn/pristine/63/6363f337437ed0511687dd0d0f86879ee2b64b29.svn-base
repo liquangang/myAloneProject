@@ -1,0 +1,184 @@
+//
+//  WaterLayout.m
+//  M-Cut
+//
+//  Created by liquangang on 16/10/7.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "WaterLayout.h"
+
+@interface WaterLayout()
+/** 列数*/
+@property (nonatomic, assign) NSInteger myRowCount;
+/** 行距*/
+@property (nonatomic, assign) CGFloat myLineSpace;
+/** 列之间的间距*/
+@property (nonatomic, assign) CGFloat myRowSpace;
+/** 每个的间距*/
+@property (nonatomic, assign) UIEdgeInsets myItemEdgeInset;
+
+/** 每一列的最大值*/
+@property (nonatomic, strong) NSMutableArray * columnMaxHeightMuArray;
+/** 所有cell的布局属性*/
+@property (nonatomic, strong) NSMutableArray * attrsMuArray;
+/** collectionview最大的高度*/
+@property (nonatomic, assign) CGFloat maxHeight;
+
+/** item宽度*/
+@property (nonatomic, assign) CGFloat itemWidth;
+@end
+
+@implementation WaterLayout
+
+- (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds
+{
+    return NO;
+}
+
+- (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect
+{
+    return self.attrsMuArray;
+}
+
+- (CGSize)collectionViewContentSize{
+    return CGSizeMake(0, self.maxHeight + [self getEdgeInsets].bottom);
+}
+
+- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath{
+    UICollectionViewLayoutAttributes * attributes =
+    [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
+    
+    //计算cell的布局属性
+    CGFloat
+    itemX,
+    itemY,
+    itemWidth = self.itemWidth,
+    itemHeight = self.itemHeightBlock(indexPath),
+    //最短那一列的y值
+    maxY = [self.columnMaxHeightMuArray[0] doubleValue];
+    
+    //最短那一列的位置
+    NSUInteger minColumn = 0;
+    
+    for (int i = 1; i < self.columnMaxHeightMuArray.count; i++) {
+       
+        //找出最小的y值
+        //找出最小y值得那一列
+        CGFloat currentY = [self.columnMaxHeightMuArray[i] doubleValue];
+        if (maxY > currentY) {
+            maxY = currentY;
+            minColumn = i;
+        }
+        
+         //找出最大的y值
+        if (currentY > self.maxHeight) {
+            self.maxHeight = currentY;
+        }
+    }
+    
+    //确定frame的x和y
+    itemX = [self getEdgeInsets].left +
+            [self getRowSpace] * minColumn +
+            itemWidth * minColumn;
+    itemY = maxY + [self getLineSpace];
+    
+    //设置布局对象的frame
+    attributes.frame = CGRectMake(itemX, itemX, itemWidth, itemHeight);
+    
+    //更新最短的那一列的总的y值
+    self.columnMaxHeightMuArray[minColumn] = @(itemY + itemHeight);
+    
+    return attributes;
+}
+
+- (void)prepareLayout{
+    [super prepareLayout];
+    
+    //计算所有cell的属性
+    for (int i = self.attrsMuArray.count;
+         i < [self.collectionView numberOfItemsInSection:0];
+         i++) {
+        [self.attrsMuArray addObject:
+        [self layoutAttributesForItemAtIndexPath:
+        [NSIndexPath indexPathForItem:i
+                            inSection:0]]];
+    }
+}
+
+#pragma mark - 功能模块
+/** 获得item宽度*/
+- (CGFloat)itemWidth{
+    if (!_itemWidth) {
+        _itemWidth = (CGRectGetWidth(self.collectionView.frame) -
+                      [self getEdgeInsets].right -
+                      [self getEdgeInsets].left -
+                      ([self getRowCount] - 1) * [self getRowSpace]) /
+        [self getRowCount];
+    }
+    return _itemWidth;
+}
+
+/** 获得列数*/
+- (NSInteger)getRowCount{
+    return self.myRowCount > 0 ?
+           self.myRowCount :
+           (self.rowCount > 0 ?
+            (self.myRowCount = self.rowCount) :
+            (self.myRowCount = 1));
+}
+
+/** 获得行间距*/
+- (CGFloat)getLineSpace{
+    return self.myLineSpace > 0 ?
+           self.myLineSpace :
+           (self.lineSpace > 0 ?
+            (self.myLineSpace = self.lineSpace) :
+            (self.myLineSpace = 0));
+}
+
+/** 获得列间距*/
+- (CGFloat)getRowSpace{
+    return self.myRowCount > 0 ?
+           self.myRowSpace :
+           (self.rowSpace > 0 ?
+            (self.myRowSpace = self.rowSpace) :
+            (self.myRowSpace = 0));
+}
+
+/** 获得item的边距*/
+- (UIEdgeInsets)getEdgeInsets{
+    return (self.myItemEdgeInset.top > 0 ||
+            self.myItemEdgeInset.bottom > 0 ||
+            self.myItemEdgeInset.left > 0 ||
+            self.myItemEdgeInset.right > 0) ?
+    
+           self.myItemEdgeInset :
+    
+           ((self.itemEdgeInset.top > 0 ||
+             self.itemEdgeInset.bottom > 0 ||
+             self.itemEdgeInset.left > 0 ||
+             self.itemEdgeInset.right > 0) ?
+            
+            (self.myItemEdgeInset = self.itemEdgeInset) :
+            (self.myItemEdgeInset = UIEdgeInsetsMake(0, 0, 0, 0)));
+}
+
+#pragma mark - 懒加载
+- (NSMutableArray *)columnMaxHeightMuArray{
+    if (!_columnMaxHeightMuArray) {
+        _columnMaxHeightMuArray = [NSMutableArray new];
+        for (int i = 0; i < [self getRowCount]; i++) {
+            [_columnMaxHeightMuArray addObject:@([self getEdgeInsets].top)];
+        }
+    }
+    return _columnMaxHeightMuArray;
+}
+
+- (NSMutableArray *)attrsMuArray{
+    if (!_attrsMuArray) {
+        _attrsMuArray = [NSMutableArray new];
+    }
+    return _attrsMuArray;
+}
+@end

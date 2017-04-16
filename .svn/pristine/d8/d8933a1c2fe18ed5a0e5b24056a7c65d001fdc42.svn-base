@@ -1,0 +1,356 @@
+//
+//  MWMoveViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/6.
+//
+//
+
+#import "MWMoveViewController.h"
+#import "MWICloudMoveFooterView.h"
+#import "MWICloudModel.h"
+#import "MWICloudMoveCell.h"
+
+#import "MWFooterUploadAlbumView.h"
+// 云空间主界面
+#import "MWICloudViewController.h"
+// 下载上传列表
+#import "MWICloudListViewController.h"
+
+@interface MWMoveViewController () <UITableViewDataSource, UITableViewDelegate, MWICloudMoveFooterViewDelegate, MWFooterUploadAlbumViewDelegate>
+/** 底部视图, 移动文件夹 */
+@property (weak, nonatomic) MWICloudMoveFooterView *footerView;
+/** 底部视图, 上传 Album 中的文件 */
+@property (weak, nonatomic) MWFooterUploadAlbumView *uploadView;
+/** tableView 视图 */
+@property (weak, nonatomic) UITableView *tableView;
+
+/** 新建文件夹的 alertView */
+@property (weak, nonatomic) UIAlertView *addFolerView;
+/**  移动文件的 alertView */
+@property (weak, nonatomic) UIAlertView *moveView;
+
+/** 用来保存重复的文件夹的数据模型(如果没有重复的文件夹, 就不要初始化了--懒加载) */
+@property (strong, nonatomic) NSMutableArray *repeatNames;
+@end
+
+@implementation MWMoveViewController
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    // 设置底部视图
+    if (self.isTransFromAlbum) {    // 如果是从相册选择控制器跳转到当前界面
+        [self setupUploadView];
+    } else {
+        [self setupFooterView];
+    }
+}
+
+- (NSMutableArray *)repeatNames {
+    if (!_repeatNames) {
+        self.repeatNames = [NSMutableArray array];
+    }
+    return _repeatNames;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // 设置导航条
+    [self setupNav];
+    
+    // 创建 tableView
+    [self setupTableView];
+}
+
+/**
+ *  设置导航条
+ */
+- (void)setupNav {
+    // 设置左边按钮, 返回上级界面
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(back) title:@"返回" selectTitle:nil color:MWICloudColor(255, 255, 255) font:15];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    // 设置标题 <云空间>
+    [self setupTitltView];
+    
+    // 设置右侧按钮, 取消
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(cancle) title:@"取消" selectTitle:nil color:MWICloudColor(255, 255, 255) font:15];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitltView {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = @"云空间";
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+- (void)back {  // 返回上一个路径
+#warning  返回上一个文件路径
+}
+
+- (void)cancle {    // 取消移动文件夹, 返回云空间主页
+    // 应该将选中的数据清空(这个界面的数据 和 上个界面的数据)
+    [self.files removeAllObjects];
+    [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+/**
+ *  设置底部视图, 文件移动
+ */
+- (void)setupFooterView {
+    if (self.footerView)        return;
+    
+    MWICloudMoveFooterView *footerView = [MWICloudMoveFooterView moveFooterView];
+    // {{0, 554}, {375, 49}}
+    CGFloat footerViewX = 0;
+    CGFloat footerViewY = MWScreenHeight - MWICloudFooterViewHeight - MWICloudNavigationHeight;
+    footerView.frame = CGRectMake(footerViewX, footerViewY, MWScreenWidth, MWICloudFooterViewHeight);
+    footerView.delegate = self;
+    
+    [footerView setTitle:[MWICloudFolderTool sharedMWICloudFolderTool].chooses.count];
+    [self.view addSubview:footerView];
+    self.footerView = footerView;
+}
+
+/**
+ *  设置底部视图, album 上传
+ */
+- (void)setupUploadView {
+    MWFooterUploadAlbumView *uploadView = [MWFooterUploadAlbumView uploadAlbumView];
+    CGFloat uploadViewX = 0;
+    CGFloat uploadViewY = MWScreenHeight - MWICloudFooterViewHeight - MWICloudNavigationHeight;
+    uploadView.frame = CGRectMake(uploadViewX, uploadViewY, MWScreenWidth, MWICloudFooterViewHeight);
+    uploadView.delegate = self;
+    
+    [self.view addSubview:uploadView];
+    self.uploadView = uploadView;
+}
+
+/**
+ *  创建 tableView
+ */
+- (void)setupTableView {
+    UITableView *tableView = [[UITableView alloc] init];
+    CGFloat tableViewHeight = MWScreenHeight - MWICloudFooterViewHeight - MWICloudNavigationHeight;
+    tableView.frame = CGRectMake(0, 0, MWScreenWidth, tableViewHeight);
+    tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    
+    [self.view addSubview:tableView];
+    self.tableView = tableView;
+}
+
+#pragma mark -- UITableViewDataSource, UITableViewDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.files.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    MWICloudMoveCell *cell = [MWICloudMoveCell cellWithTableView:tableView];
+    cell.model = self.files[indexPath.row];
+    return cell;
+}
+
+#pragma mark -- 选择每一行, 进入该文件夹内部
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    // 选中某一行后, 需要循环遍历该文件夹中的所有文件, 并且也只显示文件夹
+    NSLog(@"didSelectRowAtIndexPath");
+}
+
+#pragma mark -- MWICloudMoveFooterViewDelegate  底部视图按钮点击的代理
+- (void)iCloudMoveFooterView:(MWICloudMoveFooterView *)iCloudMoveFooterView buttonType:(MWICloudMoveFooterViewButtonType)type {
+    switch (type) {
+        case MWICloudMoveFooterViewButtonTypeMove:
+            [self moveFolder];
+            break;
+        case MWICloudMoveFooterViewButtonTypeNewFolder:
+        {
+            self.addFolerView = [UIAlertView alertViewTitle:@"新建文件夹" message:nil delegate:self cancleButton:@"取消" confirmButton:@"确定" isNeedsInput:YES];
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+/**
+ *  获得当前目录下的所有文件夹名称数组
+ */
+- (NSMutableArray *)folderNames {
+    NSMutableArray *names = [NSMutableArray array];
+    for (MWICloudModel *model in self.files) {
+        [names addObject:model.file_name];
+    }
+    return names;
+}
+
+- (void)moveFolder {
+    /** 上个界面选中的文件 */
+    NSMutableArray *chooses = [MWICloudFolderTool sharedMWICloudFolderTool].chooses;
+    // 应该将单例的数组清空, 避免下次使用出现数据重复
+    [[MWICloudFolderTool sharedMWICloudFolderTool].chooses removeAllObjects];
+    
+    // 获得当前界面的所有文件名
+    NSMutableArray *names = [self folderNames];
+    
+    // 记录移动的文件和现有文件名是够重复
+    BOOL hasRepeatName = NO;
+    if (!names || names.count == 0) {
+        hasRepeatName = NO;
+    } else {    // 移动过来的每个文件都需要判断是否和当前界面的文件名相同
+        for (MWICloudModel *model in chooses) {
+            for (NSString *filename in names) {
+                if ([model.file_name isEqualToString:filename]) {   // 有相同名称的文件夹
+                    hasRepeatName = YES;
+                    [self.repeatNames addObject:model];
+                    break;
+                }
+            }
+        }
+    }
+    
+    // 点击确定, 修改文件名, 插入文件; 点击取消. 由代理执行
+    if (hasRepeatName == YES) {
+        self.moveView = [UIAlertView alertViewTitle:nil message:@"文件名重复, 确认要移动?" delegate:self cancleButton:@"取消" confirmButton:@"确定" isNeedsInput:NO];
+    } else {    // 将chooses中的文件直接添加文件夹到当前目录下self.files
+        NSMutableArray *indexPaths = [NSMutableArray array];
+        for (MWICloudModel *model in chooses) {
+            [self insertModel:model indexPaths:indexPaths];
+        }
+        // 执行插入操作
+        [self finishMoveFolder:indexPaths];
+    }
+}
+
+// 根据模型数据, 创建 indexPath 对象
+- (void)insertModel:(MWICloudModel *)model indexPaths:(NSMutableArray *)indexPaths{
+    [self.files addObject:model];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(self.files.count - 1) inSection:0];
+    [indexPaths addObject:indexPath];
+}
+
+#pragma mark -- MWFooterUploadAlbumViewDelegate -- 添加相册中的文件视图代理
+- (void)uploadAlbumView:(MWFooterUploadAlbumView *)uploadAlbumView didClickButton:(MWFooterUploadAlbumViewButtonType)type {
+    switch (type) {
+        case MWFooterUploadAlbumViewButtonTypeNewFolder: {  // 和移动文件时新建文件夹一样, 使用 alertView 的代理方法
+            self.addFolerView = [UIAlertView alertViewTitle:@"新建文件夹" message:nil delegate:self cancleButton:@"取消" confirmButton:@"确定" isNeedsInput:YES];
+            break;
+        }
+            
+        case MWFooterUploadAlbumViewButtonTypeChoose:   // 确定选择
+            [self confirm];
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)confirm {
+    // 1. 添加到上传列表, 列表中保存的是 "MWAlbumModel"
+    [MWICloudFolderTool sharedMWICloudFolderTool].uploadList = [MWICloudFolderTool sharedMWICloudFolderTool].chooses;
+    
+    // 将单例里面的 选择数组 清空
+    [[MWICloudFolderTool sharedMWICloudFolderTool].chooses removeAllObjects];
+    
+    // 2. 显示提醒框
+    [[UIApplication sharedApplication].keyWindow showMessage:@"添加至上传列表" withTime:2.0];
+    
+    // 3. 跳转到上传列表
+    MWICloudListViewController *list = [[MWICloudListViewController alloc] init];
+    [self.navigationController pushViewController:list animated:YES];
+}
+
+#pragma mark -- UIAlertViewDelegate -- 顶部视图添加文件夹按钮点击
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView == self.addFolerView) {
+        if (buttonIndex == 1) {
+            // 获得 alertView 中输入的文字(用户输入的文件名)
+            UITextField *textField = [alertView textFieldAtIndex:0];
+            [self createNewFolder:textField.text];
+        }
+    } else if (alertView == self.moveView) {
+        if (buttonIndex == 1) {
+            // 获得当前文件目录下的所有文件夹名称
+            NSMutableArray *names = [self folderNames];
+            NSMutableArray *indexPaths = [NSMutableArray array];
+            
+            // 修改重复的文件夹名称 self.repeatNames
+            for (MWICloudModel *model in self.repeatNames) {
+                model.file_name = [[MWICloudFolderTool sharedMWICloudFolderTool] fileName:model.file_name inNames:names];
+                [self insertModel:model indexPaths:indexPaths];
+            }
+            
+            // 完成文件移动
+            [self finishMoveFolder:indexPaths];
+        }
+    }
+}
+
+// 传入存放插入位置 NSIndexPath 的数组
+- (void)finishMoveFolder:(NSMutableArray *)indexPaths {
+    // 插入数据
+    [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationBottom];
+    
+    // 将单例里面的选择数组清空
+    [[MWICloudFolderTool sharedMWICloudFolderTool].chooses removeAllObjects];
+    
+#warning 通知后台文件移动成功, 需要在当前目录下保存新增的文件
+    
+    // 通知上个控制器界面, 这两个文件已经被移动了, 需要在上个界面的控制器中将文件夹删除
+    if ([self.delegate respondsToSelector:@selector(moveViewControllerDidFinishMoveFolder)]) {
+        [self.delegate moveViewControllerDidFinishMoveFolder];
+    }
+#warning 模拟延时
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // 当前控制器消失
+        [self.navigationController popToRootViewControllerAnimated:YES];
+    });
+}
+
+/**  创建一个文件夹 */
+- (void)createNewFolder:(NSString *)title {
+    // 向 tableView 的数据源中插入一条数据
+    // 2.1 获得当前界面的所有文件名
+    NSMutableArray *names = [NSMutableArray array];
+    for (MWICloudModel *model in self.files) {
+        // 判断 model.file_name 是否是文件夹(根据 model 的 isFolder 属性), 如果是添加到 names 数组中
+        if ([model.file_type isEqualToString:FileTypeFolder]) {   // 是文件夹, 添加到文件名数组中
+            [names addObject:model.file_name];
+        }
+    }
+    MWICloudModel *model = [[MWICloudFolderTool sharedMWICloudFolderTool] createNewFolder:title currentPathFolderNames:names];
+    [self.files addObject:model];
+    // 默认新建的文件夹在最后一行, 获得最后一行的 indexPath
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(self.files.count - 1) inSection:0];
+    // 只刷新最后一行, 添加文件夹
+    // 使用 reloadData 会使整个 tableView 的数据进行一次刷新, 影响系统性能
+    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
+    
+#warning 通知后台, 创建一个文件夹
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

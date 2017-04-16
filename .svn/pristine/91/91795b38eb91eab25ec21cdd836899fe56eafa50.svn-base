@@ -1,0 +1,41 @@
+
+
+
+
+
+//
+//  VideoPlayerTableViewCell.m
+//  M-Cut
+//
+//  Created by apple on 16/9/8.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "VideoPlayerTableViewCell.h"
+
+static NSString * VideoPlayerTableViewCellId = @"VideoPlayerTableViewCell";
+
+@implementation VideoPlayerTableViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+}
+
+- (IBAction)playButtonAction:(id)sender {
+    if ([self.playStatusLabel.text isEqualToString:@"暂停"]) {
+        self.playStatusLabel.text = @"播放";
+    }else{
+        self.playStatusLabel.text = @"暂停";
+    }
+}
+
++ (id)getVideoPlayerTableViewCellWithTable:(UITableView *)cellSuperTable{
+    VideoPlayerTableViewCell * cell = [cellSuperTable dequeueReusableCellWithIdentifier:VideoPlayerTableViewCellId];
+    if (!cell) {
+        cell = XIBCELL(VideoPlayerTableViewCellId)
+    }
+    return cell;
+}
+
+@end

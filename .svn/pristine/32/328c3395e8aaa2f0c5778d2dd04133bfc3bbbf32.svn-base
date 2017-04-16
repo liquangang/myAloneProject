@@ -1,0 +1,268 @@
+
+#import "CloudFilesTableViewController.h"
+#import "DetailsViewController.h"
+#import "TemplatesViewController.h"
+
+#define accessid @"2eGP0QUXyR5sD6bA"
+#define accesskey @"4J4swhvDCxxbkfHyX2di2ai7PrRJGg"
+
+@interface CloudFilesTableViewController ()
+@property (nonatomic,strong) UIWindow *window;
+@property (nonatomic,strong) TemplatesViewController *templatesViewController;
+
+- (IBAction)nextStep:(id)sender;
+
+@end
+
+@implementation CloudFilesTableViewController
+
+@synthesize client = _client;
+@synthesize objects = _objects;
+@synthesize selectedobjs = _selectedobjs;
+@synthesize bucketName = _bucketName;
+@synthesize cloudId = _cloudId;
+@synthesize cloudKey = _cloudKey;
+@synthesize endPoint = _endPoint;
+@synthesize objectsURL = _objectsURL;
+
+
+-(void) dealloc
+{
+    self.selectedobjs = nil;
+    self.client = nil;
+    self.objects = nil;
+    self.bucketName = nil;
+    self.cloudId = nil;
+    self.cloudKey = nil;
+    self.endPoint = nil;
+    self.objectsURL = nil;
+    
+    [super dealloc];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    _client.delegate = self;
+}
+//点击云端文件调用加载
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self ossinit];
+}
+-(void)ossinit{
+    
+    NSString* myossid = [UserEntity sharedSingleton].ossID;
+    NSString* myosskey = [UserEntity sharedSingleton].ossKey;
+    NSString* myossEndpoint =@"http://";
+    myossEndpoint = [NSString stringWithFormat:@"http://%@",[UserEntity sharedSingleton].ossEndpoint];
+    //登录云端
+    [self loginWithUser:myossid andPsw:myosskey andEndP:myossEndpoint];
+    
+    _objects = [[NSMutableArray alloc] initWithCapacity:10000];
+    _folders = [[NSMutableArray alloc] initWithCapacity:1000];
+    _selectedobjs = [[NSMutableArray alloc] initWithCapacity:10000];
+    _objectsURL = [[NSMutableArray alloc] initWithCapacity:100];
+    
+    self.bucketName = [UserEntity sharedSingleton].ossBucket;
+    self.prefix = [UserEntity sharedSingleton].ossDir;
+    
+    ListObjectsRequest * lor = [[ListObjectsRequest alloc] initWithBucketName:self.bucketName prefix:self.prefix marker:nil maxKeys:0 delimiter:@"/"];
+    [_client listObjects:lor];
+    [lor release];
+    lor = nil;
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - Table view data source
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    // Return the number of sections.
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    // Return the number of rows in the section.
+    int rtn =0;
+    rtn = [self.folders count] + [self.objects count];
+    
+    return rtn;
+}
+//登录云端
+-(void) loginWithUser:(NSString*) userName andPsw:(NSString *)psw
+{
+    if (_client != nil) {
+        [_client release];
+        _client = nil;
+    }
+    _client = [[OSSClient alloc] initWithAccessId:userName andAccessKey:psw];
+    _client.delegate = self;
+    
+}
+//登录云端
+-(void) loginWithUser:(NSString*) userName andPsw:(NSString *)psw andEndP:(NSString*)endp
+{
+    if (_client != nil) {
+        [_client release];
+        _client = nil;
+    }
+    _client = [[OSSClient alloc] initWithEndPoint:endp AccessId:userName andAccessKey:psw];
+    _client.delegate = self;
+    
+}
+
+-(void) listBucket
+{
+    [_client listBuckets];
+}
+
+-(void)bucketListFinish:(OSSClient*) client result:(NSArray*) bucketList
+{
+    _indexPath = nil;
+    _buckets = [[NSMutableArray alloc] initWithCapacity:20];
+    
+    [self dismissModalViewControllerAnimated:YES];
+    [self.buckets addObjectsFromArray: bucketList];
+    [self.view reloadData];
+}
+
+-(void)bucketListFailed:(OSSClient*) client error:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"登陆失败，请检查用户名密码" delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    [alert release];
+    alert = nil;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"Cell";
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+    }
+    NSString *strIndex;
+    if (indexPath.row < [self.folders count]) {
+        NSString *strFolder = [self.folders objectAtIndex:indexPath.row];
+        NSArray *sSplit = [strFolder componentsSeparatedByString:@"/"];
+        strIndex =[NSString stringWithFormat:@"%@",[sSplit objectAtIndex:[sSplit count]-2] ];
+        cell.imageView.image = [UIImage imageNamed:@"folder.png"];
+    }
+    else {
+        OSSObjectSummary * obj = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        cell.imageView.image = [UIImage imageNamed:@"file.png"];
+        strIndex =[NSString stringWithFormat:@"%@",strKey];
+        NSString *selectItem = [self.selectedobjs objectAtIndex:indexPath.row - [self.folders count]];
+        if ([selectItem isEqualToString:@"FALSE"]) {
+            cell.accessoryType = UITableViewCellAccessoryNone;//UITableViewCellAccessoryNone
+        }else{
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        }
+    }
+    cell.textLabel.text = strIndex;
+    cell.textLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+    
+    return cell;
+}
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.row < [self.folders count]) {
+        NSString * str = [self.folders objectAtIndex:indexPath.row];
+        DetailsViewController * detailsVC = [[DetailsViewController alloc] initWithNibName:@"DetailsViewController" bundle:nil];
+        detailsVC.client = _client;
+        detailsVC.bucketName = self.bucketName;
+        detailsVC.prefix = str;
+        [self.navigationController pushViewController:detailsVC animated:YES];
+        [detailsVC release];
+    }else{
+        NSString * obj = [self.selectedobjs objectAtIndex:indexPath.row-[self.folders count]];
+        if([obj isEqualToString:@"FALSE"])
+        {
+            obj = @"TRUE";
+        }
+        else
+            obj = @"FALSE";
+        [self.selectedobjs replaceObjectAtIndex:indexPath.row-[self.folders count] withObject:obj];
+        [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    for (int i = 0 ; i < [self.objects count];i++) {
+        NSString *bselect = [self.selectedobjs objectAtIndex:i];
+        if ([ bselect isEqualToString:@"TRUE"]) {
+            OssTempDetail *ossTempDetail = [[OssTempDetail alloc] init];
+            ossTempDetail.Materialsize = i;
+            ossTempDetail.MaterialUrl = [self.objectsURL objectAtIndex:i];
+            [[OssTemp Singleton].OssTempList addObject:ossTempDetail];
+        }
+    }
+    if ([[OssTemp Singleton].OssTempList count] < 1)
+    {
+        return;
+    }
+    [super viewDidAppear:animated];
+}
+
+-(void) showError:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error.errorMessage delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    [alert release];
+    alert = nil;
+}
+
+-(void)bucketListObjectsFinish:(OSSClient*) client result:(ObjectListing*) result
+{
+    NSArray *objs = result.objectSummaries;
+    //去掉和prefix 同名的对象
+    NSMutableArray * newobjs = [NSMutableArray arrayWithCapacity:[objs count]];
+    for (int j =0; j< [objs count]; j++) {
+        OSSObjectSummary * objSummary = [objs objectAtIndex:j];
+        if (![objSummary.key isEqualToString:self.prefix]) {
+            [newobjs addObject:objSummary];
+            NSString *ObjStatue = @"FALSE";
+            [self.selectedobjs addObject:ObjStatue];
+            
+            NSString *fileurl = @"";
+            fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+            NSArray *sSplit2 = [objSummary.key componentsSeparatedByString:@"/"];
+            NSString *strKey;
+            if ([sSplit2 count] >1) {
+                strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+            }
+            else {
+                strKey= objSummary.key;
+            }
+            fileurl = [fileurl stringByAppendingString:strKey];
+            [self.objectsURL addObject:fileurl];
+        }
+    }
+    [self.objects addObjectsFromArray: newobjs];
+    [self.folders addObjectsFromArray: result.commonPrefixes];
+    [self.view reloadData];
+}
+
+-(void)bucketListObjectsFailed:(OSSClient*) client error:(OSSError*) error
+{
+    [self showError:error];
+}
+
+
+@end

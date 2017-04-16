@@ -1,0 +1,13 @@
+//
+//  MWICloudConfirmPayViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//  支付界面 确认支付按钮点击 跳转的界面
+
+#import <UIKit/UIKit.h>
+
+@interface MWICloudConfirmPayViewController : UIViewController
+@property (assign, nonatomic) int money;
+@end

@@ -1,0 +1,26 @@
+//
+//  LIAlertView.h
+//  Test
+//
+//  Created by 李亚飞 on 15/10/21.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@class MWAlertView;
+
+@protocol MWAlertViewDelegate <NSObject>
+
+@optional
+- (void)alertView:(MWAlertView *)alertView didSelectedChooseButton:(UIButton *)choose;
+- (void)alertView:(MWAlertView *)alertView clickedButtonAtIndex:(NSInteger)index;
+@end
+
+@interface MWAlertView : UIView
+
+@property (weak, nonatomic) id<MWAlertViewDelegate> delegate;
+
+- (void)show;
+- (void)dismiss;
++ (instancetype)alertView;
+@end

@@ -1,0 +1,225 @@
+//
+//  MWICloudExpanViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/18.
+//
+//
+
+#import "MWICloudExpanViewController.h"
+// 支付界面
+#import "MWICloudPayViewController.h"
+// 全部订单
+#import "MWICloudOrderViewController.h"
+
+@interface MWICloudExpanViewController ()
+/**  15GB */
+@property (weak, nonatomic) IBOutlet UIView *fifteenView;
+/**  30GB */
+@property (weak, nonatomic) IBOutlet UIView *thirtyView;
+/**  50GB */
+@property (weak, nonatomic) IBOutlet UIView *fiftyView;
+/**  100GB */
+@property (weak, nonatomic) IBOutlet UIView *handredView;
+/**  有效时间 */
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/**  应该支付金额 */
+@property (weak, nonatomic) IBOutlet UILabel *moneyLabel;
+
+/**  支付按钮点击事件 */
+- (IBAction)payClick:(UIButton *)sender;
+
+/**  选中的 View 索引 */
+@property (assign, nonatomic) int index;
+/**  记录当前点击的位置 */
+@property (assign, nonatomic) CGPoint point;
+@end
+
+@implementation MWICloudExpanViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // 设置导航条
+    [self setupNavigation];
+    
+    // 设置容量视图
+    [self setupViews];
+    
+    // 设置时间
+    [self setupTime];
+}
+
+/**
+ *  设置4个不同容量的 view , 添加手势
+ */
+- (void)setupViews {
+    // 15GB
+    self.fifteenView.layer.cornerRadius = 3;
+    self.fifteenView.clipsToBounds = YES;
+    UITapGestureRecognizer *gest1 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(setPayButtonTitle)];
+    [self.fifteenView addGestureRecognizer:gest1];
+    // 默认选中第一个
+    self.fifteenView.layer.borderColor = MWICloudColor(43, 168, 150).CGColor;
+    self.fifteenView.layer.borderWidth = 2;
+    
+    // 30GB
+    self.thirtyView.layer.cornerRadius = 3;
+    self.thirtyView.clipsToBounds = YES;
+    UITapGestureRecognizer *gest2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(setPayButtonTitle)];
+    [self.thirtyView addGestureRecognizer:gest2];
+    
+    // 50GB
+    self.fiftyView.layer.cornerRadius = 3;
+    self.fiftyView.clipsToBounds = YES;
+    UITapGestureRecognizer *gest3 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(setPayButtonTitle)];
+    [self.fiftyView addGestureRecognizer:gest3];
+    
+    // 100GB
+    self.handredView.layer.cornerRadius = 3;
+    self.handredView.clipsToBounds = YES;
+    UITapGestureRecognizer *gest4 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(setPayButtonTitle)];
+    [self.handredView addGestureRecognizer:gest4];
+}
+
+/**
+ *  设置时间标签
+ */
+- (void)setupTime {
+    // 获得当前时间
+    NSDate *date = [NSDate date];
+    
+    // 获得日历对象
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    
+    // 获得想比较的对象
+    NSCalendarUnit unit = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay;
+    
+    NSDateComponents *dataCmps = [calendar components:unit fromDate:date];
+    // 设置 timeLabel 显示的时间
+    self.timeLabel.text = [NSString stringWithFormat:@"%ld-%ld-%ld至%ld-%ld-%ld", dataCmps.year, dataCmps.month, dataCmps.day, dataCmps.year + 1, dataCmps.month, dataCmps.day];
+}
+
+/**
+ *  获得当前点击的位置
+ */
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = [touches anyObject];
+    self.point = [touch locationInView:self.view];
+}
+
+/**
+ *  手势响应事件
+ */
+- (void)setPayButtonTitle {
+    if ([self point:self.point inView:self.fifteenView]) {  // 选中了15GB 的 View
+        self.fifteenView.layer.borderColor = MWICloudColor(43, 168, 150).CGColor;
+        self.fifteenView.layer.borderWidth = 2;
+        self.moneyLabel.text = [NSString stringWithFormat:@"%d元", 75];
+        
+        self.thirtyView.layer.borderWidth = 0;
+        self.fiftyView.layer.borderWidth = 0;
+        self.handredView.layer.borderWidth = 0;
+    } else if ([self point:self.point inView:self.thirtyView]) {    // 选中了30GB 的 View
+        self.thirtyView.layer.borderColor = MWICloudColor(43, 168, 150).CGColor;
+        self.thirtyView.layer.borderWidth = 2;
+        self.moneyLabel.text = [NSString stringWithFormat:@"%d元", 150];
+        
+        self.fifteenView.layer.borderWidth = 0;
+        self.fiftyView.layer.borderWidth = 0;
+        self.handredView.layer.borderWidth = 0;
+    } else if ([self point:self.point inView:self.fiftyView]) {     // 选中了50GB 的 View
+        self.fiftyView.layer.borderColor = MWICloudColor(43, 168, 150).CGColor;
+        self.fiftyView.layer.borderWidth = 2;
+        self.moneyLabel.text = [NSString stringWithFormat:@"%d元", 250];
+        
+        self.fifteenView.layer.borderWidth = 0;
+        self.thirtyView.layer.borderWidth = 0;
+        self.handredView.layer.borderWidth = 0;
+    } else if ([self point:self.point inView:self.handredView]) {   // 选中了100GB 的 View
+        self.handredView.layer.borderColor = MWICloudColor(43, 168, 150).CGColor;
+        self.handredView.layer.borderWidth = 2;
+        self.moneyLabel.text = [NSString stringWithFormat:@"%d元", 480];
+        
+        self.fifteenView.layer.borderWidth = 0;
+        self.thirtyView.layer.borderWidth = 0;
+        self.fiftyView.layer.borderWidth = 0;
+    }
+}
+
+/**
+ *  判断点 point 是否在 view 内部
+ */
+- (BOOL)point:(CGPoint)point inView:(UIView *)view {
+    CGRect rect = [view convertRect:self.fiftyView.bounds toView:self.view];
+    if ((point.x > rect.origin.x && point.x < rect.origin.x + rect.size.width) &&
+        point.y > rect.origin.y && point.y < rect.origin.y + rect.size.height) {  // 点击的点在这个 view 的范围内
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
+/**
+ *  设置导航条
+ */
+- (void)setupNavigation {
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClick) image:@"backbutton" title:@"返回"];
+    // 尺寸随便写的
+    leftBarButton.frame = CGRectMake(0, 0, 60, 30);
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    [self setupTitleView:@"扩容"];
+    
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(rightBarButtonClick) title:@"我的订单" selectTitle:nil color:MWICloudColor(255, 255, 255) font:13];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+}
+
+/**
+ *  导航左侧按钮点击, 返回云空间主界面
+ */
+- (void)leftBarButtonClick {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  查看订单
+ */
+- (void)rightBarButtonClick {
+    MWICloudOrderViewController *order = [[MWICloudOrderViewController alloc] init];
+    order.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:order animated:YES];
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+/**
+ *   支付界面---默认采用微信支付
+ */
+- (IBAction)payClick:(UIButton *)sender {
+    MWICloudPayViewController *pay = [[MWICloudPayViewController alloc] initWithNibName:@"MWICloudPayViewController" bundle:nil];
+    pay.money = [self.moneyLabel.text intValue];
+    [self.navigationController pushViewController:pay animated:YES];
+    
+//    // 获得当前时间
+//    NSDate *date = [NSDate date];
+//    NSDateFormatter *format = [[NSDateFormatter alloc] init];
+//    format.dateFormat = @"yyyy-MM-dd";
+//    NSString *dateStr = [format stringFromDate:date];
+//    
+//    // 获取从 1970 年开始到现在的秒数
+////    NSTimeInterval timeInterval = [date timeIntervalSince1970];
+//    
+//    NSLog(@"pay----%d----微信支付--- time=%@", [self.moneyLabel.text intValue], dateStr);
+}
+@end

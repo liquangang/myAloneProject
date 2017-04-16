@@ -1,0 +1,35 @@
+//
+//  MWUploadChooseView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//
+//  云空间上传按钮点击的选择视图
+
+#import <UIKit/UIKit.h>
+@class MWUploadChooseView;
+
+typedef enum {
+    MWUploadChooseViewUploadVideo,
+    MWUploadChooseViewUploadPhoto
+}MWUploadChooseViewButtonType;
+
+@protocol MWUploadChooseViewDelegate <NSObject>
+
+@optional
+- (void)uploadChooseView:(MWUploadChooseView *)uploadChooseView didClickButton:(MWUploadChooseViewButtonType)type;
+@end
+
+@interface MWUploadChooseView : UIView
+@property (weak, nonatomic) id<MWUploadChooseViewDelegate> delegate;
+
+/**
+ *  创建选择视图
+ */
++ (instancetype)uploadChooseView;
+
+/**
+ *  销毁
+ */
+- (void)dismiss;
+@end

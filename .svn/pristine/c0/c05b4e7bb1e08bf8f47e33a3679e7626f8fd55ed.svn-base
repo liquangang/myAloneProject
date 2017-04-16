@@ -1,0 +1,13 @@
+//
+//  MWICloudViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/24.
+//  云空间主界面
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MWICloudViewController : UIViewController
+
+@end

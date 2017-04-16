@@ -1,0 +1,16 @@
+//
+//  HomepageVideoOrder.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/1.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "VideoInformationObject.h"
+//首页视频对象
+@interface HomepageVideoOrder : VideoInformationObject
+
+
+-(int)size;
+@end

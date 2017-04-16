@@ -1,0 +1,13 @@
+//
+//  MWICloudPayViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//  扩容视图 支付按钮点击跳转 的界面
+
+#import <UIKit/UIKit.h>
+
+@interface MWICloudPayViewController : UIViewController
+@property (assign, nonatomic) int money;
+@end

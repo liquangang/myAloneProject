@@ -1,0 +1,347 @@
+//
+//  MovierViewController.m
+//  M-Cut
+//
+//  Created by Crab shell on 12/26/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+#import "MovierTabBarViewController.h"
+#import "HomeViewController.h"
+
+#import "MyFavourateViewController.h"
+#import "LogoutFavourateViewController.h"
+
+//#import "CutProViewController.h"
+
+#import "PersonalViewController.h"
+#import "LogOutPersonViewController.h"
+
+#import "WxTabBarItem.h"
+#import "UserLoginViewController.h"
+
+// 云空间
+#import "MWICloudViewController.h"
+#import "VideoDBOperation.h"
+
+
+#import "ISCutPreViewController.h"
+#import "VideoDBOperation.h"
+
+#import "VideoDetailViewController.h"
+
+#import "ZFPlayer.h"
+
+// 影片详情返回制作首页, 使用通知传递参数
+#define ISStyleDetailBacktoCutProParams         @"ISStyleDetailBacktoCutProParams"
+#define ISStyleDetailBacktoCutProNotification   @"ISStyleDetailBacktoCutProNotification"
+
+@interface MovierTabBarViewController ()
+//@property (strong, nonatomic) UITabBarItem *tabBarItem1;
+//@property (strong, nonatomic) UITabBarItem *tabBarItem2;
+//@property (strong, nonatomic) UITabBarItem *tabBarItem3;
+//@property (nonatomic, strong) UILabel * label;
+@end
+
+
+@implementation MovierTabBarViewController
+
+- (void)changePromptLabel:(NSNotification *)notice{
+    //接到通知请求服务器数据判断还有多少未观看
+    UITabBarItem * tabbarItem = self.tabBar.items[2];
+    [tabbarItem setBadgeValue:[NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber]];
+    if ([tabbarItem.badgeValue intValue] <= 0) {
+        [tabbarItem setBadgeValue:nil];
+    }
+}
+
+/** 跳转到消息通知界面*/
+- (void)pushToMessageVc:(NSNotification *)noti{
+    [self setSelectedIndex:2];
+    POSTNOTI(PUSHTOMESSAGEVC, nil);
+}
+
+/** 跳转到好友界面的通知*/
+- (void)pushToFriendVc:(NSNotification *)noti{
+    [self setSelectedIndex:2];
+    POSTNOTI(PUSHTOFRIENDVC, nil);
+}
+
+/** 跳转到我的视频界面的通知*/
+- (void)pushToMyVideoVc:(NSNotification *)noti{
+    [self setSelectedIndex:2];
+    POSTNOTI(PUSHTOVIDEOVC, nil);
+}
+
+- (void)backFromPreView:(NSNotification *)noti {// 从风格详情界面  跳转到 制作界面, 然后再跳转到  pre 预览界面
+    NSDictionary *info = noti.userInfo;
+    UINavigationController *preview = [[UIStoryboard storyboardWithName:@"Preview" bundle:nil] instantiateViewControllerWithIdentifier:@"ISCutPreView_ID"];
+    ISCutPreViewController *pre = [preview.childViewControllers firstObject];
+    pre.Direct2Main = YES;
+    pre.isFromDraftBox = YES;
+    pre.orderid = [info[@"orderID"] intValue];
+    [self presentViewController:preview animated:NO completion:nil];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    //注册接受消息通知跳转的通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(pushToMessageVc:) name:PUSHTOMESSAGE object:nil];
+    //注册接受跳转到好友界面的通知
+    REGISTEREDNOTI(pushToFriendVc:, PUSHTOFRIEND);
+    //注册跳转到我的视频页面
+    REGISTEREDNOTI(pushToMyVideoVc:, PUSHTOVIDEO);
+    
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    //注册标签变化通知
+    REGISTEREDNOTI(changePromptLabel:, UPDATEPROPMTLABELTEXT);
+    //首先先计算一下
+    [self changePromptLabel:nil];
+    
+    //如果从草稿箱跳转时接受此通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(backFromPreView:) name:@"pushToISCutPreViewController" object:nil];
+    
+    [[APPUserPrefs Singleton]AutoLogin];
+    
+    //去除tabbar顶部黑线
+    CGRect rect = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [[UIColor clearColor] CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    [self.tabBar setShadowImage:img];
+}
+#pragma mark ----- 2015/11/19  修改主界面
+
+//    CGRect rect = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+//    UIGraphicsBeginImageContext(rect.size);
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    CGContextSetFillColorWithColor(context, [[UIColor clearColor] CGColor]);
+//    CGContextFillRect(context, rect);
+//    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+//    UIGraphicsEndImageContext();
+////    [self.tabBar setBackgroundImage:img];
+//    [self.tabBar setShadowImage:img];
+////    self.tabBar.backgroundColor = [UIColor clearColor];
+//
+//    //添加tabbar的提示标签
+//    self.label = [[UILabel alloc] init];
+//    [self.tabBar addSubview:self.label];
+//    self.label.layer.masksToBounds = YES;
+//    self.label.textColor = [UIColor whiteColor];
+//    self.label.font = [UIFont boldSystemFontOfSize:8];
+//    self.label.textAlignment = NSTextAlignmentCenter;
+//    
+//    
+//    
+//    self.tabBar.translucent = NO;
+//    if (iPhone4 || iPhone5_5S_5C ) {
+//        self.label.frame = CGRectMake(268, 0, 14, 14);
+//        self.label.layer.cornerRadius = 14/2.0f;
+////        [self.tabBar setBackgroundImage:[UIImage imageNamed:@"tabbarBackImage"]];
+//    } else if (iPhone6_6S) {
+//        self.label.frame = CGRectMake(316, 0, 14, 14);
+//        self.label.layer.cornerRadius = 14/2.0f;
+////        self.tabBar.backgroundImage = [[UIImage imageNamed:@"tabbarBackImage"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+//    } else {
+////        [self.tabBar setBackgroundImage:[UIImage imageNamed:@"tabbarBackImage"]];
+//        self.label.frame = CGRectMake(348, 0, 14, 14);
+//        self.label.layer.cornerRadius = 14/2.0f;
+//        for (NSInteger i = 0; i < self.tabBar.items.count; i++) {
+//            UITabBarItem *item = self.tabBar.items[i];
+//            if (i == 1) {
+//                item.imageInsets = UIEdgeInsetsMake(-5, 0, 5, 0);
+//            }
+//        }
+//    }
+    
+    
+//    [[UITabBar appearance] setBackgroundColor:ISLIKEGRAYCOLOR];
+    
+//    [UITabBar appearance].translucent = NO;
+//    [self.tabBar setBackgroundImage:[UIImage imageNamed:@"tabbarBackImage"]];
+    
+//    self.tabBar.backgroundColor = ISLIKEGRAYCOLOR;
+    
+//    self.navigationController.tabBarController.tabBar.backgroundColor = [UIColor blackColor];
+
+//    __weak MovierTabBarViewController *weakTabBar = self;
+////    UserLoginViewController *userLoginVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LoginVCStoryboardID2"];
+//    //    userLoginVC.replaceVCBlock = ^(NSMutableArray *itemsNaViVC){
+//    
+//    [weakTabBar _initThreeLevelViewControllers];
+
+
+////初始化控制器，并创建三级视图控制器(未使用)
+//- (void)_initThreeLevelViewControllers{
+//    //----------------------------------1.创建视图（三级视图控制器）
+//    //登录之后首页
+//    UINavigationController *homeNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"HomeNaviStoryBoardID"];
+//   
+//    //登录后我的最爱页面
+////    UINavigationController *loginMyFavouriteNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginFavouriteNaviStoryBoardID"];
+//    UINavigationController *cutProNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"CutProNaviStoryBoardID"];
+////    UINavigationController *icloudSpaceNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginIcloudStorageNaviStoryBoardID"];
+//    
+////    MWICloudViewController *icloud = [[MWICloudViewController alloc] init];
+////    UINavigationController *icloudSpaceNavi =[[UINavigationController alloc] initWithRootViewController:icloud];
+//    
+//     //登录后个人页面
+//    UINavigationController *loginPersonalNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LogoutPersonNaviStoryBoardID"];
+//    if ([[UserEntity sharedSingleton] isAppHasLogin]){
+//        
+////        self.tabBarItem3 = [self.tabBarController.tabBar.items lastObject];
+////        self.tabBarItem3.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
+////        [self.tabBarItem3 setImage:[[UIImage imageNamed:@"user-profile"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
+////        [self.tabBarItem3 setSelectedImage:[[UIImage imageNamed:@"user-profile_h"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
+////        self.tabBarItem3.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
+//        
+//        loginPersonalNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginPersonNaviStoryBoardID"];
+//    }
+//    //--------------------------------未登录之前
+//    //UINavigationController *homeNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"HomeNaviStoryBoardID"];
+//    //HomeViewController *homeVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HomeVCStoryBoardID"];
+//    //未登录之前的我的最爱界面
+//    //UINavigationController *logOutFavouriteNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LogoutFavouriteNaviStoryBoardID"];
+//    //LogoutFavouriteViewController *logOutfavouriteVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LogOutfavouriteVCStoryboardID"];
+//    //UINavigationController *cutProNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"CutProNaviStoryBoardID"];
+//    //CutProViewController *cutProVC = [self.storyboard instantiateViewControllerWithIdentifier:@"CutProVCStoryBoardID"];
+//    //UINavigationController *icloudSpaceNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"LoginIcloudStorageNaviStoryBoardID"];
+//    //IcloudStorageViewController *icloudSpaceVC = [self.storyboard instantiateViewControllerWithIdentifier:@"icloudStorageVCStoryBoardID"];
+//    // UINavigationController *logOutPersonNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"LogoutPersonNaviStoryBoardID"];
+//    //将视图控制器全部放入一个数组中
+//    //---------------------------------2.循环创建导航控制器
+////    _items = [NSMutableArray arrayWithCapacity:5];
+////    _items = [NSMutableArray arrayWithObjects:homeNavi,loginMyFavouriteNavi,cutProNavi,icloudSpaceNavi,loginPersonalNavi, nil];
+//    _items = [NSMutableArray arrayWithCapacity:3];
+//    _items = [NSMutableArray arrayWithObjects:homeNavi, cutProNavi, loginPersonalNavi, nil];
+//    //---------------------------------3.将导航控制器交给标签控制器
+//    self.viewControllers = _items;
+//    //   //--------------------------------登录之后
+//    //    //我的最爱页面
+//    //    UINavigationController *loginMyfavouriteNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginfavouriteNaviStoryBoardID"];
+//    //    //个人页面
+//    //    UINavigationController *loginPersonalNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginPersonNaviStoryBoardID"];
+//}
+//
+//#pragma mark - //创建自定义的tabbar标签工具栏
+////未使用
+//- (void)_initCustomTabBarView {
+//#pragma mark  //隐藏内置tabBar上的按钮
+//    NSArray *subViews = [self.tabBar subviews];
+////    NSLog(@"subViews = %@",subViews);
+//    for (UIView *view in subViews) {
+//        //将UITabBarButton转换为类
+//        Class  classUITabBarButton = NSClassFromString(@"UITabBarButton");
+//        if ([view isKindOfClass:classUITabBarButton]) {
+//            //将tabBar上的按钮从父视图上移除
+//            [view removeFromSuperview];
+//        }
+//    }
+//#pragma mark //----------------------------------3.创建选中的按钮
+////    _imageArray = @[@"home_tab_icon",
+////                    @"myfavourite_tab_icon",
+////                    @"cutpro_tab_icon",
+////                    @"icloud_tab_icon",
+////                    @"personal_tab_icon"];
+////    _selectedImageArray = @[@"home_tab_icon_h",
+////                            @"myfavourite_tab_icon_h",
+////                            @"cutpro_tab_icon_h",
+////                            @"icloud_tab_icon_h",
+////                            @"personal_tab_icon_h"];
+//    
+//#pragma mark ----- 2015/11/19  修改主界面
+//    _imageArray = @[@"home_tab_icon",
+//                    @"cutpro_tab_icon",
+//                    @"personal_tab_icon"];
+//    _selectedImageArray = @[@"home_tab_icon_h",
+//                            @"cutpro_tab_icon_h",
+//                            @"personal_tab_icon_h"];
+//    for (int i =0; i<_imageArray.count; i++) {
+//        NSString *imageName = _imageArray[i];
+////        WxTabBarItem *controlItem = [[WxTabBarItem alloc]initWithFrame:CGRectMake((SCREEN_WIDTH/5)*i + (SCREEN_WIDTH/10) - 37.5,0, 75, 49) WithImageName:imageName WithTitle:nil] ;
+//        WxTabBarItem *controlItem = [[WxTabBarItem alloc]initWithFrame:CGRectMake((SCREEN_WIDTH/3)*i + (SCREEN_WIDTH/10) - 37.5,0, 75, 49) WithImageName:imageName WithTitle:nil] ;
+//        controlItem.tag=i;
+//        [self.tabBar addSubview:controlItem];
+////        [controlItem addTarget:self action:@selector(controlItemAction:) forControlEvents: UIControlEventTouchUpInside];
+//    }
+//#pragma mark //----------------------------------4.添加选中的图片
+//    _tabBarSelectedImageView = [[UIImageView alloc]initWithFrame:CGRectMake((SCREEN_WIDTH/10) - 37.5,0,75, 49)];
+//    _tabBarSelectedImageView.image = [UIImage imageNamed:_selectedImageArray[0]];
+//    [self.tabBar addSubview:_tabBarSelectedImageView];
+//}
+
+//- (void)controlItemAction:(WxTabBarItem *)controlItem{
+//    self.selectedIndex = controlItem.tag;
+//    //[controlItem changeImageImage:_selectedImageArray[controlItem.tag]];
+//    //开始动画
+//    [UIView beginAnimations:nil context:nil];
+//    [UIView setAnimationDuration:.2];
+//    _tabBarSelectedImageView.center=controlItem.center;
+//    _tabBarSelectedImageView.image =[UIImage imageNamed:_selectedImageArray [controlItem.tag]];
+//    //关闭动画
+//    [UIView commitAnimations];
+//}
+
+//- (void)didReceiveMemoryWarning {
+//    [super didReceiveMemoryWarning];
+//    // Dispose of any resources that can be recreated.
+//}
+//---------ios5.0
+//- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+//{
+//    return (toInterfaceOrientation == UIInterfaceOrientationPortrait);
+//}
+
+//---------ios6.0
+//- (BOOL)shouldAutorotate
+//{
+////    UINavigationController * nav = self.viewControllers[self.selectedIndex];
+////    if ([nav.topViewController isKindOfClass:[VideoDetailViewController class]]) {
+////        return !ZFPlayerShared.isLockScreen;
+////    }
+//    return YES;
+//}
+//
+//
+//
+//-(UIInterfaceOrientationMask)supportedInterfaceOrientations
+//{
+//    UINavigationController * nav = self.viewControllers[self.selectedIndex];
+//    if ([nav.topViewController isKindOfClass:[VideoDetailViewController class]]) {
+//        if (ZFPlayerShared.isAllowLandscape) {
+//            return UIInterfaceOrientationMaskAllButUpsideDown;
+//        }else{
+//            return UIInterfaceOrientationMaskPortrait;
+//        }
+//    }
+//    return UIInterfaceOrientationMaskPortrait;//只支持这一个方向(正常的方向)
+//}
+- (void)awakeFromNib{
+    [super awakeFromNib];
+    self.selectedIndex = 0;
+}
+
+-(UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return [self.viewControllers.lastObject preferredInterfaceOrientationForPresentation];
+}
+
+#pragma mark - Navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
+}
+
+- (UIViewController *)childViewControllerForStatusBarHidden{
+    UINavigationController * naVC = self.viewControllers[self.selectedIndex];
+    return naVC.topViewController;
+}
+
+- (UIViewController *)childViewControllerForStatusBarStyle{
+    UINavigationController * naVC = self.viewControllers[self.selectedIndex];
+    return naVC.topViewController;
+}
+@end

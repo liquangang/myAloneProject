@@ -1,0 +1,40 @@
+//
+//  ReinstallPasswordViewController.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/7/19.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+#import "BaseViewController.h"
+
+@interface ReinstallPasswordViewController : BaseViewController
+{
+    IBOutlet UITextField *tfTelephone;
+    IBOutlet UITextField *tfPassword;
+    IBOutlet UITextField *tfVertifyCode;
+    
+    NSTimer* _timer1;
+    NSTimer* _timer2;
+    NSTimer* _timer3;
+    UIAlertView* _alert1;
+    UIAlertView* _alert2;
+    UIAlertView* _alert3;
+    
+    UInt64 times;
+    UInt64 timee;
+    NSInteger smslefttime;
+}
+
+@property (nonatomic,strong) UITextField *tfTelephone;
+@property (nonatomic,strong) UITextField *tfPassword;
+@property (nonatomic,strong) UITextField *tfVertifyCode;
+@property(nonatomic,strong)  UILabel* timeLabel;
+@property (retain,nonatomic) IBOutlet UIView *imViewUp;
+
+- (IBAction)getVertifyCode:(id)sender;
+- (IBAction)reinstallPassword:(id)sender;
+@property (weak, nonatomic) IBOutlet UIButton *SMS_Button;
+
+
+
+@end

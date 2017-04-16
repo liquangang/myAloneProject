@@ -1,0 +1,63 @@
+//
+//  AppDelegate.h
+//  M-Cut
+//
+//  Created by Crab shell on 12/21/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "UseGuideViewController.h"
+#import <SMS_SDK/SMSSDK.h>
+#import "WXApi.h"
+#import "APPUserPrefs.h"
+#import "MovierTranslation.h"
+#import "GeTuiSdk.h"
+#import "CustomeClass.h"
+
+/// 个推开发者网站中申请App时，注册的AppId、AppKey、AppSecret
+//正式版
+//com.movier.MCut
+#define kGtAppId           @"wzTtqDCWDq8AmavVTIScP2"            //JQDP9d9Lky6qXyEOPZLIG4
+#define kGtAppKey          @"NVQg7i5Xs7A2XrHDC1cGY5"            //dRiMtfkvQy9TKCqXdNBuR8
+#define kGtAppSecret       @"7u3tL9oyoJ7qrAeKfBqhS6"            //4HDq7vMHSG6Okz2gLyIyV6
+
+//测试版
+//com.movier.InShow
+//#define kGtAppId           @"CiLjaS8OnD7e32vm5UutE"            //wzTtqDCWDq8AmavVTIScP2
+//#define kGtAppKey          @"DXRiwux8CJ7LVbwKnThyI3"            //NVQg7i5Xs7A2XrHDC1cGY5
+//#define kGtAppSecret       @"saSfvGB04i7oZDZ5Hdn2h5"            //7u3tL9oyoJ7qrAeKfBqhS6
+
+typedef NS_ENUM(NSInteger, ShowNoticeVc){
+    withoutVc,
+    messageVc,
+    friendVc,
+    videoVc
+};
+
+@interface AppDelegate : UIResponder <UIApplicationDelegate,UseGuideDelegate, GeTuiSdkDelegate>
+
+@property (strong, nonatomic) UIWindow *window;
+@property (assign, nonatomic) UIBackgroundTaskIdentifier backgroundUpdateTask;
+
+/** 设备的deviceToken*/
+@property (nonatomic, copy) NSString * thisDeviceToken;
+/** 应用是否在前台*/
+@property (nonatomic, assign) BOOL isForeground;
+/** 应用是否跳转到了展示推送通知的界面，如果已经进入，就不允许再次进入，防止崩溃*/
+@property (nonatomic, assign) ShowNoticeVc showNoticeVc;
+/** 更新showNoticeVc属性*/
+- (void)updateshowNoticeVcWithData:(NSInteger)showNoticeVc;
+
+/** 首页视频下载进度*/
+@property (nonatomic, assign) float downloadProgress;
+
+/** 支持横屏，需要在view消失时设置为不支持，否则其他页面也会支持横屏*/
+- (void)setCanAllowRotation;
+/** 不支持横屏*/
+- (void)setCanNotAllowRotation;
+
+/** 是否允许横屏*/
+@property (nonatomic, assign) BOOL isAllowRotation;
+@end
+

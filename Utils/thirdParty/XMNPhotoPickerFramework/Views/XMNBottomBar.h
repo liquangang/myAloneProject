@@ -1,0 +1,44 @@
+//
+//  XMNBottomToolBar.h
+//  XMNPhotoPickerFrameworkExample
+//
+//  Created by XMFraker on 16/1/29.
+//  Copyright © 2016年 XMFraker. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+typedef NS_ENUM(NSUInteger, XMNBottomBarType) {
+    XMNCollectionBottomBar,
+    XMNPreviewBottomBar,
+};
+
+@interface XMNBottomBar: UIView
+
+@property (nonatomic, assign, readonly) XMNBottomBarType barType;
+@property (nonatomic, assign, readonly) CGFloat totalSize;
+@property (nonatomic, assign, readonly) BOOL selectOriginEnable;
+@property (nonatomic, copy)   void(^confirmBlock)();
+
+/** 拍照按钮block*/
+@property (nonatomic, copy) void(^takePhotoBlock)();
+
+
+- (instancetype)initWithBarType:(XMNBottomBarType)barType;
+
+- (void)updateBottomBarWithAssets:(NSArray *)assets;
+
+- (void)setTakePhotoButtonHidden:(BOOL)isShow;
+
+/** 设置显示时间view的消失隐藏*/
+- (void)setTimeViewHidden:(BOOL)isHidden;
+
+/** 设置确认按钮为未选中任何素材的情况*/
+- (void)setConfirmButton;
+
+/** 判断时长是否超出180s*/
+- (void)setTimeWithAssets:(NSArray *)assets;
+
+/** 隐藏确定部分按钮和数量图标*/
+- (void)setConfirmButtonHidden:(BOOL)hidden;
+@end

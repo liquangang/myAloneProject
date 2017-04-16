@@ -1,0 +1,39 @@
+//
+//  SearchVideoTableViewCell.h
+//  M-Cut
+//
+//  Created by apple on 16/8/17.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface SearchVideoTableViewCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UIView *backView1;
+@property (weak, nonatomic) IBOutlet UIImageView *backImage1;
+@property (weak, nonatomic) IBOutlet UIImageView *userHeaderImage1;
+@property (weak, nonatomic) IBOutlet UILabel *userNameLabel1;
+@property (weak, nonatomic) IBOutlet UILabel *lookTimesLabel1;
+@property (weak, nonatomic) IBOutlet UILabel *videoNameLabel1;
+
+@property (weak, nonatomic) IBOutlet UIView *backView2;
+@property (weak, nonatomic) IBOutlet UIImageView *backImage2;
+@property (weak, nonatomic) IBOutlet UIImageView *userHeaderImage2;
+@property (weak, nonatomic) IBOutlet UILabel *userNameLabel2;
+@property (weak, nonatomic) IBOutlet UILabel *lookTimesLabel2;
+@property (weak, nonatomic) IBOutlet UILabel *videoNameLabel2;
+
+@property (weak, nonatomic) IBOutlet UIView *backView3;
+@property (weak, nonatomic) IBOutlet UIImageView *backImage3;
+@property (weak, nonatomic) IBOutlet UIImageView *userHeaderImage3;
+@property (weak, nonatomic) IBOutlet UILabel *userNameLabel3;
+@property (weak, nonatomic) IBOutlet UILabel *lookTimesLabel3;
+@property (weak, nonatomic) IBOutlet UILabel *videoNameLabel3;
+
+@property (weak, nonatomic) IBOutlet UIView *backView4;
+@property (weak, nonatomic) IBOutlet UIImageView *backImage4;
+@property (weak, nonatomic) IBOutlet UIImageView *userheaderImage4;
+@property (weak, nonatomic) IBOutlet UILabel *userNameLabel4;
+@property (weak, nonatomic) IBOutlet UILabel *lookTimesLabel4;
+@property (weak, nonatomic) IBOutlet UILabel *videoNameLabel4;
+@end

@@ -1,0 +1,59 @@
+//
+//  MWICloudOrderListCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudOrderListEditCell.h"
+#import "MWICloudOrderListModel.h"
+
+@interface MWICloudOrderListEditCell ()
+/**  订单编号 */
+@property (weak, nonatomic) IBOutlet UILabel *orderNumLabel;
+/**  容量 */
+@property (weak, nonatomic) IBOutlet UILabel *capacityLabel;
+/**  金额 */
+@property (weak, nonatomic) IBOutlet UILabel *moneyLabel;
+/**  时间 */
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/**  订单状态 */
+@property (weak, nonatomic) IBOutlet UILabel *stateLabel;
+
+/**  cell 左侧选择按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseButton;
+/**  选择按钮点击事件 */
+- (IBAction)chooseClick:(UIButton *)sender;
+@end
+
+@implementation MWICloudOrderListEditCell
+
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"orderEditList";
+    MWICloudOrderListEditCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudOrderListEditCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)setModel:(MWICloudOrderListModel *)model {
+    _model = model;
+    
+    self.orderNumLabel.text = model.orderNum;
+    self.capacityLabel.text = [NSString stringWithFormat:@"%dGB", model.capacity];
+    self.moneyLabel.text = [NSString stringWithFormat:@"%d元/年", model.money];
+    self.timeLabel.text = model.effectTime;
+    self.stateLabel.text = model.state;
+    
+    self.chooseButton.selected = model.isSelected;
+}
+
+- (IBAction)chooseClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if ([self.delegate respondsToSelector:@selector(orderListEditCell:didClickChooseButton:)]) {
+        [self.delegate orderListEditCell:self didClickChooseButton:sender];
+    }
+}
+@end

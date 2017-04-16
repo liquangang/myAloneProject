@@ -1,0 +1,325 @@
+//
+//  HomeShowViewC.m
+//  M-Cut
+//
+//  Created by Crab00 on 15/10/8.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import "HomeShowViewC.h"
+#import "APPUserPrefs.h"
+#import "HomeCollectionViewCell.h"
+#import "CommonMacro.h"
+#import "MovierUtils.h"
+#import "UIScrollView+MJRefresh.h"
+// 瀑布流
+#import "MWaterflowLayout.h"
+
+/** 列数 */
+#define HomeColumnsCount 2
+/** 列间距 */
+#define HomeColumnMargin 6
+/** cell 和屏幕的上间距 */
+#define HomeTopMargin 4
+/** cell 和屏幕的左间距 */
+#define HomeLeftMargin 4
+/** cell 和屏幕的右间距 */
+#define HomeRightmargin HomeLeftMargin
+/** 第一个 cell 的高度 */
+#define HomeFirstCellheight 55
+/** cell 的宽度 */
+#define HomeCellWidth (SCREEN_WIDTH - HomeLeftMargin - HomeRightmargin - HomeColumnMargin) * 0.5
+
+static NSString *HomeIdentifier_cell = @"HomeIdentifier_cell";
+static NSString *HomeIdentifierFirst_cell = @"HomeIdentifierFirst_cell";
+
+@interface HomeShowViewC () <UICollectionViewDataSource, UICollectionViewDelegate, MWaterflowLayoutDelegate, UICollectionViewDelegateFlowLayout>
+@property (weak, nonatomic) UICollectionView *collectionView;
+
+@end
+
+@implementation HomeShowViewC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+//     Do any additional setup after loading the view from its nib.
+
+//    [self addHeader];
+//    [self addFooter];
+    /*
+    self.mainCollection.backgroundColor = [UIColor clearColor];
+    UINib *cellNib = [UINib nibWithNibName:@"HomeCollectionViewCell" bundle:nil];
+    [self.mainCollection registerNib:cellNib forCellWithReuseIdentifier:HomeIdentifier_cell];
+#pragma mark -- 注册第一个 cell
+    [self.mainCollection registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:HomeIdentifierFirst_cell];
+     */
+    
+    [self setupCollectionView];
+}
+
+- (void)setupCollectionView {
+    MWaterflowLayout *layout = [[MWaterflowLayout alloc] init];
+    layout.columnsCount =  HomeColumnsCount;
+    layout.columnMargin = HomeColumnMargin;
+    // 设置 cell 的边距
+    layout.sectionInset = UIEdgeInsetsMake(HomeTopMargin, HomeLeftMargin, HomeColumnMargin, HomeRightmargin);
+    layout.delegate = self;
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 64 - 49 - 49) collectionViewLayout:layout];
+    
+    UINib *cellNib = [UINib nibWithNibName:@"HomeCollectionViewCell" bundle:nil];
+    [collectionView registerNib:cellNib forCellWithReuseIdentifier:HomeIdentifier_cell];
+    [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:HomeIdentifierFirst_cell];
+    
+    collectionView.delegate = self;
+    collectionView.dataSource = self;
+    collectionView.backgroundColor = [UIColor whiteColor];
+    collectionView.alwaysBounceVertical = YES;
+    
+    // 集成上下拉刷新
+    [collectionView addHeaderWithTarget:self action:@selector(addHeader)];
+    [collectionView addFooterWithTarget:self action:@selector(addFooter)];
+    
+    [self addHeader];
+    [self.view addSubview:collectionView];
+    self.collectionView = collectionView;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+    // 保留数组最后面的10个元素
+    if (self.imageArray.count < 10)  return;
+    NSRange range = NSMakeRange(0, self.imageArray.count - 10);
+    [self.imageArray removeObjectsInRange:range];
+    [self.collectionView reloadData];
+    
+    [[SDImageCache sharedImageCache] clearMemory];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    //更新点赞
+    //待补充
+}
+-(void)FillContent:(int)labeltag {
+    _VideoLabel = labeltag;
+    _numberOfArra = 10;
+    _imageArray = [[NSMutableArray alloc] initWithCapacity:10];
+//    dispatch_async(dispatch_get_global_queue(0, 0), ^(void){
+//        _imageArray = [[NSMutableArray alloc] initWithArray:[[APPUserPrefs Singleton] APP_gethomevideo:0 Count:10 LabelType:labeltag]];
+//        dispatch_async(dispatch_get_main_queue(),^(void){
+//            self.numberOfArra = [_imageArray count];
+//            [self.collectionView reloadData];
+//        });
+//    });
+}
+
+#pragma mark -- MWaterflowLayoutDelegate 瀑布流代理
+- (CGFloat)waterflowLayout:(MWaterflowLayout *)waterflowLayout heightForWidth:(CGFloat)width atIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.item == 0) {      
+        return HomeFirstCellheight;
+    } else {
+        return HomeCellWidth + 50;
+    }
+}
+
+-(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
+{
+    return 1;
+}
+
+-(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+#pragma mark -- 修改主界面布局, 第一个 cell 是本地的
+    if (_imageArray.count == 0) {
+        return 1;
+    } else {
+        return [_imageArray count] + 1;
+    }
+}
+
+-(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+#pragma mark -- 增加第一个 cell
+    if (indexPath.item == 0) {
+        UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:HomeIdentifierFirst_cell forIndexPath:indexPath];
+        
+        CGRect frame = CGRectMake(0, 0, HomeCellWidth, HomeFirstCellheight);
+        UIImageView *iconView = [[UIImageView alloc] initWithFrame:frame];
+        iconView.image = [UIImage imageNamed:@"bg"];
+        
+        UILabel *title = [[UILabel alloc] initWithFrame:frame];
+        title.textAlignment = NSTextAlignmentCenter;
+        title.textColor = [UIColor whiteColor];
+        title.text = self.title;
+        [iconView addSubview:title];
+        
+        [cell addSubview:iconView];
+        return cell;
+    } else {
+        HomeCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:HomeIdentifier_cell forIndexPath:indexPath];
+#pragma mark --- 需要对数据源对应的文件位置 - 1, 因为在第一个位置新插入了一个 cell
+        VideoInformationObject *homeVideowithlabel = [_imageArray objectAtIndex:indexPath.item - 1];
+        //替换sdwebimage方法，需要裁切成正方形
+        SDWebImageManager *manager = [SDWebImageManager sharedManager];
+        [manager downloadImageWithURL:[NSURL URLWithString:homeVideowithlabel.videoThumbnailUrl] options:SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize){
+        }completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+//            cell.videoImagView.image = [MovierUtils getSquareImage:image];
+            cell.videoImagView.image = image;
+            [cell.videoImagView reloadInputViews];
+        }];
+        
+#pragma mark -- 修改主界面布局
+        // 显示影片名称，内容长度最多不超过九个字符，超出九个字符长度，超出部分即以省略号形式展现，如果用户影片没有影片名，系统自动显示“快来看看我的作品”为影片名称
+//        cell.videoNameLabel.text = homeVideowithlabel.videoName;
+        NSString *videoName = homeVideowithlabel.videoName;
+        NSInteger videoNameLength = homeVideowithlabel.videoName.length;
+        if (videoNameLength == 0) {
+            cell.videoNameLabel.text = @"快来看看我的作品";
+        } else if (videoNameLength > 9) {
+            cell.videoNameLabel.text = [NSString stringWithFormat:@"%@...", [videoName substringToIndex:9]];
+        } else {
+            cell.videoNameLabel.text = videoName;
+        }
+        // 用户昵称，内容长度最长不超过七个字符，超过七个字符长度，超出部分即以省略号形式展现
+//        cell.ownerNameLabel.text = homeVideowithlabel.ownerName;
+        NSString *nickName = homeVideowithlabel.ownerName;
+        NSInteger nickNameLength = homeVideowithlabel.ownerName.length;
+        if (nickNameLength > 7) {
+            cell.ownerNameLabel.text = [NSString stringWithFormat:@"%@...", [nickName substringToIndex:7]];
+        } else {
+            cell.ownerNameLabel.text = nickName;
+        }
+        
+        // 用户点赞数量，随着数字位数的增加，向左缩进。
+//        cell.ownerNameLabel.text = homeVideowithlabel.videoNumberOfPraise;
+        NSString *praise = homeVideowithlabel.videoNumberOfPraise;
+        cell.videoNumberOfPraiseLabel.text = praise;
+        CGSize praiseSize = [praise boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:13]} context:nil].size;
+        cell.praiseLabelWidth.constant = praiseSize.width;
+#pragma mark -- 修改主界面布局
+        cell.videoNumberOfShareLabel.text = homeVideowithlabel.videoNumberOfShare;
+        
+        return cell;
+    }
+}
+
+/*  使用  MwaterFlowlayout 不用在实现这个方法, 只用实现 Mwaterflowlayout 的代理方法返回高度就可以了
+//定义每个UICollectionView 的大小
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.item == 0) {
+        // 50 是第一个 cell 的高度
+        return CGSizeMake(cellWidth, 50);
+    } else {
+        cellWidth = (SCREEN_WIDTH-14)/2;
+        cellHeight =cellWidth;
+        //((self.homeCollectionView.frame.size.height)/3)*(1+0.2);
+        return CGSizeMake(cellWidth, cellHeight);
+    }
+}
+
+-(UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
+    return UIEdgeInsetsMake(2, 2, 2, 2);
+}
+*/
+-(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *result = [[APPUserPrefs Singleton] GetCurrntNet];
+    if (!result) {//没有网络不显示详细信息
+        return;
+    }
+    // 跳转到  MovieDetailPreviewViewController
+    if (indexPath.item == 0) {  // 拦截第一个 cell 的点击事件
+        NSLog(@"didSelectItemAtIndexPath.Item --- %ld", indexPath.item);
+    } else {
+//    integers = (int)indexPath.row;
+        UICollectionViewCell *cell = (UICollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+        HomepageVideoOrder *homepageVideoOrder = [[HomepageVideoOrder alloc] init];
+        homepageVideoOrder = [_imageArray objectAtIndex:indexPath.item - 1];
+        [[Video Singleton] setContent:homepageVideoOrder];
+        cell.backgroundColor = [UIColor clearColor];
+//        int videoID = [[Video Singleton].videoID intValue];
+        // 每次播放视频， 数量加1, 在异步线程中执行
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            int num = [[APPUserPrefs Singleton] APP_setVideoPlayNumByVideoID:[homepageVideoOrder.videoID intValue]];
+            [Video Singleton].videoPlayCount  = [NSString stringWithFormat:@"%d", num];
+        });
+        [self.delegate ShowDetailView];
+    }
+}
+
+-(BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    return YES;
+}
+
+- (void)addHeader
+{
+//    if (self.imageArray.count > 10) {   // 保留10个对象
+//        NSRange range = NSMakeRange(10, self.imageArray.count - 10);
+//        [self.imageArray removeObjectsInRange:range];
+//        [self.collectionView reloadData];
+//        [self.collectionView headerEndRefreshing];
+//        return;
+//    }
+    int requestnum = (self.numberOfArra>10)?self.numberOfArra:10;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+//        NSLog(@"befor get video = %@",[MovierUtils stringFromDate:[NSDate date]]);
+//        [self.imageArray addObjectsFromArray: [[APPUserPrefs Singleton] APP_gethomevideo:0 Count:requestnum LabelType:self.VideoLabel]];
+        NSMutableArray* videoarray = [[APPUserPrefs Singleton] APP_gethomevideo:0 Count:requestnum LabelType:self.VideoLabel];
+//        NSLog(@"after get video = %@",[MovierUtils stringFromDate:[NSDate date]]);
+        [self.imageArray removeAllObjects];
+        [self.imageArray addObjectsFromArray:videoarray];
+
+
+        dispatch_async(dispatch_get_main_queue(),^(void){
+            self.numberOfArra = [self.imageArray count];
+            [self.collectionView reloadData];
+            [self.collectionView headerEndRefreshing];
+        });
+
+    });
+//    [self.imageArray addObjectsFromArray: [[APPUserPrefs Singleton] APP_gethomevideo:0 Count:requestnum LabelType:self.VideoLabel]];
+//    self.numberOfArra = [self.imageArray count];
+//    [self.collectionView reloadData];
+//    [self.collectionView headerEndRefreshing];
+    
+    
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_USEC)), dispatch_get_main_queue(), ^{
+//        [self.imageArray addObjectsFromArray: [[APPUserPrefs Singleton] APP_gethomevideo:0 Count:requestnum LabelType:self.VideoLabel]];
+//        self.numberOfArra = [self.imageArray count];
+//        [self.collectionView reloadData];
+//        [self.collectionView headerEndRefreshing];
+//    });
+}
+
+- (void)addFooter {
+    [self.imageArray addObjectsFromArray:[[APPUserPrefs Singleton] APP_gethomevideo:self.numberOfArra Count:10 LabelType:self.VideoLabel]];
+    self.numberOfArra = [self.imageArray count];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.collectionView reloadData];
+        [self.collectionView footerEndRefreshing];
+    });
+}
+
+- (void)addContentCallback:(void (^)())callback
+{
+    // 1.创建新的header
+    // 2.设置block回调
+    self.fillcontentCallback = callback;
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

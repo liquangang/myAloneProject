@@ -1,0 +1,15 @@
+//
+//  VideoLabel.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/10.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+//视频label对象（未使用）
+@interface VideoLabel : NSObject
+@property (strong,nonatomic) NSString *nLabelID;
+@property (strong,nonatomic) NSString *szLabelName;
+
+@end

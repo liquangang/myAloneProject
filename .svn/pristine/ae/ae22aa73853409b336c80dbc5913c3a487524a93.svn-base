@@ -1,0 +1,138 @@
+//
+//  ShareViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/26.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+//  Modefy by arbin on 15/4/24
+//
+
+#import "ShareViewController.h"
+#import "Video.h"
+
+@interface ShareViewController ()
+
+@end
+
+@implementation ShareViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+}
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    self.navigationController.tabBarController.tabBar.hidden =YES;
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+   
+    return 2;
+    
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    
+    if (section == 0) {
+        
+        return 1;
+    }else{
+        
+        return 3;
+    }
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+
+    static NSString *ShareIndentifier_location = @"ShareIndentifier_location";
+   
+
+    static NSString *ShareIndentifier_synchronization = @"ShareIndentifier_synchronization";
+    
+    
+    if ((indexPath.section == 0 )&& (indexPath.row == 0)) {
+         UITableViewCell *cell_location = [tableView dequeueReusableCellWithIdentifier:ShareIndentifier_location forIndexPath:indexPath];
+        return cell_location;
+    } else {
+        UITableViewCell *cell_synchronization = [tableView dequeueReusableCellWithIdentifier:ShareIndentifier_synchronization forIndexPath:indexPath];
+        return cell_synchronization;
+    }
+    
+}
+- (IBAction)sendMessageButtonAction:(id)sender {
+    int len = (int)[[Video Singleton].videoName length];
+//    NSString *videoUrl = [[NSString alloc] initWithFormat: @"http://115.28.154.117/phproot/inshia/inshian.php?videoid=%@",[Video Singleton].videoID];
+    NSString *videoUrl = [[NSString alloc] initWithFormat:@"http://115.28.154.117/phproot/inshia/inshian.php?videoid=%@",[Video Singleton].videoID];
+    if (len > 0) {
+        [self sendVideoContent:[Video Singleton].videoName andDis:[Video Singleton].videoName andThumbImageUrl:[Video Singleton].videoThumbnailUrl andVideoUrl:videoUrl];
+    }else{
+        NSLog(@"%@",[Video Singleton].videoID);
+        [self sendVideoContent:[Video Singleton].videoName andDis:@"映像视频" andThumbImageUrl:[Video Singleton].videoThumbnailUrl andVideoUrl:videoUrl];
+    }
+    [self.navigationController popViewControllerAnimated:YES ];
+}
+
+- (void)sendVideoContent:(NSString*)title andDis:(NSString*)dis andThumbImageUrl:(NSString *)thumburl andVideoUrl:(NSString*)videourl
+{
+//    NSURL *url=[NSURL URLWithString:thumburl];
+//    WXMediaMessage *message = [WXMediaMessage message];
+//    if([title isEqualToString:@""])
+//        message.title = @"映像视频";
+//    else
+//        message.title = title;
+//    message.description = dis;
+//    [message setThumbImage:[self getImageFromImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:url]]]];
+//    WXVideoObject *ext = [WXVideoObject object];
+//    ext.videoUrl = videourl;
+//    message.mediaObject = ext;
+//    SendMessageToWXReq* req = [[SendMessageToWXReq alloc] init];
+//    req.bText = NO;
+//    req.message = message;
+//    [WXApi sendReq:req];
+}
+
+-(UIImage *)getImageFromImage:(UIImage *)in{
+    int min = in.size.width>in.size.height?in.size.height:in.size.width;
+    if(min<1){
+        return [UIImage imageNamed:@"Default"];
+    }
+    CGRect myImageRect;
+    if(min==in.size.width){
+        myImageRect = CGRectMake(0,(in.size.height-in.size.width)/2,min,min);
+    }else{
+        myImageRect = CGRectMake((in.size.width-in.size.height)/2,0,min,min);
+    }
+    CGImageRef imageRef = in.CGImage;
+    CGImageRef subImageRef = CGImageCreateWithImageInRect(imageRef, myImageRect);
+    
+    CGSize size;
+    size.width = min;
+    size.height = min;
+    UIGraphicsBeginImageContext(size);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextDrawImage(context, myImageRect, subImageRef);
+    UIImage* smallImage = [UIImage imageWithCGImage:subImageRef];
+    
+    UIGraphicsEndImageContext();
+    //缩放后减少大小
+    float scaleSize = (float)108/min;
+    if(scaleSize<1){
+        UIGraphicsBeginImageContext(CGSizeMake(smallImage.size.width*scaleSize, smallImage.size.width*scaleSize));
+        [smallImage drawInRect:CGRectMake(0,0,smallImage.size.width*scaleSize,smallImage.size.height*scaleSize)];
+        UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return scaledImage;
+    }else
+        return smallImage;
+}
+
+
+@end

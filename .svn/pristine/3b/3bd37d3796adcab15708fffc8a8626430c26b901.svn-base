@@ -1,0 +1,25 @@
+//
+//  MWICloudListFooterView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/18.
+//
+//  传输列表 选择cell 后底部的删除视图
+
+#import <UIKit/UIKit.h>
+
+@class MWICloudListFooterView;
+@protocol MWICloudListFooterViewDelegate <NSObject>
+
+@optional
+- (void)iCloudListFooterView:(MWICloudListFooterView *)iCloudListFooterView didClickDeleteButton:(UIButton *)button;
+@end
+
+@interface MWICloudListFooterView : UIView
+@property (weak, nonatomic) id<MWICloudListFooterViewDelegate> delegate;
++ (instancetype)footerView;
+
+/** 设置按钮标题的方法 */
+- (void)setTitle:(NSInteger)count;
+
+@end

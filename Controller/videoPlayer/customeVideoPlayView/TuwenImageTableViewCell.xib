@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" rowHeight="176" id="KGk-i7-Jjw" customClass="TuwenImageTableViewCell">
+            <rect key="frame" x="0.0" y="0.0" width="512" height="176"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <frame key="frameInset" width="512" height="176"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HgT-JA-fwP">
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="I2n-Ts-Nz3"/>
+                            <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uVA-Sq-IrZ">
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="55" id="TZY-cf-bcI"/>
+                                    <constraint firstAttribute="width" constant="55" id="vU7-Rl-UOL"/>
+                                </constraints>
+                                <state key="normal" image="playButtonImage"/>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="uVA-Sq-IrZ" firstAttribute="centerX" secondItem="HgT-JA-fwP" secondAttribute="centerX" id="7in-XG-RdD"/>
+                            <constraint firstItem="uVA-Sq-IrZ" firstAttribute="centerY" secondItem="HgT-JA-fwP" secondAttribute="centerY" id="ZBc-Se-HFn"/>
+                            <constraint firstItem="I2n-Ts-Nz3" firstAttribute="leading" secondItem="HgT-JA-fwP" secondAttribute="leading" id="bBf-hQ-LAI"/>
+                            <constraint firstItem="I2n-Ts-Nz3" firstAttribute="top" secondItem="HgT-JA-fwP" secondAttribute="top" id="jMJ-PH-gAP"/>
+                            <constraint firstAttribute="trailing" secondItem="I2n-Ts-Nz3" secondAttribute="trailing" id="lPP-Lw-q0a"/>
+                            <constraint firstAttribute="bottom" secondItem="I2n-Ts-Nz3" secondAttribute="bottom" id="sYa-8f-oHi"/>
+                        </constraints>
+                    </view>
+                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XkS-gI-NVH">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="15" id="Cga-f0-AIW"/>
+                            <constraint firstAttribute="width" constant="15" id="TQ0-6i-izQ"/>
+                        </constraints>
+                        <state key="normal" backgroundImage="deleteImage"/>
+                        <connections>
+                            <action selector="deleteButtonAction:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="WzB-bu-ayU"/>
+                        </connections>
+                    </button>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Y3J-Di-O9y">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="35" id="DlK-pA-EBK"/>
+                            <constraint firstAttribute="width" constant="25" id="mi6-R1-TKj"/>
+                        </constraints>
+                        <state key="normal" image="moveImage"/>
+                    </button>
+                </subviews>
+                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                <constraints>
+                    <constraint firstItem="XkS-gI-NVH" firstAttribute="leading" secondItem="HgT-JA-fwP" secondAttribute="trailing" constant="-7.5" id="3X0-f2-G4Y"/>
+                    <constraint firstItem="HgT-JA-fwP" firstAttribute="leading" secondItem="Y3J-Di-O9y" secondAttribute="trailing" id="9ms-IN-ELr"/>
+                    <constraint firstItem="HgT-JA-fwP" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="15" id="ENU-29-4vo"/>
+                    <constraint firstAttribute="bottom" secondItem="HgT-JA-fwP" secondAttribute="bottom" constant="5" id="eFm-Ov-abh"/>
+                    <constraint firstItem="Y3J-Di-O9y" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="gu7-Dr-Rkj"/>
+                    <constraint firstItem="XkS-gI-NVH" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="7.5" id="iqC-69-4hA"/>
+                    <constraint firstItem="Y3J-Di-O9y" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="15" id="rMt-te-O7N"/>
+                    <constraint firstAttribute="trailing" secondItem="XkS-gI-NVH" secondAttribute="trailing" constant="7.5" id="uHq-De-NMO"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="deleteButton" destination="XkS-gI-NVH" id="iT2-Gi-snV"/>
+                <outlet property="photoImageView" destination="I2n-Ts-Nz3" id="RU5-ZS-1TF"/>
+                <outlet property="playButton" destination="uVA-Sq-IrZ" id="SOg-0P-hnN"/>
+            </connections>
+            <point key="canvasLocation" x="-207" y="-141"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="deleteImage" width="15" height="15"/>
+        <image name="moveImage" width="13" height="17"/>
+        <image name="playButtonImage" width="55" height="55"/>
+    </resources>
+</document>

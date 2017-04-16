@@ -1,0 +1,34 @@
+//
+//  MWFooterUploadAlbumView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//
+//
+
+#import "MWFooterUploadAlbumView.h"
+
+@interface MWFooterUploadAlbumView ()
+- (IBAction)newFolder;
+- (IBAction)choose;
+
+@end
+
+@implementation MWFooterUploadAlbumView
+
++ (instancetype)uploadAlbumView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWFooterUploadAlbumView" owner:nil options:nil] lastObject];
+}
+
+- (IBAction)newFolder {
+    if ([self.delegate respondsToSelector:@selector(uploadAlbumView:didClickButton:)]) {
+        [self.delegate uploadAlbumView:self didClickButton:MWFooterUploadAlbumViewButtonTypeNewFolder];
+    }
+}
+
+- (IBAction)choose {
+    if ([self.delegate respondsToSelector:@selector(uploadAlbumView:didClickButton:)]) {
+        [self.delegate uploadAlbumView:self didClickButton:MWFooterUploadAlbumViewButtonTypeChoose];
+    }
+}
+@end

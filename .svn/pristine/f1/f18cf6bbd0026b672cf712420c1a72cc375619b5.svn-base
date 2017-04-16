@@ -1,0 +1,38 @@
+//
+//  ISHomeContentViewController.h
+//  INSHOW
+//
+//  Created by 李亚飞 on 15/11/12.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//  显示主界面的内容控制器 除活动\定制外
+
+
+#import <UIKit/UIKit.h>
+
+@class ISHomeContentViewController, ISLabel, MovierDCInterfaceSvc_VDCBannerInfo;
+@protocol ISHomeContentViewControllerDelegate <NSObject>
+
+@optional
+- (void)homeContentViewController:(ISHomeContentViewController *)homeContentViewController didClickVideo:(int)videoID;
+- (void)homeContentViewController:(ISHomeContentViewController *)homeContentViewController didClickSpecial:(ISLabel *)label;
+//- (void)homeContentViewController:(ISHomeContentViewController *)homeContentViewController didClickVideo:(int)videoID;
+/**  主界面滚动  scrollView  的点击 */
+- (void)homeContentViewController:(ISHomeContentViewController *)homeContentViewController didClickBanner:(MovierDCInterfaceSvc_VDCBannerInfo *)bannerInfo;
+// 网络状态变化时, 重新加载数据
+- (void)reloadDataFromServer;
+@end
+
+
+@interface ISHomeContentViewController : UIViewController
+
+/**  标签对象 */
+@property (strong, nonatomic) ISLabel *label;
+
+/**  控制器显示的标签 id, 作废属性, 改为传递  ISLabel 模型 */
+//@property (assign, nonatomic) int VideoLabel;
+
+/**  接收上个界面传递的网络状态 ---- 有网络: @"YES"  无网络: @"NO" */
+@property (copy, nonatomic) NSString *netState;
+
+@property (weak, nonatomic) id<ISHomeContentViewControllerDelegate> delegate;
+@end

@@ -1,0 +1,199 @@
+//
+//  CouponViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/10/21.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "CouponViewController.h"
+#import "CouponTableViewCell.h"
+#import "ElectrialTableViewCell.h"
+#import "OtherPrizeTableViewCell.h"
+#import "ExchangeCouponViewController.h"
+
+@interface CouponViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *couponTable;
+
+//标题数据源
+@property (nonatomic, strong) NSMutableArray * titleMuArray;
+
+//是否展开
+@property (nonatomic, strong) NSMutableArray * isFoldMuArray;
+@end
+
+@implementation CouponViewController
+
+static NSString * const resuableStr = @"CouponTableViewCell";
+static NSString * const resuableStr2 = @"ElectrialTableViewCell";
+static NSString * const resuableStr3 = @"OtherPrizeTableViewCell";
+
+- (void)dealloc{
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    //设置ui
+    [self setUI];
+}
+
+#pragma mark - table代理
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 3;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView
+ numberOfRowsInSection:(NSInteger)section{
+    if ([self.isFoldMuArray[section] boolValue]) {
+        return 1;
+    }
+    return 0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView
+         cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        CouponTableViewCell * cell = [CouponTableViewCell CouponTableViewCellWithTable:tableView
+                                                                           ResubaleStr:resuableStr];
+        return cell;
+    }else if (indexPath.section == 1){
+        ElectrialTableViewCell * cell = [ElectrialTableViewCell ElectrialTableViewCellWithTable:tableView
+                                                                                    ResuableStr:resuableStr2];
+        return cell;
+    }else{
+        OtherPrizeTableViewCell * cell = [OtherPrizeTableViewCell OtherPrizeTableViewCellWithTable:tableView
+                                                                                       ResuableStr:resuableStr3];
+        WEAKSELF2
+        [cell setExchangeBlock:^(ExchangeType exchangeType) {
+            [weakSelf exchangeOperationWithExchangeType:exchangeType];
+        }];
+        return cell;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        return 208;
+    }else if (indexPath.section == 1){
+        return 130;
+    }else{
+        return 108;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    return 30;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
+    UIButton * headerButton = [[UIButton alloc] initWithFrame:CGRectMake(0,
+                                                                         0,
+                                                                         ISScreen_Width,
+                                                                         30)];
+    headerButton.tag = section + 10000;
+    [headerButton addTarget:self
+                     action:@selector(headerButtonAction:)
+           forControlEvents:UIControlEventTouchUpInside];
+    
+    //标题
+    UILabel * titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(12,
+                                                                     0,
+                                                                     ISScreen_Width - 30,
+                                                                     30)];
+    [headerButton addSubview:titleLabel];
+    titleLabel.text = self.titleMuArray[section];
+    titleLabel.font = ISFont_13;
+    titleLabel.textColor = [UIColor blackColor];
+    
+    //右侧按钮图片
+    UIImageView * unfoldImage = [[UIImageView alloc] initWithFrame:CGRectMake(ISScreen_Width - 30,
+                                                                              0,
+                                                                              17,
+                                                                              30)];
+    [headerButton addSubview:unfoldImage];
+    unfoldImage.contentMode = UIViewContentModeScaleAspectFit;
+    unfoldImage.image = [UIImage imageNamed:@"foldImage"];
+    unfoldImage.tag = section + 100000;
+    
+    return headerButton;
+}
+
+
+#pragma mark - 功能模块
+
+/**
+ *  头视图按钮点击方法
+ */
+- (void)headerButtonAction:(UIButton *)headerBtn
+{
+    NSInteger section = headerBtn.tag - 10000;
+    [self.isFoldMuArray replaceObjectAtIndex:section
+                                  withObject:@(![self.isFoldMuArray[section] boolValue])];
+    [self.couponTable reloadData];
+}
+
+/**
+ *  设置ui
+ */
+- (void)setUI{
+    NAVIGATIONBACKBARBUTTONITEM
+    NAVIGATIONBARTITLEVIEW(@"我的奖品")
+    NAVIGATIONBARRIGHTBARBUTTONITEMWITHIMAGE(@"little")
+    
+    //注册cell
+    [self.couponTable registerNib:[UINib nibWithNibName:resuableStr bundle:nil]
+           forCellReuseIdentifier:resuableStr];
+    [self.couponTable registerNib:[UINib nibWithNibName:resuableStr2 bundle:nil]
+           forCellReuseIdentifier:resuableStr2];
+    [self.couponTable registerNib:[UINib nibWithNibName:resuableStr3 bundle:nil]
+           forCellReuseIdentifier:resuableStr3];
+}
+
+/**
+ *  返回按钮方法
+ */
+- (void)backButtonAction:(UIButton *)btn{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  右侧按钮的点击方法
+ */
+- (void)rightBarItemAction{
+    
+}
+
+/**
+ *  兑换券操作
+ */
+- (void)exchangeOperationWithExchangeType:(ExchangeType)exchangeType{
+    ExchangeCouponViewController * exchangeVc = [ExchangeCouponViewController new];
+    [self.navigationController pushViewController:exchangeVc animated:YES];
+}
+
+#pragma mark - 懒加载
+- (NSMutableArray *)titleMuArray{
+    if (!_titleMuArray) {
+        _titleMuArray = [[NSMutableArray alloc] initWithArray:@[@"虚拟电器卡牌",
+                                                                @"优惠券",
+                                                                @"其他奖励"]];
+    }
+    return _titleMuArray;
+}
+
+- (NSMutableArray *)isFoldMuArray{
+    if (!_isFoldMuArray) {
+        _isFoldMuArray = [[NSMutableArray alloc] initWithArray:@[@(1),
+                                                                 @(1),
+                                                                 @(1)]];
+    }
+    return _isFoldMuArray;
+}
+@end

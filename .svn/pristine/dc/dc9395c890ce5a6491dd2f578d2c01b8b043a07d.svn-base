@@ -1,0 +1,81 @@
+/**
+ *  单例模式适配ARC和非ARC, 使用宏定义 (单例模式不能使用继承, 如果有多个单例只会创建第一次初始化的对象)
+ */
+
+// .h文件
+
+/**
+ *  使用Single(name)  代替 + (instancetype)shared##name;
+ *
+ *  ## 在头文件的作用是拼接字符串
+ */
+#define Singleton_interface(name) + (instancetype)shared##name;
+
+// .m文件
+
+/**
+ *  在.m文件中需要判断是ARC还是非ARC模式, 需要用到选择
+ */
+
+#if __has_feature(objc_arc)
+// ARC模式
+    #define Singleton(name) \
+    static id _instace; \
+    \
+    + (id)allocWithZone:(struct _NSZone *)zone \
+    { \
+        static dispatch_once_t onceToken; \
+        dispatch_once(&onceToken, ^{ \
+        _instace = [super allocWithZone:zone]; \
+        }); \
+        return _instace; \
+    } \
+    \
+    + (instancetype)shared##name \
+    { \
+        static dispatch_once_t onceToken; \
+        dispatch_once(&onceToken, ^{ \
+        _instace = [[self alloc] init]; \
+        }); \
+        return _instace; \
+    } \
+    \
+    - (id)copyWithZone:(NSZone *)zone \
+    { \
+        return _instace; \
+    }
+
+#else
+// 非ARC模式
+    #define Singleton(name) \
+    static id _instace; \
+    \
+    + (id)allocWithZone:(struct _NSZone *)zone \
+    { \
+        static dispatch_once_t onceToken; \
+        dispatch_once(&onceToken, ^{ \
+        _instace = [super allocWithZone:zone]; \
+        }); \
+        return _instace; \
+    } \
+    \
+    + (instancetype)shared##name \
+    { \
+        static dispatch_once_t onceToken; \
+        dispatch_once(&onceToken, ^{ \
+        _instace = [[self alloc] init]; \
+        }); \
+        return _instace; \
+    } \
+    \
+    - (id)copyWithZone:(NSZone *)zone \
+    { \
+        return _instace; \
+    } \
+    \
+    - (oneway void)release { } \
+    - (id)retain { return self; } \
+    - (NSUInteger)retainCount { return 1;} \
+    - (id)autorelease { return self;}
+
+#endif

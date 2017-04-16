@@ -1,0 +1,43 @@
+//
+//  ExchangeCouponTableViewCell.m
+//  M-Cut
+//
+//  Created by apple on 16/10/24.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "ExchangeCouponTableViewCell.h"
+
+@implementation ExchangeCouponTableViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    [self.selectButton setImage:[UIImage imageNamed:@"tickUnSelectedImage"]
+                       forState:UIControlStateNormal];
+    [self.selectButton setImage:[UIImage imageNamed:@"tickSelectedImage"]
+                       forState:UIControlStateSelected];
+}
+
+/**
+ *  选中按钮的方法
+ */
+- (IBAction)selectButtonAction:(id)sender {
+    self.selectButton.selected = !self.selectButton.selected;
+}
+
+/**
+ *  获得cell
+ */
++ (instancetype)ExchangeCouponTableViewCellWithTable:(UITableView *)tableView
+                                         ResuableStr:(NSString *)resuableStr
+{
+    ExchangeCouponTableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:resuableStr];
+    if (!cell) {
+        cell = XIBCELL(@"ExchangeCouponTableViewCell")
+    }
+    return cell;
+}
+
+
+
+@end

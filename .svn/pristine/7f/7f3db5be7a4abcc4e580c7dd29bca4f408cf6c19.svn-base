@@ -1,0 +1,38 @@
+//
+//  MWICloudMoveCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/7.
+//
+//
+
+#import "MWICloudMoveCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudMoveCell ()
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+
+@end
+
+@implementation MWICloudMoveCell
+
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"move";
+    MWICloudMoveCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudMoveCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    self.nameLabel.text = model.file_name;
+    self.timeLabel.text = model.file_createtime;
+}
+@end

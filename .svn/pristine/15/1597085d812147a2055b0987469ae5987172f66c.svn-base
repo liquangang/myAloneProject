@@ -1,0 +1,46 @@
+//
+//  CircleQueryOrder.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/1/9.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "CircleQueryOrder.h"
+
+@implementation CircleQueryOrderList
+
+@synthesize querylist;
+static CircleQueryOrderList *Singleton;
++ (CircleQueryOrderList *)Singleton
+{
+    @synchronized(self)
+    {
+        if (!Singleton)
+            Singleton = [[CircleQueryOrderList alloc] init];
+        return Singleton;
+    }
+}
+
+-(id) init
+{
+    self = [super init];
+    self.querylist = [[NSMutableArray alloc] initWithCapacity:10];
+    
+    return self;
+}
+
+@end
+
+
+@implementation QueryOrderDetail
+
+@synthesize OrderID;OrderStatus;Time;Thumbnail;szUrl;
+
+-(id)init
+{
+    self=[super init];
+    return self;
+}
+
+@end

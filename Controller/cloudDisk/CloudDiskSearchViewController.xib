@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CloudDiskSearchViewController">
+            <connections>
+                <outlet property="cloudSearchBar" destination="nf5-Cc-8J7" id="MET-yR-aPP"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tep-YT-Nrc">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="64"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UcT-2Z-eqk">
+                            <rect key="frame" x="330" y="32" width="30" height="16"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="16" id="eXo-D3-bqR"/>
+                                <constraint firstAttribute="width" constant="30" id="z8V-LP-OmR"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <state key="normal" title="取消">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="cancleButtonAction:" destination="-1" eventType="touchUpInside" id="nnT-O3-axQ"/>
+                            </connections>
+                        </button>
+                        <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="nf5-Cc-8J7">
+                            <rect key="frame" x="15" y="25" width="305" height="30"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="barTintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <textInputTraits key="textInputTraits"/>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                                <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                    <integer key="value" value="8"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                            <connections>
+                                <outlet property="delegate" destination="-1" id="6NA-VZ-cBF"/>
+                            </connections>
+                        </searchBar>
+                    </subviews>
+                    <color key="backgroundColor" red="0.1803921568627451" green="0.1803921568627451" blue="0.22745098039215686" alpha="1" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstItem="nf5-Cc-8J7" firstAttribute="top" secondItem="tep-YT-Nrc" secondAttribute="top" constant="25" id="K7M-JM-0Sa"/>
+                        <constraint firstItem="nf5-Cc-8J7" firstAttribute="leading" secondItem="tep-YT-Nrc" secondAttribute="leading" constant="15" id="UOD-KJ-kQo"/>
+                        <constraint firstAttribute="bottom" secondItem="nf5-Cc-8J7" secondAttribute="bottom" constant="9" id="VIf-Nh-LZp"/>
+                        <constraint firstAttribute="height" constant="64" id="cKU-Y4-jW7"/>
+                        <constraint firstAttribute="trailing" secondItem="UcT-2Z-eqk" secondAttribute="trailing" constant="15" id="f51-nD-bh8"/>
+                        <constraint firstItem="UcT-2Z-eqk" firstAttribute="leading" secondItem="nf5-Cc-8J7" secondAttribute="trailing" constant="10" id="mG0-FC-pW3"/>
+                        <constraint firstItem="UcT-2Z-eqk" firstAttribute="top" secondItem="tep-YT-Nrc" secondAttribute="top" constant="32" id="xgz-DZ-l4I"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstItem="tep-YT-Nrc" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="03v-ah-3z4"/>
+                <constraint firstItem="tep-YT-Nrc" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="CMS-dc-SEs"/>
+                <constraint firstAttribute="trailing" secondItem="tep-YT-Nrc" secondAttribute="trailing" id="N51-v7-zrL"/>
+            </constraints>
+            <point key="canvasLocation" x="-53" y="14"/>
+        </view>
+    </objects>
+</document>

@@ -1,0 +1,35 @@
+//
+//  MWICloudFooterView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/25.
+//  选择界面的footerView(云空间的二级界面)
+//
+
+#import <UIKit/UIKit.h>
+typedef enum {
+    /**  底部视图下载按钮 */
+    MWICloudFooterViewButtonTypeDownload,
+    /**  底部视图删除按钮 */
+    MWICloudFooterViewButtonTypeDelete,
+    /**  底部视图移动按钮 */
+    MWICloudFooterViewButtonTypeMove
+}MWICloudFooterViewButtonType;
+
+@class MWICloudFooterView;
+@protocol MWICloudFooterViewDelegate <NSObject>
+
+@optional
+- (void)iCloudFooterView:(MWICloudFooterView *)footerView buttonType:(MWICloudFooterViewButtonType)type;
+@end
+
+@interface MWICloudFooterView : UIView
+@property (weak, nonatomic) id<MWICloudFooterViewDelegate> delegate;
+
+/**
+ *  根据选择的文件个数设置按钮上显示的文字, 每次点击选择按钮都会触发这个方法
+ */
+- (void)setTitleWithFilesCount:(NSInteger)count;
+
++ (instancetype)footerView;
+@end

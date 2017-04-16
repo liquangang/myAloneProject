@@ -1,0 +1,41 @@
+//
+//  MyMovieCell2.m
+//  M-Cut
+//
+//  Created by admin on 16/3/4.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MyMovieCell2.h"
+#import "UIImageView+WebCache.h"
+#import  "MC_OrderAndMaterialCtrl.h"
+
+@implementation MyMovieCell2
+
+- (void)awakeFromNib {
+    // Initialization code
+//    if ([self.moveData isKindOfClass:[NewNSOrderDetail class]])
+//    {
+//        NewNSOrderDetail *order = (NewNSOrderDetail *)self.moveData;
+//        self.movieTitleLabel.text = order.szVideoName;
+//    }
+//    else
+//    {
+//        MovierDCInterfaceSvc_VDCVideoInfoEx *vdcINfor = (MovierDCInterfaceSvc_VDCVideoInfoEx *)self.moveData;
+//        self.nickNameLabel.text = vdcINfor.szOwnerName;
+//        self.movieTitleLabel.text = vdcINfor.szVideoName;
+//        _lookLabel.text = [NSString stringWithFormat:@"%d",[vdcINfor.nVisitCount intValue]];
+//        self.favouriteLabel.text = [NSString stringWithFormat:@"%d",[vdcINfor.nPraise intValue]];
+//        [_videoImageView sd_setImageWithURL:[NSURL URLWithString:[vdcINfor.szThumbnail
+//                                                                  stringByAddingPercentEscapesUsingEncoding:
+//                                                                  NSUTF8StringEncoding]]];
+//    }
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

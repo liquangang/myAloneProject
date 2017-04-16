@@ -1,0 +1,550 @@
+//
+//  HomepageSecondViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/8/9.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "HomepageViewController.h"
+#import "VideoDBOperation.h"
+#import "MJRefresh.h"
+#import "MyFourSearchCell2.h"
+#import "SoapOperation.h"
+#import "MySearchCell.h"
+#import "MySearchUserCell.h"
+#import <UIImageView+WebCache.h>
+#import "SearchUserVC.h"
+#import "Video.h"
+#import "HomeVideoDetailViewController.h"
+#import "MyVideoViewController.h"
+#import "CustomeClass.h"
+#import "MBProgressHUD.h"
+#import "OssFileDown.h"
+#import <AVFoundation/AVFoundation.h>
+#import <AVKit/AVKit.h>
+#import "ISStylePlayerCell.h"
+#import "ActivityViewController.h"
+#import "VideoLabelDetailViewController.h"
+#import "SearchVideoTableViewCell.h"
+#import "VideoShowViewController.h"
+#import "AppDelegate.h"
+#import "HomeSearchViewController.h"
+
+@interface HomepageViewController ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, OssFileDownDelegate>
+/** 界面数据源*/
+@property (nonatomic, strong) NSMutableArray * belowLabelMuArray;
+@property (nonatomic, strong) NSMutableArray * aboveLabelMuArray;
+@property (nonatomic, strong) UICollectionView * homeCollectionView;
+
+/** 背景图片*/
+@property (nonatomic, strong) UIImageView * backImage;
+/** 背景图片上方的透明view*/
+@property (nonatomic, strong) UIView * grayView;
+/** 首页背景url*/
+@property (nonatomic, copy) NSString * backgroundUrl;
+/** 播放器*/
+@property (nonatomic, strong) AVPlayerViewController * videoPlayerVc;
+/** 播放内容对象*/
+@property (nonatomic, strong) AVPlayerItem * avPlayerItem;
+/** 背景的本地地址*/
+@property (nonatomic, copy) NSString * localUrl;
+/** 上面的背景图片*/
+@property (nonatomic, strong) UIView * backgroundView;
+/** 背景视频下载进度*/
+@property (nonatomic, assign) float downloadProgress;
+
+@property (nonatomic, strong) NSArray * backImageArray;
+
+@property (nonatomic, strong) NSArray * aboveLabelArray;
+
+@property (nonatomic, strong) NSArray * belowLabelArray;
+@end
+
+static NSString * homepageCollectionViewCellId = @"HomepageCollectionViewCell";
+static NSString * homepageCollectionViewHeaderId = @"homepageCollectionViewHeaderId";
+
+@implementation HomepageViewController
+
+- (NSArray *)backImageArray{
+    if (!_backImageArray) {
+        _backImageArray = [NSArray arrayWithObjects:@"HotImage", @"takeMyImage", @"warmthImage", @"storyImage", @"memoryImage", @"activityImage", nil];
+    }
+    return _backImageArray;
+}
+
+- (NSArray *)aboveLabelArray{
+    if (!_aboveLabelArray) {
+        _aboveLabelArray = [NSArray arrayWithObjects:@"Hot", @"Mood", @"Selfie", @"Record", @"Memory", @"Activity", nil];
+    }
+    return _aboveLabelArray;
+}
+
+- (NSArray *)belowLabelArray{
+    if (!_belowLabelArray) {
+        _belowLabelArray = [NSArray arrayWithObjects:@"热门", @"心情", @"自拍", @"纪实", @"回忆", @"活动", nil];
+    }
+    return _belowLabelArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self initUI];
+    [self downloadDataWithOffset:0];
+    
+    //注册app进入前台
+    REGISTEREDNOTI(playVideo:, APPFOREGROUND);
+    //注册app进入后台
+    REGISTEREDNOTI(pauseVideo:, APPBACKGROUND);
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [self.tabBarController.tabBar setHidden:NO];
+    if (self.belowLabelMuArray.count == 0) {
+        [self downloadDataWithOffset:0];
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    //打开侧滑手势
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+    [self playVideoWhenPause];
+    
+    if ([[[CustomeClass getPlistfileDataWithFileName:HOMEPAGEFILE] objectForKey:HOMEPAGEDATAKEY] floatValue] < 1.0 && [UserEntity sharedSingleton].isAppHasLogin) {
+        [OssFileDown Singleton].delegate = self;
+        [[OssFileDown Singleton] downloadHomepageBackground:self.backgroundUrl Ext:@"mp4" LocalFile:self.localUrl];
+    }
+    
+    //禁止侧滑手势
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    [self pauseVideoWhenPlay];
+}
+
+- (void)playVideoWhenPause{
+    if (self.avPlayerItem) {
+        [self.videoPlayerVc.player play];
+    }
+}
+
+- (void)pauseVideoWhenPlay{
+    if (self.avPlayerItem) {
+        [self.videoPlayerVc.player pause];
+    }
+}
+
+- (void)playVideo:(NSNotification *)noti{
+    [self playVideoWhenPause];
+}
+
+- (void)pauseVideo:(NSNotification *)noti{
+    [self pauseVideoWhenPlay];
+}
+
+#pragma mark - downloadData
+- (void)downloadDataWithOffset:(NSInteger)offset{
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_getvideolabelsexWithVideoLabelLocation:2 Offset:offset Count:66 Success:^(NSMutableArray *serverDataArray) {
+        //如果传入的起始位置是0，认为是从头开始，所以移除所有元素
+        if (offset == 0) {
+            [weakSelf.belowLabelMuArray removeAllObjects];
+        }
+        
+        [weakSelf.belowLabelMuArray addObjectsFromArray:[serverDataArray copy]];
+        
+        MAINQUEUEUPDATEUI({
+            [weakSelf.homeCollectionView reloadSections:[[NSIndexSet alloc] initWithIndex:0]];
+            [weakSelf.homeCollectionView footerEndRefreshing];
+            [weakSelf.homeCollectionView headerEndRefreshing];
+            if (serverDataArray.count == 0) {
+                [CustomeClass showMessage:@"没有更多分类了！" ShowTime:1.5];
+            }
+        })
+    } Fail:^(NSError *error) {
+        if (error.code == 6) {
+            MAINQUEUEUPDATEUI({
+                [weakSelf.homeCollectionView footerEndRefreshing];
+                [weakSelf.homeCollectionView headerEndRefreshing];
+                [CustomeClass showMessage:@"没有更多分类了！" ShowTime:1.5];
+            })
+        }else {
+            RELOADSERVERDATA([weakSelf downloadDataWithOffset:offset];)
+        }
+    }];
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    //初始化collectionView
+    UICollectionViewFlowLayout * homeCollectionViewFlowLayout = [UICollectionViewFlowLayout new];
+    homeCollectionViewFlowLayout.itemSize = CGSizeMake(ISScreen_Width / 2 - 1, ISScreen_Width / 2 - 1);
+    homeCollectionViewFlowLayout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    homeCollectionViewFlowLayout.scrollDirection = UICollectionViewScrollDirectionVertical;
+    homeCollectionViewFlowLayout.minimumLineSpacing = 2;
+    homeCollectionViewFlowLayout.minimumInteritemSpacing = 2;
+    
+    self.homeCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, -20, ISScreen_Width, ISScreen_Height - 29) collectionViewLayout:homeCollectionViewFlowLayout];
+    self.homeCollectionView.dataSource = self;
+    self.homeCollectionView.delegate = self;
+    [self.view addSubview:self.homeCollectionView];
+    self.homeCollectionView.backgroundColor = [UIColor clearColor];
+    [self.homeCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:homepageCollectionViewCellId];
+    self.homeCollectionView.showsVerticalScrollIndicator = NO;
+    [self.homeCollectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:homepageCollectionViewHeaderId];
+    [self.homeCollectionView addFooterWithTarget:self action:@selector(homeCollectionViewFooterRefresh)];
+    [self.homeCollectionView addHeaderWithTarget:self action:@selector(homeCollectionViewHeaderRefresh)];
+    
+    
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        [[VideoDBOperation Singleton] setBadgeNum];
+    }, )
+    
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    
+    //初始化背景view
+    [self initBackgroundView];
+}
+
+- (void)initBackgroundView{
+    //初始化背景view
+    self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, 342)];
+    self.backgroundView.backgroundColor = [UIColor whiteColor];
+    
+    //背景图片
+    UIImageView * image = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, 342 - 44)];
+    [self.backgroundView addSubview:image];
+    image.image = DEFAULTVIDEOTHUMAIL;
+    image.clipsToBounds = YES;
+    self.backImage = image;
+    
+    //设置背景图片或者视频内容
+    [self setBackImage];
+    
+    //放各个label的view
+    UIView * grayView = [[UIView alloc] initWithFrame:image.bounds];
+    [self.backgroundView addSubview:grayView];
+    grayView.backgroundColor = [UIColor clearColor];
+    self.grayView = grayView;
+    self.grayView.clipsToBounds = YES;
+    
+    UILabel * recommendLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 150, 66, 15)];
+    recommendLabel.text = @"推荐";
+    recommendLabel.font = ISFont_14;
+    recommendLabel.textColor = [UIColor whiteColor];
+    [grayView addSubview:recommendLabel];
+    
+    //设置顶部标签内容
+    [self setAboveLabel];
+    
+    //电影集标签
+    UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(16, grayView.frame.size.height, ISScreen_Width - 32, 44)];
+    [self.backgroundView addSubview:label];
+    label.backgroundColor = [UIColor whiteColor];
+    label.text = @"电影集";
+    label.textColor = ISLIKEGRAYCOLOR;
+    label.font = ISFont_15;
+    
+    UIView * searchView = [[UIView alloc] initWithFrame:CGRectMake(15, 54, ISScreen_Width - 30, 26)];
+    [self.backgroundView addSubview:searchView];
+    ADDTAPGESTURE(searchView, pushToSearchVc)
+    
+    UIImageView * searchImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 7, 12, 12)];
+    [searchView addSubview:searchImage];
+    searchImage.image = [UIImage imageNamed:@"searchIcon"];
+    
+    UILabel * searchLabel = [[UILabel alloc] initWithFrame:CGRectMake(22, 7, 100, 12)];
+    [searchView addSubview:searchLabel];
+    searchLabel.text = @"输入关键字搜索";
+    searchLabel.textColor = IS908B88;
+    searchLabel.font = ISFont_12;
+    
+    UILabel * searchBelowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 25, ISScreen_Width - 30, 0.5)];
+    [searchView addSubview:searchBelowLabel];
+    searchBelowLabel.backgroundColor = IS8d8986;
+}
+
+- (void)pushToSearchVc:(UITapGestureRecognizer *)tap{
+    HomeSearchViewController * homeSearchVc = [HomeSearchViewController new];
+    homeSearchVc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:homeSearchVc animated:YES];
+}
+
+- (void)homeCollectionViewFooterRefresh{
+    [self downloadDataWithOffset:self.belowLabelMuArray.count];
+}
+
+- (void)homeCollectionViewHeaderRefresh{
+    [self.homeCollectionView reloadData];
+    [self downloadDataWithOffset:0];
+}
+
+- (void)setAboveLabel{
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_getvideolabelsexWithVideoLabelLocation:1 Offset:0 Count:66 Success:^(NSMutableArray *serverDataArray) {
+        [weakSelf.aboveLabelMuArray removeAllObjects];
+        [weakSelf.aboveLabelMuArray addObjectsFromArray:[serverDataArray copy]];
+        MAINQUEUEUPDATEUI({
+            CGRect lastRect = CGRectMake(0, 174, 0, 0);
+            int i = 0;
+            for (MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo in serverDataArray) {
+                //先计算文字所占的大小，然后判断之前的那个label的位置，然后确定当前label的位置 最后lastRect 等于当前的这个label的cgrect
+                UILabel * currentLabel = [UILabel new];
+    
+                currentLabel.layer.borderColor = IS908B88.CGColor;
+                currentLabel.layer.borderWidth = 1;
+                currentLabel.layer.masksToBounds = YES;
+                currentLabel.layer.cornerRadius = 5;
+                currentLabel.text = videoLabelInfo.szLabelName;
+                currentLabel.textAlignment = NSTextAlignmentCenter;
+                currentLabel.textColor = [UIColor whiteColor];
+                currentLabel.font = ISFont_12;
+                
+                //计算label的初始位置(x:上一个label的x＋它的width ＋ 15（加上自己的width 如果大于屏幕宽 就下移）   y 默认不变)
+                CGFloat LabelX = lastRect.origin.x + lastRect.size.width + 15;
+                CGFloat labelY = lastRect.origin.y;
+                
+                //cell内容的大小
+                CGSize contentSize = [videoLabelInfo.szLabelName sizeWithAttributes:@{NSFontAttributeName:ISFont_12}];
+                
+                //确定cell的起始坐标点
+                if ((LabelX + contentSize.width + 45) > ISScreen_Width) {
+                    LabelX = 15;
+                    labelY = lastRect.origin.y + lastRect.size.height + 10;
+                }
+                
+                //如果可以添加就添加，不可以就不添加
+                if (!(labelY > 244 || (labelY > 244 && (LabelX + contentSize.width + 45) > ISScreen_Width))) {
+                    //如果没有被break，说明可以继续添加，设置已经判断好的label 的rect
+                    currentLabel.frame = CGRectMake(LabelX, labelY, contentSize.width + 30, 25);
+                    
+                    //添加到父view上
+                    [weakSelf.grayView addSubview:currentLabel];
+                    lastRect = currentLabel.frame;
+                    currentLabel.tag = 100 + i;
+                    i++;
+                    
+                    //添加点击手势
+                    ADDTAPGESTURE(currentLabel, videoLabelTap)
+                }
+            }
+        })
+    } Fail:^(NSError *error) {
+        RELOADSERVERDATA([weakSelf setAboveLabel];)
+    }];
+}
+
+- (void)videoLabelTap:(UITapGestureRecognizer *)tap{
+    UILabel * tapLabel = (UILabel *)tap.view;
+    NSInteger labelIndex = tapLabel.tag - 100;
+    
+    MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo = self.aboveLabelMuArray[labelIndex];
+    //根据数组中的位置进行跳转
+    if ([tapLabel.text isEqualToString:@"活动"] || [tapLabel.text isEqualToString:@"热门活动"]) {
+        ActivityViewController * activityVC = [ActivityViewController new];
+        activityVC.activityLabelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        activityVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:activityVC animated:YES];
+    }else{
+        VideoLabelDetailViewController * videoLabelDetailVc = [VideoLabelDetailViewController new];
+        videoLabelDetailVc.labelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        videoLabelDetailVc.labelName = videoLabelInfo.szLabelName;
+        videoLabelDetailVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:videoLabelDetailVc animated:YES];
+    }
+}
+
+#pragma mark - oss回调
+/** 下载进度*/
+- (void)OssFileDown:(OssFileDown *)pointdownself Process:(float)download{
+    AppDelegate * appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.downloadProgress = download;
+    [CustomeClass writeToPlistWithFileName:HOMEPAGEFILE Data:@{HOMEPAGEDATAKEY:[NSString stringWithFormat:@"%f", appDelegate.downloadProgress]}];
+}
+
+/**  下载完成/下载失败 */
+- (void)OssFileDown:(OssFileDown *)pointdownself Status:(BOOL)downsuccess Fileinfo:(NSString*)filepath{
+    self.localUrl = filepath;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (downsuccess) {
+            DEBUGSUCCESSLOG(@"主页视频下载成功")
+            [self setVideoPlayerWithPath:filepath];
+        }
+        else{
+            DEBUGLOG(@"主页视频下载失败")
+            [[NSFileManager defaultManager] removeItemAtPath:filepath error:nil];
+            [OssFileDown Singleton].delegate = self;
+            [[OssFileDown Singleton] downloadHomepageBackground:self.backgroundUrl Ext:@"mp4" LocalFile:filepath];
+        }
+    });
+}
+
+- (void)setVideoPlayerWithPath:(NSString *)videoPath{
+    MAINQUEUEUPDATEUI({
+        self.videoPlayerVc = [AVPlayerViewController new];
+        self.avPlayerItem = [[AVPlayerItem alloc] initWithURL:[NSURL fileURLWithPath:videoPath]];
+        self.videoPlayerVc.player = [AVPlayer playerWithPlayerItem:self.avPlayerItem];
+        self.videoPlayerVc.view.frame = CGRectMake( - (self.backImage.bounds.size.height / 9 * 16 - ISScreen_Width) / 2 , 0, self.backImage.bounds.size.height / 9 * 16, self.backImage.bounds.size.height);
+        [self.backImage addSubview:self.videoPlayerVc.view];
+        self.videoPlayerVc.player.volume = 0;
+        self.videoPlayerVc.showsPlaybackControls = NO;
+        [self.videoPlayerVc.player play];
+        REGISTEREDNOTI(videoPlayFinished:, AVPlayerItemDidPlayToEndTimeNotification);
+    })
+}
+
+#pragma mark - 视频播放完成的通知方法
+- (void)videoPlayFinished:(NSNotification *)noti{
+    self.videoPlayerVc.player = [AVPlayer playerWithPlayerItem:[[AVPlayerItem alloc] initWithURL:[NSURL fileURLWithPath:self.localUrl]]];
+    self.videoPlayerVc.player.volume = 0;
+    [self.videoPlayerVc.player play];
+}
+
+- (void)setBackImage{
+    //设置背景图片内容
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_gethomepagebackgroundSuccess:^(NSString *serverString) {
+        //测试
+//        serverString = @"http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier/Template/Samples/Style/A007.mp4";
+        weakSelf.backgroundUrl = serverString;
+        NSString * filePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingFormat:@"/%@",[serverString lastPathComponent]];
+        weakSelf.localUrl = filePath;
+        if ((![[NSFileManager defaultManager] fileExistsAtPath:filePath] || [[[CustomeClass getPlistfileDataWithFileName:HOMEPAGEFILE] objectForKey:HOMEPAGEDATAKEY] floatValue] < 1.0) && [UserEntity sharedSingleton].isAppHasLogin) {
+            [CustomeClass writeToPlistWithFileName:HOMEPAGEFILE Data:@{HOMEPAGEDATAKEY:@"0"}];
+            [OssFileDown Singleton].delegate = self;
+            [[OssFileDown Singleton] downloadHomepageBackground:serverString Ext:[[serverString lastPathComponent] componentsSeparatedByString:@"."][1] LocalFile:filePath];
+        }else if ([UserEntity sharedSingleton].isAppHasLogin){
+            [self setVideoPlayerWithPath:self.localUrl];
+        }
+    } Fail:^(NSError *error) {
+        DEBUGLOG(error)
+    }];
+}
+
+#pragma mark - CollectionViewDelegate
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section{
+    return CGSizeMake(ISScreen_Width, 342);
+}
+
+- (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath{
+    UICollectionReusableView * headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:homepageCollectionViewHeaderId forIndexPath:indexPath];
+    [headerView addSubview:self.backgroundView];
+    return headerView;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
+    return self.belowLabelMuArray.count;
+}
+
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView{
+    return 1;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    UICollectionViewCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:homepageCollectionViewCellId forIndexPath:indexPath];
+    cell.clipsToBounds = YES;
+    
+    UIImageView * backImage = [[UIImageView alloc] initWithFrame:cell.contentView.bounds];
+    [cell.contentView addSubview:backImage];
+    backImage.contentMode = UIViewContentModeScaleAspectFill;
+    
+    UILabel * maskLabel = [[UILabel alloc] initWithFrame:backImage.bounds];
+    [cell.contentView addSubview:maskLabel];
+    maskLabel.backgroundColor = [UIColor blackColor];
+    maskLabel.alpha = 0.3;
+    
+    //英文标签
+    UILabel * aboveLabel = [[UILabel alloc] initWithFrame: CGRectMake(0, 59, cell.contentView.frame.size.width, 24)];
+    [cell.contentView addSubview:aboveLabel];
+    aboveLabel.font = [UIFont systemFontOfSize:24];
+    aboveLabel.textColor = [UIColor whiteColor];
+    aboveLabel.textAlignment = NSTextAlignmentCenter;
+    
+    //中文标签
+    UILabel * belowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 88, cell.contentView.frame.size.width, 12)];
+    [cell.contentView addSubview:belowLabel];
+    belowLabel.font = [UIFont systemFontOfSize:12];
+    belowLabel.textColor = [UIColor whiteColor];
+    belowLabel.textAlignment = NSTextAlignmentCenter;
+    
+//    if (indexPath.row == 0) {
+//        backImage.image = [UIImage imageNamed:@"HotImage"];
+//        aboveLabel.text = @"Hot";
+//        belowLabel.text = @"热门";
+//    }else if (indexPath.row == 1){
+//        backImage.image = [UIImage imageNamed:@"storyImage"];
+//        aboveLabel.text = @"Mood";
+//        belowLabel.text = @"心情";
+//    }else if (indexPath.row == 2){
+//        backImage.image = [UIImage imageNamed:@"takeMyImage"];
+//        aboveLabel.text = @"Selfie";
+//        belowLabel.text = @"自拍";
+//    }else if (indexPath.row == 3){
+//        backImage.image = [UIImage imageNamed:@"warmthImage"];
+//        aboveLabel.text = @"Record";
+//        belowLabel.text = @"纪实";
+//    }else if (indexPath.row == 4){
+//        backImage.image = [UIImage imageNamed:@"memoryImage"];
+//        aboveLabel.text = @"Memory";
+//        belowLabel.text = @"回忆";
+//    }else if (indexPath.row == 5){
+//        backImage.image = [UIImage imageNamed:@"activityImage"];
+//        aboveLabel.text = @"Activity";
+//        belowLabel.text = @"活动";
+//    } else{
+    MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo = self.belowLabelMuArray[indexPath.row];
+    [backImage sd_setImageWithURL:[NSURL URLWithString:STRTOUTF8(videoLabelInfo.szThumbnail)] placeholderImage:DEFAULTVIDEOTHUMAIL options:SDWebImageRetryFailed | SDWebImageProgressiveDownload];
+    aboveLabel.text = videoLabelInfo.szLabelName;
+//        backImage.image = [UIImage imageNamed:self.backImageArray[arc4random() % self.backImageArray.count]];
+//        aboveLabel.text = self.aboveLabelArray[arc4random() % self.aboveLabelArray.count];
+//        belowLabel.text = self.belowLabelArray[arc4random() % self.belowLabelArray.count];
+//    }
+    return cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+    MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo = self.belowLabelMuArray[indexPath.row];
+    if ([videoLabelInfo.szLabelName isEqualToString:@"活动"] || [videoLabelInfo.szLabelName isEqualToString:@"热门活动"]) {
+        ActivityViewController * activityVC = [ActivityViewController new];
+        activityVC.activityLabelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        activityVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:activityVC animated:YES];
+    }else{
+        VideoLabelDetailViewController * videoLabelDetailVc = [VideoLabelDetailViewController new];
+        videoLabelDetailVc.labelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        videoLabelDetailVc.labelName = videoLabelInfo.szLabelName;
+        videoLabelDetailVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:videoLabelDetailVc animated:YES];
+    }
+}
+
+#pragma mark - 数组懒加载
+- (NSMutableArray *)belowLabelMuArray{
+    if (!_belowLabelMuArray) {
+        _belowLabelMuArray = [NSMutableArray new];
+    }
+    return _belowLabelMuArray;
+}
+
+- (NSMutableArray *)aboveLabelMuArray{
+    if (!_aboveLabelMuArray) {
+        _aboveLabelMuArray = [NSMutableArray new];
+    }
+    return  _aboveLabelMuArray;
+}
+@end

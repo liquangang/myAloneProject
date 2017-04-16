@@ -1,0 +1,47 @@
+//
+//  PersonalViewController.h
+//  M-Cut
+//
+//  Created by Crab shell on 12/21/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "UserEntity.h"
+//#import "UIViewExt.h"
+#import "APPUserPrefs.h"
+//#import "PersonalTableViewCell.h"
+#import "MJRefresh.h"
+
+@interface PersonalViewController : UIViewController
+{
+    IBOutlet UITableView *personTabV;
+    int currentSingle;
+}
+
+@property (strong,nonatomic) NSMutableArray *imageLibraryArra;
+@property (nonatomic) NSInteger numberOfArra;
+
+
+@property (strong,nonatomic) NSString *userHeadPortraitUrl;
+@property (strong,nonatomic) NSString *userNickName;
+@property (strong,nonatomic) NSString *userName;
+@property (strong,nonatomic) NSString *userSex;
+@property (strong,nonatomic) NSString *userRegion;
+@property (strong,nonatomic) NSString *userCelebratedDictum;
+
+@property (retain,nonatomic) UIButton *ownerAcatarButton;
+@property (strong,nonatomic) UIButton *userHeadPortraitButton;
+@property (strong,nonatomic) IBOutlet UILabel *userNickNameLabel;
+@property (strong,nonatomic) IBOutlet UIImageView *userSexImage;
+@property (strong,nonatomic) IBOutlet UIImageView *ownerAcatarImage;
+@property (strong,nonatomic) IBOutlet UILabel *userCelebratedDictumLabel;
+
+
+@property (strong,nonatomic) UIImageView *imageView;
+@property (strong,nonatomic) UIImage *images;
+@property (strong,nonatomic) UIImage *stretchableButtonImage;
+
+
+
+@end

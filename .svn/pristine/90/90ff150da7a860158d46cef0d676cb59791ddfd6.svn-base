@@ -1,0 +1,212 @@
+//
+//  MWAlbumViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/12.
+//
+//
+
+#import "MWAlbumViewController.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+#import <AVFoundation/AVFoundation.h>
+
+#import "MWICloudModel.h"
+#import "MWAlbumCell.h"
+
+// 选择界面
+#import "MWChooseAlbumViewController.h"
+
+@interface MWAlbumViewController ()
+/**
+ *  存放 cell 的数据模型
+ */
+@property (strong, nonatomic) NSMutableArray *data;
+/**
+ *  存放相册中所有文件的文件名
+ */
+@property (strong, nonatomic) NSMutableArray *names;
+@end
+
+@implementation MWAlbumViewController
+
+- (NSMutableArray *)data {
+    if (!_data) {
+        self.data = [NSMutableArray array];
+    }
+    return _data;
+}
+
+- (NSMutableArray *)names {
+    if (!_names) {
+        self.names = [NSMutableArray array];
+    }
+    return _names;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+    
+    // 设置导航条
+    [self setupNav];
+    
+    // 访问用户相册
+    [self album1];
+}
+
+- (void)setupNav {
+    
+    // 左边返回按钮
+    UIButton *leftBarButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [leftBarButton setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [leftBarButton setTitle:@"返回" forState: UIControlStateNormal];
+    leftBarButton.titleLabel.font = [UIFont systemFontOfSize:15];
+    // 按钮尺寸是随便写的, 没有计算
+    leftBarButton.frame = CGRectMake(0, 0, 60, 25);
+    [leftBarButton addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    // 标题
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = @"选择相册";
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+- (void)back {
+    [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+- (void)album1 {
+    ALAssetsLibrary *assetsLibrary = [[ALAssetsLibrary alloc] init];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        // 遍历所有相册
+        /*
+         * 文件类型 : ALAssetTypeVideo, ALAssetTypePhoto, ALAssetTypeUnknown
+         * 文件URL : [result valueForProperty:ALAssetPropertyAssetURL]
+         */
+        [assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAll usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+            __block BOOL hasModel = NO;
+            // 遍历每个相册中的项ALAsset
+            [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index,BOOL *stop) {
+                if (group) {
+                    if ([self.type isEqualToString:ALAssetTypePhoto]){  // 图片
+                        // 保存相册的第一张图片到模型中
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypePhoto]) {
+                            if (hasModel == YES)      return;
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+                            // path : assets-library://asset/asset.JPG?id=D16DF397-1678-488D-986B-73917D027D4A&ext=JPG
+                            [self.data addObject:model];
+                            hasModel = YES;
+                        }
+                    } else if ([self.type isEqualToString:ALAssetTypeVideo]){   // 视频
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypeVideo] ) {
+                            if (hasModel == YES)      return;
+                            // 保存视频的缩略图到模型中
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+#pragma mark -- 根据路径的后缀名, 判断文件的类型
+                            // path : assets-library://asset/asset.MOV?id=BE1B0408-B6A7-4934-89CE-3CB58A9A55EF&ext=MOV
+                            [self.data addObject:model];
+                            hasModel = YES;
+                        }
+                    }
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.tableView reloadData];
+                });
+            }];
+        }
+                                   failureBlock:^(NSError *error) {
+                                       NSLog(@"Failed to enumerate the asset groups.");
+                                   }];
+    });
+}
+
+- (void)album {
+    ALAssetsLibrary *assetsLibrary = [[ALAssetsLibrary alloc] init];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        // 遍历所有相册
+        /*
+         * 文件类型 : ALAssetTypeVideo, ALAssetTypePhoto, ALAssetTypeUnknown
+         * 文件URL : [result valueForProperty:ALAssetPropertyAssetURL]
+         */
+        [assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAll usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+            __block BOOL hasModel = NO;
+            // 遍历每个相册中的项ALAsset
+            [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index,BOOL *stop) {
+                if (group) {
+                    if ([self.type isEqualToString:ALAssetTypePhoto]){  // 图片
+                        // 保存相册的第一张图片到模型中
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypePhoto]) {
+                            if (hasModel == YES)      return;
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+                            // path : assets-library://asset/asset.JPG?id=D16DF397-1678-488D-986B-73917D027D4A&ext=JPG
+                            [self.data addObject:model];
+                            hasModel = YES;
+                        }
+                    } else if ([self.type isEqualToString:ALAssetTypeVideo]){   // 视频
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypeVideo] ) {
+                            if (hasModel == YES)      return;
+                            // 保存视频的缩略图到模型中
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+#pragma mark -- 根据路径的后缀名, 判断文件的类型
+                            // path : assets-library://asset/asset.MOV?id=BE1B0408-B6A7-4934-89CE-3CB58A9A55EF&ext=MOV
+                            [self.data addObject:model];
+                            hasModel = YES;
+                        }
+                    }
+                }
+            }];
+        }
+                                   failureBlock:^(NSError *error) {
+                                       NSLog(@"Failed to enumerate the asset groups.");
+                                   }];
+    });
+    
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.data.count;
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    MWAlbumCell *cell = [MWAlbumCell cellWithTableView:tableView];
+    cell.model = self.data[indexPath.row];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    MWChooseAlbumViewController *choose = [[MWChooseAlbumViewController alloc] init];
+    choose.type = self.type;
+    choose.albumName = [self.data[indexPath.row] albumName];
+    [self.navigationController pushViewController:choose animated:YES];
+}
+@end

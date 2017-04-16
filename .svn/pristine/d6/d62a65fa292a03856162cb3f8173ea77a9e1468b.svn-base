@@ -1,0 +1,21 @@
+//
+//  LoginViewController.h
+//  M-Cut
+//
+//  Created by Crab shell on 12/21/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "APPUserPrefs.h"
+
+@interface LoginViewController : UIViewController{
+    PrivateLoginCacheInformationObject *privateLoginCacheInformationObject;
+}
+@property (retain,nonatomic) IBOutlet UITextField *tfTelephone;
+@property (retain,nonatomic) IBOutlet UITextField *tfPassword;
+@property (retain,nonatomic) IBOutlet UIView *imViewUp;
+
+
+
+@end

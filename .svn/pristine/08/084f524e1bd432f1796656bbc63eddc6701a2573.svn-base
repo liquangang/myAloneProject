@@ -1,0 +1,69 @@
+//
+//  BaseViewController.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/21.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+@interface BaseViewController ()
+
+@end
+
+@implementation BaseViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    //默认显示状态栏
+    [self showStatusBar];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+/** 显示状态栏*/
+- (void)hiddenStatusBar{
+    self.isShowStatusBar = YES;
+    [[[[UIApplication sharedApplication] keyWindow] rootViewController] setNeedsStatusBarAppearanceUpdate];
+}
+
+/** 隐藏状态栏*/
+- (void)showStatusBar{
+    self.isShowStatusBar = NO;
+    [[[[UIApplication sharedApplication] keyWindow] rootViewController] setNeedsStatusBarAppearanceUpdate];
+}
+
+/** 是否隐藏状态栏*/
+- (BOOL)prefersStatusBarHidden{
+    return self.isShowStatusBar;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
+}
+
+@end

@@ -1,0 +1,60 @@
+//
+//  MWICloudUploadingCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import "MWICloudDownloadingOtherCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudDownloadingOtherCell ()
+/**  右边操作按钮, 控制文件上传和暂停 */
+@property (weak, nonatomic) IBOutlet MWButton *operationButton;
+/**  右边操作按钮点击事件 */
+- (IBAction)operation:(UIButton *)sender;
+
+/**  文件缩略图 */
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+/**  进度 label --- 上传时显示进度 */
+@property (weak, nonatomic) IBOutlet UILabel *percentLabel;
+/**  文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+
+@end
+
+@implementation MWICloudDownloadingOtherCell
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"otherDownloading";
+    MWICloudDownloadingOtherCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudDownloadingOtherCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+    self.operationButton.selectedImageName = @"download_button";
+    self.operationButton.progress = 0;
+    self.operationButton.selected = NO;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+//    self.iconView.image = model.image;
+    self.nameLabel.text = model.file_name;
+    self.operationButton.selected = model.isDownloading;
+}
+
+- (IBAction)operation:(UIButton *)sender {
+    
+    if ([self.delegate respondsToSelector:@selector(iCloudDownloadingOtherCell:didClickButton:)]) {
+        [self.delegate iCloudDownloadingOtherCell:self didClickButton:sender];
+    }
+    
+    sender.selected = !sender.selected;
+}
+
+@end

@@ -1,0 +1,25 @@
+//
+//  MWICloudOrderListCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import <UIKit/UIKit.h>
+// 订单模型
+@class MWICloudOrderListModel, MWICloudOrderListEditCell;
+
+@protocol MWICloudOrderListEditCellDelegate <NSObject>
+
+@optional
+/**  选择状态 cell 的代理方法 */
+- (void)orderListEditCell:(MWICloudOrderListEditCell *)listEditCell didClickChooseButton:(UIButton *)button;
+@end
+@interface MWICloudOrderListEditCell : UITableViewCell
+
+@property (strong, nonatomic) MWICloudOrderListModel *model;
+@property (weak, nonatomic) id<MWICloudOrderListEditCellDelegate> delegate;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

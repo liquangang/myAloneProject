@@ -1,0 +1,88 @@
+//
+//  MyVideoViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/7/1.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MyVideoViewController.h"
+//用户信息部分cell
+#import "HeaderCell.h"
+
+@interface MyVideoViewController ()<UITableViewDelegate, UITableViewDataSource>
+/** 界面影片数据源*/
+@property (nonatomic, strong) NSMutableArray * videoMuArray;
+@end
+
+static NSString * headerCellId = @"uesrCell";
+
+@implementation MyVideoViewController
+
+#pragma mark - 数据源懒加载
+- (NSMutableArray *)videoMuArray{
+    if (!_videoMuArray) {
+        _videoMuArray = [NSMutableArray new];
+    }
+    return _videoMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self initUI];
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    self.title = @"我的任务";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - tableDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    if (section == 0) {
+        return 1;
+    }else if (section == 1){
+        return 1;
+    }else{
+        return self.videoMuArray.count;
+    }
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 3;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        return 125;
+    }else if (indexPath.section == 1){
+        return 44;
+    }else{
+        return 344;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        return [HeaderCell getHeaderCellWithTable:tableView];
+    }else if (indexPath.section == 1){
+        
+    }else{
+        
+    }
+}
+@end

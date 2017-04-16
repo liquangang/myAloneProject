@@ -1,0 +1,40 @@
+//
+//  HomePageBelowCollectionViewCell.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/8.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "HomePageBelowCollectionViewCell.h"
+
+#import <UIImageView+WebCache.h>
+
+@implementation HomePageBelowCollectionViewCell
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.backImage = [[UIImageView alloc] initWithFrame:self.contentView.bounds];
+        [self.contentView addSubview:self.backImage];
+        self.backImage.contentMode = UIViewContentModeScaleAspectFill;
+        self.clipsToBounds = YES;
+    }
+    return self;
+}
+
+/** 封装复用代码，方便调用*/
++ (id)getHomePageBelowCollectionViewCellWithCollectionView:(UICollectionView *)cellSuperCollectionView CellInfo:(MovierDCInterfaceSvc_VDCVideoLabelEx2 *)cellInfo CellIndex:(NSIndexPath *)cellIndex ResuableStr:(NSString *)resuableStr{
+    if (resuableStr.length == 0) {
+        resuableStr = @"belowResuableStr";
+        [cellSuperCollectionView registerClass:[HomePageBelowCollectionViewCell class] forCellWithReuseIdentifier:resuableStr];
+    }
+    
+    HomePageBelowCollectionViewCell * cell = [cellSuperCollectionView dequeueReusableCellWithReuseIdentifier:resuableStr forIndexPath:cellIndex];
+    
+    [cell.backImage sd_setImageWithURL:[NSURL URLWithString:cellInfo.szThumbnail] placeholderImage:DEFAULTVIDEOTHUMAIL options:SDWebImageRetryFailed |SDWebImageRefreshCached];
+    
+    return cell;
+}
+@end

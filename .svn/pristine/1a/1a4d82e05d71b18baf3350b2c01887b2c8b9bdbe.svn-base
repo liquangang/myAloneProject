@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<array>
+		<string>影视制作1</string>
+		<string>影视制作2</string>
+		<string>影视制作3</string>
+	</array>
+	<array>
+		<string>自己新建的</string>
+		<string>春节</string>
+		<string>恋爱</string>
+	</array>
+</array>
+</plist>

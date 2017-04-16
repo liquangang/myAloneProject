@@ -1,0 +1,76 @@
+//
+//  UserLoginViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/4/20.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "UserLoginViewController.h"
+#import "PersonalViewController.h"
+#import "MovierTabBarViewController.h"
+#import "MyfavourateViewController.h"
+#import "PersonalViewController.h"
+
+@interface UserLoginViewController ()
+
+@end
+
+@implementation UserLoginViewController
+//- (void)viewWillAppear:(BOOL)animated{
+//    [super viewWillAppear:animated];
+//    self.navigationController.tabBarController.tabBar.hidden = NO;
+//
+//}
+//- (void)viewWillDisappear:(BOOL)animated{
+//    
+//    [super viewWillDisappear:animated];
+//    self.navigationController.tabBarController.tabBar.hidden = YES;
+//    
+//}
+
+
+- (IBAction)userLoginClick:(id)sender {
+//    UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+//    
+//    PersonalViewController *personVC = [mainStoryboard instantiateViewControllerWithIdentifier:@"PersonalVCStoryBoardID"];
+    
+    //[self.navigationController presentViewController:personVC.navigationController animated:YES completion:^{
+        
+   // }];
+    //登录之后首页
+    UINavigationController *homeNavi = [self.storyboard instantiateViewControllerWithIdentifier:@"HomeNaviStoryBoardID"];
+    //登录了
+    MovierTabBarViewController *tabBarVC = [self.storyboard instantiateViewControllerWithIdentifier:@"MainTabView"];
+    //登录后我的最爱页面
+    UINavigationController *loginMyfavouriteNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginfavouriteNaviStoryBoardID"];
+    UINavigationController *cutProNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"CutProNaviStoryBoardID"];
+    UINavigationController *icloudSpaceNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginIcloudStorageNaviStoryBoardID"];
+    //登录后个人页面
+    UINavigationController *loginPersonalNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LogoutPersonNaviStoryBoardID"];
+    if ([[UserEntity sharedSingleton] isAppHasLogin]){
+        loginPersonalNavi =[self.storyboard instantiateViewControllerWithIdentifier:@"LoginPersonNaviStoryBoardID"];
+    }
+    //[tabBarVC.items replaceObjectAtIndex:1 withObject:loginMyfavouriteNavi];
+    //[tabBarVC.items replaceObjectAtIndex:4 withObject:loginPersonalNavi];
+    NSMutableArray *itemArray = [NSMutableArray arrayWithObjects:homeNavi,loginMyfavouriteNavi,cutProNavi,icloudSpaceNavi,loginPersonalNavi, nil];
+    if (self.replaceVCBlock) {
+        self.replaceVCBlock(itemArray);
+    }
+    [self.navigationController presentViewController:tabBarVC animated:YES completion:^{
+    }];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.navigationController.tabBarController.tabBar.hidden = YES;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+@end

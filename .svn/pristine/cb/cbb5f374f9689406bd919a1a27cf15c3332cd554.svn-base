@@ -1,0 +1,53 @@
+//
+//  MWICloudEditCell.m
+//  ICloudSpace
+//
+//  Created by LI on 15/9/26.
+//
+//
+
+#import "MWICloudEditCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudEditCell ()
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/**
+ *  判断 cell 是否选中的标记按钮
+ */
+@property (weak, nonatomic) IBOutlet UIButton *chooseButton;
+- (IBAction)chooseClick:(UIButton *)button;
+
+@end
+
+@implementation MWICloudEditCell
+
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"icloudEditCell";
+    MWICloudEditCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudEditCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    self.nameLabel.text = model.file_name;
+    self.timeLabel.text = model.file_createtime;
+    self.chooseButton.selected = model.isEditing;
+}
+
+- (IBAction)chooseClick:(UIButton *)button {
+    button.selected = !button.selected;
+    // 通知控制器选中或者取消选中某一行
+    if ([self.delegate respondsToSelector:@selector(iCloudEditCell:didClickChooseButton:)]) {
+        [self.delegate iCloudEditCell:self didClickChooseButton:button];
+    }
+}
+
+@end

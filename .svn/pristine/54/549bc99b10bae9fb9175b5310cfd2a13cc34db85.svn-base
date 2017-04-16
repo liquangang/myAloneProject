@@ -1,0 +1,29 @@
+//
+//  UzysAssetsViewCell.h
+//  UzysAssetsPickerController
+//
+//  Created by Uzysjung on 2014. 2. 12..
+//  Copyright (c) 2014년 Uzys. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "UzysAssetsPickerController_Configuration.h"
+
+
+#pragma mark -- 新增代理  素材预览功能需要
+@class UzysAssetsViewCell;
+@protocol UzysAssetsViewCellDelegate <NSObject>
+
+@optional
+- (void)uzysAssetsViewCell:(UzysAssetsViewCell *)assetsViewCell didClickChooseBtn:(UIButton *)button;
+@end
+#pragma mark -- 新增代理  素材预览功能需要
+
+@interface UzysAssetsViewCell : UICollectionViewCell
+@property (weak, nonatomic) id<UzysAssetsViewCellDelegate> delegate;
+
+#pragma mark --- 新增按钮
+@property (nonatomic, weak) UIButton *selectBtn;
+
+- (void)applyData:(ALAsset *)asset;
+@end

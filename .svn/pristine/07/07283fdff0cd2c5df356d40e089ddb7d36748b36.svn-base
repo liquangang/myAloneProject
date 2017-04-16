@@ -1,0 +1,44 @@
+//
+//  MWICloudListFooterView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/18.
+//
+//  
+
+#import "MWICloudListFooterView.h"
+
+@interface MWICloudListFooterView ()
+/**
+ *  删除按钮和点击事件
+ */
+@property (weak, nonatomic) IBOutlet UIButton *deleteButton;
+- (IBAction)deleteClick:(UIButton *)sender;
+
+@end
+
+@implementation MWICloudListFooterView
+
++ (instancetype)footerView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWICloudListFooterView" owner:nil options:nil] lastObject];
+}
+
+- (void)awakeFromNib {
+    self.userInteractionEnabled = YES;
+}
+
+- (IBAction)deleteClick:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(iCloudListFooterView:didClickDeleteButton:)]) {
+        [self.delegate iCloudListFooterView:self didClickDeleteButton:sender];
+    }
+}
+
+- (void)setTitle:(NSInteger)count {
+    if (count == 0) {
+        [self.deleteButton setTitle:@"删除" forState:UIControlStateNormal];
+    } else {
+        NSString *title = [NSString stringWithFormat:@"删除(%ld)", count];
+        [self.deleteButton setTitle:title forState:UIControlStateNormal];
+    }
+}
+@end

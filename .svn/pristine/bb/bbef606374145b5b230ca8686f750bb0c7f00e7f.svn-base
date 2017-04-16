@@ -1,0 +1,67 @@
+
+//
+//  AnalysisMes.m
+//  M-Cut
+//
+//  Created by apple on 16/7/12.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "AnalysisMes.h"
+
+typedef NS_ENUM(NSInteger, PushVc){
+    pushToPraiseVc,
+};
+
+@interface AnalysisMes()
+/** 要跳转到的vc*/
+@property (nonatomic, assign) PushVc pushVc;
+@end
+
+@implementation AnalysisMes
+
+//解析消息
++ (void)analysisMes:(NSString *)msg{
+    NSData * msgData = [msg dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary * msgDic = [NSJSONSerialization JSONObjectWithData:msgData options:NSJSONReadingMutableLeaves error:nil];
+    
+    //更新数据库，在对应界面展示
+    //消息通知信息添加到数据库
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [MessageObj addOneMesToTabWith:msgDic];
+    });
+}
+
++ (void)pushVcWithDic:(NSDictionary *)pushUserInfo{
+    //从传入的字典得到术语
+    NSString * term = [[[pushUserInfo objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"loc-key"];
+    
+    if (term.length == 0) {
+        return;
+    }
+    
+    //根据术语判断要跳转到那个界面
+    //用户由消息点击进入app，所以需要跳转到相应的消息展示页面
+    AppDelegate * myAppDelegate = APPDELEGATE;
+    if (![term isEqualToString:FRIENDMESSAGETERM]) {
+        
+        //通知moviertabbar跳转到消息通知页面
+        //如果不在消息通知界面，就发出通知
+        if (myAppDelegate.showNoticeVc != messageVc) {
+            POSTNOTI(PUSHTOMESSAGE, nil);
+        }
+    }else if ([term isEqualToString:NEWVIDEOTERM]){
+        if (myAppDelegate.showNoticeVc != videoVc) {
+            POSTNOTI(PUSHTOVIDEO, nil);
+        }
+    } else{
+        
+        //通知tabbar跳转到好友界面
+        //如果不在好友界面，就发出通知
+        if (myAppDelegate.showNoticeVc != friendVc) {
+            POSTNOTI(PUSHTOFRIEND, nil);
+        }
+    }
+}
+
+@end

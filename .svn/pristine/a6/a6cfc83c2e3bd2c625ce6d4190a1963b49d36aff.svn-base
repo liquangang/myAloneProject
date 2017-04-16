@@ -1,0 +1,78 @@
+//
+//  MWDropdownViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//
+//
+
+#import "MWDropdownViewController.h"
+
+@interface MWDropdownViewController ()
+@property (strong, nonatomic) NSArray *chooses;
+@end
+
+@implementation MWDropdownViewController
+
+- (NSArray *)chooses {
+    if (!_chooses) {
+        self.chooses = [NSArray arrayWithObjects:@"按文件类型排序", @"按文件名称排序", @"按时间倒叙排序", nil];
+    }
+    return _chooses;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.frame = CGRectMake(200, 200, 130, 120);
+    self.tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.chooses.count;
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *ID = @"dropdown";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ID];
+    }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.textLabel.text = self.chooses[indexPath.row];
+    [cell.textLabel setFont:[UIFont systemFontOfSize:13]];
+    return cell;
+}
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    // 字体颜色改变
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    cell.textLabel.textColor = [UIColor colorWithRed:1 green:0 blue:0 alpha:1.0];
+    
+    // 通知代理, 改变文件排序
+    if ([self.delegate respondsToSelector:@selector(dropdownViewControllerDidClickRow:)]) {
+        [self.delegate dropdownViewControllerDidClickRow:indexPath.row];
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
+    // 字体颜色改变
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    cell.textLabel.textColor = [UIColor blackColor];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 40;
+}
+
+
+@end

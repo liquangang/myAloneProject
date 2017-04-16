@@ -1,0 +1,103 @@
+//
+//  MWDropdownMenu.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//
+//
+
+#import "MWDropdownMenu.h"
+
+@interface MWDropdownMenu ()
+/**  用来显示具体内容的容器 */
+@property (nonatomic, weak) UIImageView *containerView;
+
+@end
+
+@implementation MWDropdownMenu
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        // 清除背景色
+        self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
+    }
+    return self;
+}
+
+/* 懒加载一般使用强指针, 或者先添加到View中, 再引用 */
+- (UIImageView *)containerView {
+    if (!_containerView) {
+        UIImageView *containerView = [[UIImageView alloc] init];
+        containerView.userInteractionEnabled = YES;
+        containerView.image = [UIImage imageNamed:self.image];
+        [self addSubview:containerView];
+        self.containerView = containerView;
+    }
+    return _containerView;
+}
+
++ (instancetype)menu {
+    return [[self alloc] init];
+}
+
+// 设置显示的内容
+- (void)setContent:(UIView *)content {
+    _content = content;
+    
+    // 设置内容的位置
+    content.x = 10;
+    content.y = 15;
+    
+    // 设置菜单的宽高
+    self.containerView.height = CGRectGetMaxY(content.frame) + 10;
+    self.containerView.width = CGRectGetMaxX(content.frame) + 10;
+    
+    // 添加内容到窗口上
+    [self.containerView addSubview:content];
+}
+
+- (void)setContentController:(UIViewController *)contentController {
+    _contentController = contentController;
+    // 将控制器的View添加到当前窗口
+    self.content = contentController.view;
+}
+
+- (void)showFrom:(UIView *)from {
+    // 1. 获得最上面的窗口
+    UIWindow *window = [[UIApplication sharedApplication].windows lastObject];
+    
+    // 2. 将菜单添加到窗口上
+    [window addSubview:self];
+    
+    // 3. 设置尺寸
+    self.frame = window.bounds;
+    
+    // 4. 调整灰色图片的位置(需要使用坐标系转换Frame是相对于父控件来讲的)
+    // 默认情况下, frame是以父控件的左上角为坐标原点, 可以转换坐标原点, 改变frame的参照点
+    // 将from.frame的坐标系转到右边window的坐标系
+    CGRect newFrame = [from convertRect:from.bounds toView:window];
+    
+    // 根据具体情况调整
+//    self.containerView.centerX = CGRectGetMidX(newFrame) + 10;
+    self.containerView.centerX = CGRectGetMidX(newFrame) - self.spaceX;
+    self.containerView.y = CGRectGetMinY(newFrame) - self.spaceY;
+    
+    // 5. 通知代理菜单显示
+    if ([self.delegate respondsToSelector:@selector(dropdownMenuDidshow:)]) {
+        [self.delegate dropdownMenuDidshow:self];
+    }
+}
+
+- (void)dismiss {
+    [self removeFromSuperview];
+    // 通知外界菜单被销毁
+    if ([self.delegate respondsToSelector:@selector(dropdownMenuDismiss:)]) {
+        [self.delegate dropdownMenuDismiss:self];
+    }
+}
+
+// 点击其他位置, 菜单也销毁
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self dismiss];
+}
+@end

@@ -1,0 +1,57 @@
+//
+//  MWICloudListCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import "MWICloudEditListCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudEditListCell ()
+/**  图标 */
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+/**  文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+/**  时间 */
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/**  文件大小 */
+@property (weak, nonatomic) IBOutlet UILabel *sizeLabel;
+/**  左侧的选择按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseButton;
+- (IBAction)chooseClick:(UIButton *)sender;
+
+@end
+
+@implementation MWICloudEditListCell
++ (instancetype)cellWithTableView:(UITableView *)tableView{
+    static NSString *ID = @"editFinishTransfer";
+    MWICloudEditListCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudEditListCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    
+//    self.iconView.image = model.image;
+    self.nameLabel.text = model.file_name;
+    self.timeLabel.text = model.file_createtime;
+    self.sizeLabel.text = [NSString stringWithFormat:@"%lld", model.size];
+    self.chooseButton.selected = model.isSelected;
+}
+
+- (IBAction)chooseClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if ([self.delegate respondsToSelector:@selector(iCloudEditListCell:didClickChooseButton:)]) {
+        [self.delegate iCloudEditListCell:self didClickChooseButton:sender];
+    }
+}
+@end

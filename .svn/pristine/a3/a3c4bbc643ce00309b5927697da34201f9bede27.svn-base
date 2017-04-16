@@ -1,0 +1,32 @@
+//
+//  MWICloudMoveFooterView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/5.
+//  移动文件夹的底部视图
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudMoveFooterView;
+
+typedef enum {
+    MWICloudMoveFooterViewButtonTypeNewFolder,
+    MWICloudMoveFooterViewButtonTypeMove
+}MWICloudMoveFooterViewButtonType;
+
+@protocol MWICloudMoveFooterViewDelegate <NSObject>
+@optional
+- (void)iCloudMoveFooterView:(MWICloudMoveFooterView *)iCloudMoveFooterView buttonType:(MWICloudMoveFooterViewButtonType)type;
+@end
+
+@interface MWICloudMoveFooterView : UIView
+
+@property (weak, nonatomic) id<MWICloudMoveFooterViewDelegate> delegate;
+
++ (instancetype)moveFooterView;
+
+/**
+ *  设置内部按钮(移动)的 title
+ */
+- (void)setTitle:(NSInteger)count;
+@end

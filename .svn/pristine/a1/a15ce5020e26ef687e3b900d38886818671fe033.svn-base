@@ -1,0 +1,23 @@
+//
+//  CustomTextView.h
+//  M-Cut
+//
+//  Created by apple on 16/7/19.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+typedef void(^SENDCOMMENTREPLY)();
+
+@interface CustomTextView : UIView
+/** 输入的textview*/
+@property (nonatomic, strong) UITextView * textView;
+/** 发送按钮*/
+@property (nonatomic, strong) UIButton * sendButton;
+
+@property (nonatomic, copy) SENDCOMMENTREPLY sendCommentReplyBlock;
+
+/** 向后台传输回复*/
+- (void)sendCommentReply:(SENDCOMMENTREPLY)sendBlock;
+@end

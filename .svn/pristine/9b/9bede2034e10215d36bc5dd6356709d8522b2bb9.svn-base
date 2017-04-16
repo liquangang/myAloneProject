@@ -1,0 +1,100 @@
+//
+//  MWICloudPayViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudPayViewController.h"
+// 确认支付界面
+#import "MWICloudConfirmPayViewController.h"
+
+@interface MWICloudPayViewController ()
+/**  选择微信支付 以及 响应事件 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseWeChatPay;
+- (IBAction)weChatPayClick:(UIButton *)sender;
+
+/**  支付按钮 以及 响应事件 */
+@property (weak, nonatomic) IBOutlet UIButton *payButton;
+- (IBAction)payClick:(UIButton *)sender;
+
+/**  支付的金额 */
+@property (weak, nonatomic) IBOutlet UILabel *moneyLabel;
+
+@end
+
+@implementation MWICloudPayViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // 设置导航条
+    [self setupNavigation];
+#warning 首先要判断用户是否安装了微信, 如果没有安装, self.chooseWeChatPay (self.chooseWeChatPay.enable=no) 不可用; 同时 self.payButton (self.payButton.enable=no) 也不可用
+    
+    // 设置支付按钮状态
+    [self setupPayButtonState];
+    self.moneyLabel.text = [NSString stringWithFormat:@"%d元", self.money];
+}
+
+/**
+ *  设置支付按钮状态
+ */
+- (void)setupPayButtonState {
+    self.payButton.enabled = self.chooseWeChatPay.selected;
+    if (self.payButton.enabled == NO) {
+        [self.payButton setBackgroundColor:[UIColor grayColor]];
+    } else {
+        [self.payButton setBackgroundColor:MWICloudColor(43, 168, 150)];
+    }
+}
+
+/**
+ *  设置导航条
+ */
+- (void)setupNavigation {
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClick) image:@"backbutton" title:@"返回"];
+    // 尺寸随便写的
+    leftBarButton.frame = CGRectMake(0, 0, 60, 30);
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    [self setupTitleView:@"支付"];
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+/**
+ *  返回上界面
+ */
+- (void)leftBarButtonClick {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  选择微信支付按钮, 用户安装微信,
+ */
+- (IBAction)weChatPayClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    [self setupPayButtonState];
+}
+
+/**
+ *  确认支付按钮点击事件, 如果用户安装微信, 并且点击确认支付, 进入确认支付界面
+ */
+- (IBAction)payClick:(UIButton *)sender {
+    MWICloudConfirmPayViewController *confirm = [[MWICloudConfirmPayViewController alloc] initWithNibName:@"MWICloudConfirmPayViewController" bundle:nil];
+    confirm.money = self.money;
+    [self.navigationController pushViewController:confirm animated:YES];
+}
+@end

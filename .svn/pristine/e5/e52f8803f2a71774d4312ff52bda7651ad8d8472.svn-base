@@ -1,0 +1,39 @@
+//
+//  MWICloudFooterView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/25.
+//  扩容的View
+//
+
+#import <UIKit/UIKit.h>
+
+@class MWICloudExpanView;
+@protocol MWICloudExpanViewDelegate <NSObject>
+@optional
+- (void)iCloudExpanView:(MWICloudExpanView *)expanView didClickExpandButton:(UIButton *)button ;
+
+@end
+
+@interface MWICloudExpanView : UIView
+
+/**
+ *  当前使用的空间
+ */
+@property (assign, nonatomic) CGFloat currentCapacity;
+/**
+ *  云空间总共容量
+ */
+@property (assign, nonatomic) CGFloat totalCapacity;
+
+/**
+ *  扩容按钮点击代理
+ */
+@property (weak, nonatomic) id<MWICloudExpanViewDelegate> delegate;
++ (instancetype)iCloudFooterView;
+
+/**
+ *  每次更改云空间的大小后, 都要及时更新空间的占用情况
+ */
+- (void)setProgress:(CGFloat)currentCapacity totalCapacity:(CGFloat)totalCapacity;
+@end

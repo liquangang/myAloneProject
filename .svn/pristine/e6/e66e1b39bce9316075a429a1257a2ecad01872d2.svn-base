@@ -1,0 +1,20 @@
+//
+//  MWICloudMoveCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/7.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel;
+
+@interface MWICloudMoveCell : UITableViewCell
+
+@property (strong, nonatomic) MWICloudModel *model;
+
+/**
+ *  cell 的初始化方法
+ */
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

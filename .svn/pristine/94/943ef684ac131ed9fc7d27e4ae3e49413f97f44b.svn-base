@@ -1,0 +1,54 @@
+//
+//  SexViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/29.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "SexViewController.h"
+#import "SexTableViewCell.h"
+
+
+@implementation SexViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 2;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *SexIdentifier = @"SexIdentifier";
+    SexTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:SexIdentifier forIndexPath:indexPath];
+    if (indexPath.row == 0) {
+        cell.textLabel.text = @"男";
+    } else {
+        cell.textLabel.text = @"女";
+    }
+    return cell;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    UITableViewCell *selectCell = [tableView cellForRowAtIndexPath:indexPath];
+    selectCell.accessoryType = UITableViewCellAccessoryCheckmark;
+    [tableView reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath, nil] withRowAnimation:UITableViewRowAnimationMiddle];
+    self.sexBlock(selectCell.textLabel.text);
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+@end

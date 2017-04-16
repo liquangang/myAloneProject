@@ -1,0 +1,69 @@
+//
+//  VideoDetailCollectionViewCell.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/19.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "VideoDetailCollectionViewCell.h"
+
+#import <UIImageView+WebCache.h>
+
+@implementation VideoDetailCollectionViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
++ (id)getVideoDetailCollectionViewCellWithCollectionView:(UICollectionView *)itemSuperCollectionView
+                                                ItemInfo:(NSDictionary *)itemInfo
+                                           ItemIndexPath:(NSIndexPath *)itemIndex
+                                        ReuserIdentifier:(NSString *)reuserId
+{
+    /*
+        存储数据的字典
+     Printing description of ((__NSDictionaryM *)0x0000000144738be0):
+     {
+     "customer_avatar" = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier/sysres/673.jpg";
+     "customer_nickname" = "\U7a7f\U6c34\U6676\U978b\U7684\U7070\U59d1\U5a18";
+     "customer_signature" = "";
+     "order_id" = 24753;
+     resolution = "";
+     "video_commentsnum" = 10;
+     "video_createtime" = "2015-12-08 17:32:00";
+     "video_favoritesnum" = 0;
+     "video_id" = 5527;
+     "video_name" = "\U2708\Ufe0f";
+     "video_owner" = 673;
+     "video_praise" = 36;
+     "video_reference" = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier-users/7c401001311122339472cd3b/\U7cfb\U7edf\U6587\U4ef6\U5939/order-generate/2015-12-8/1449567119438.mp4";
+     "video_share" = 1;
+     "video_sharenum" = 2;
+     "video_status" = 2;
+     "video_thumbnail" = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier-users/7c401001311122339472cd3b/\U7cfb\U7edf\U6587\U4ef6\U5939/order-generate/2015-12-8/1449567119438.jpg";
+     visitcount = 785;
+     }
+     */
+    VideoDetailCollectionViewCell * cell = [itemSuperCollectionView
+                                            dequeueReusableCellWithReuseIdentifier:reuserId
+                                            forIndexPath:itemIndex];
+    //设置背景图片高度
+    cell.backImageHeight.constant = itemIndex.item % 2 == 1 ? ISScreen_Width : ISScreen_Width / 2;
+    //设置背景图片
+    [cell.backImage sd_setImageWithURL:[NSURL URLWithString:STRTOUTF8(itemInfo[@"video_thumbnail"])]
+                      placeholderImage:DEFAULTVIDEOTHUMAIL
+                               options:SDWebImageRetryFailed | SDWebImageProgressiveDownload];
+    //设置用户头像
+    [cell.userImage sd_setImageWithURL:[NSURL URLWithString:STRTOUTF8(itemInfo[@"customer_avatar"])] placeholderImage:DEFAULTHEADIMAGE options:SDWebImageRetryFailed | SDWebImageProgressiveDownload];
+    //设置用户昵称
+    cell.userNameLabel.text = itemInfo[@"customer_nickname"];
+    //设置观看次数
+    cell.lookTimesLabel.text = itemInfo[@"visitcount"];
+    //设置电影名称
+    cell.videoNameLabel.text = itemInfo[@"video_name"];
+    return cell;
+}
+
+@end

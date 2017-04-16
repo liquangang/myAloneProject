@@ -1,0 +1,47 @@
+//
+//  MWICloudListCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import "MWICloudListCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudListCell ()
+/**  图标 */
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+/**  文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+/**  时间 */
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/**  文件大小 */
+@property (weak, nonatomic) IBOutlet UILabel *sizeLabel;
+
+@end
+
+@implementation MWICloudListCell
++ (instancetype)cellWithTableView:(UITableView *)tableView{
+    static NSString *ID = @"finishTransfer";
+    MWICloudListCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudListCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    
+//    self.iconView.image = model.image;
+    self.nameLabel.text = model.file_name;
+    self.timeLabel.text = model.file_createtime;
+    self.sizeLabel.text = [NSString stringWithFormat:@"%lld", model.size];
+}
+
+@end

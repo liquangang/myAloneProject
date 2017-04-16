@@ -1,0 +1,31 @@
+//
+//  OtherPrizeTableViewCell.h
+//  M-Cut
+//
+//  Created by apple on 16/10/22.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+typedef NS_ENUM(NSInteger, ExchangeType){
+    exchangeCoupon,
+    exchangeInvitation
+};
+
+@interface OtherPrizeTableViewCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UILabel *couponCount;
+@property (weak, nonatomic) IBOutlet UIButton *exchangeButton;
+@property (weak, nonatomic) IBOutlet UILabel *couponCount2;
+@property (weak, nonatomic) IBOutlet UIButton *exchangeButton2;
+
+//兑换点击操作
+@property (nonatomic, copy) void(^exchangeBlock)(ExchangeType exchangeType);
+
+
+/**
+ *  获得cell
+ */
++ (instancetype)OtherPrizeTableViewCellWithTable:(UITableView *)superTable
+                                     ResuableStr:(NSString *)resuableStr;
+@end

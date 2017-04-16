@@ -1,0 +1,56 @@
+//
+//  MCScrubber.m
+//  M-Cut
+//
+//  Created by arbin on 16/7/26.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MCScrubber.h"
+
+@interface MCScrubber ()
+@property (nonatomic, strong) UIImageView *scrubberGlow;
+@end
+@implementation MCScrubber
+@synthesize delegate = _delegate;
+
+- (void) initialize {
+    
+    [self setMaximumTrackImage:[[UIImage imageNamed:@"MCScrubber_max"]
+                                resizableImageWithCapInsets:UIEdgeInsetsMake(0, 4, 0, 4)]
+                      forState:UIControlStateNormal];
+    [self setMinimumTrackImage:[[UIImage imageNamed:@"MCScrubber_min"]
+                                resizableImageWithCapInsets:UIEdgeInsetsMake(0, 4, 0, 4)]
+                      forState:UIControlStateNormal];
+    [self setThumbImage:[UIImage imageNamed:@"MCScrubber_thumb"]
+               forState:UIControlStateNormal];
+    
+    [self addTarget:self action:@selector(scrubbingBegin) forControlEvents:UIControlEventTouchDown];
+    [self addTarget:self action:@selector(scrubbingEnd) forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside|UIControlEventTouchCancel];
+    [self addTarget:self action:@selector(scrubberValueChanged) forControlEvents:UIControlEventValueChanged];
+    
+    self.exclusiveTouch = YES;
+}
+
+- (void)scrubbingBegin {
+//    DDLogVerbose(@"SCRUBBER: Begin %f", self.value);
+    [self.delegate scrubbingBegin];
+}
+
+- (void)scrubbingEnd {
+//    DDLogVerbose(@"SCRUBBER: End %f", self.value);
+    [self.delegate scrubbingEnd];
+}
+
+- (void)scrubberValueChanged {
+//    DDLogVerbose(@"SCRUBBER: Change %f", self.value);
+}
+/*
+// Only override drawRect: if you perform custom drawing.
+// An empty implementation adversely affects performance during animation.
+- (void)drawRect:(CGRect)rect {
+    // Drawing code
+}
+*/
+
+@end

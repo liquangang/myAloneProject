@@ -1,0 +1,17 @@
+//
+//  NickNameViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/28.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+typedef void(^ChangeNickNameBlock)(NSString *strg);
+@interface NickNameViewController : UIViewController<UITextFieldDelegate>
+
+@property (retain, nonatomic) IBOutlet UITextField *textField;
+@property (nonatomic,copy) ChangeNickNameBlock nickBlock;
+
+@end

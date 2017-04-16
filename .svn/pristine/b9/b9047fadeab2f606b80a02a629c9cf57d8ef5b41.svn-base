@@ -1,0 +1,45 @@
+//
+//  WkWebViewViewController.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/23.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "WkWebViewViewController.h"
+#import <WebKit/WebKit.h>
+
+@interface WkWebViewViewController ()<WKNavigationDelegate>
+
+@end
+
+@implementation WkWebViewViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    self.title = self.titleStr;
+    
+    WKWebView *webView = [[WKWebView alloc] initWithFrame:self.view.bounds];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.needOpenURL]]];
+    [self.view addSubview:webView];
+    webView.allowsBackForwardNavigationGestures = NO;
+    webView.navigationDelegate = self;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

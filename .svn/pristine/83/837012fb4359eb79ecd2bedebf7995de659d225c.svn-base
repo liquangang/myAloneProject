@@ -1,0 +1,57 @@
+//
+//  MWICloudModel.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/24.
+//
+//
+
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+#define FileTypeFolder @"folder"
+#define FileTypeVideo @"video"
+#define FileTypeAudio @"audio"
+#define FileTypePic @"pic"
+
+#define MWICloudFileNameFont [UIFont systemFontOfSize:15]
+#define MWICloudFileCreateTimeFont [UIFont systemFontOfSize:12]
+
+@interface MWICloudModel : NSObject
+#pragma mark -- 其他文件使用数据
+/**  文件名 */
+@property (copy, nonatomic) NSString *file_name;
+/**  文件的创建时间 */
+@property (copy, nonatomic) NSString *file_createtime;
+/**  文件类型 folder:文件 pic:图片 video:视频 audio:音频 */
+@property (copy, nonatomic) NSString *file_type;
+/**  文件大小 */
+@property (assign, nonatomic) long long size;
+
+/**  是否正在编辑, 选择时使用 */
+@property (assign, nonatomic) BOOL isEditing;
+
+/**  是否正在上传 */
+@property (assign, nonatomic) BOOL isUploading;
+/**  是否正在下载 */
+@property (assign, nonatomic) BOOL isDownloading;
+
+#pragma mark -- 相册上传使用数据
+/**   相册名  */
+@property (copy, nonatomic) NSString *albumName;
+/**   相册---图片总数  */
+@property (assign, nonatomic) NSInteger photosCount;
+/**   相册---图片对象, 缩略图  */
+@property (strong, nonatomic) UIImage *image;
+/**   相册---文件路径  */
+@property (copy, nonatomic) NSString *path;
+
+/**   标记所在的 cell 是否被选中 */
+@property (assign, nonatomic) BOOL isSelected;
+
+/**
+ *  从 plist 文件中加载模型数据
+ */
++ (instancetype)modelWithDict:(NSDictionary *)dict;
+@end
+

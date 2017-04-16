@@ -1,0 +1,30 @@
+//
+//  OssTemp.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/9.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface OssTempDetail:NSObject{
+    
+}
+@property(nonatomic) NSInteger Materialsize;
+@property(strong,nonatomic) NSString *MaterialUrl;
+
+@end
+
+@interface OssTemp : NSObject
+{
+    NSMutableArray *OssTempList;
+    NSMutableArray *selectedobjs;
+    NSMutableArray *objectsURL;
+}
+@property(retain,nonatomic) NSMutableArray *OssTempList;
+@property(retain,nonatomic) NSMutableArray *selectedobjs;
+@property(retain,nonatomic) NSMutableArray *objectsURL;
+
++ (OssTemp *)Singleton;
+@end

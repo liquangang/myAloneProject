@@ -1,0 +1,452 @@
+//
+//  DetailsViewController.m
+//  samples_ios
+//
+//  Created by baocai zhang on 12-10-29.
+//  Copyright (c) 2012年 __MyCompanyName__. All rights reserved.
+//
+
+#import "DetailsViewController.h"
+#import "MBProgressHUD.h"
+#import "CloudMaterialTableViewCell.h"
+#import "APPUserPrefs.h"
+
+@interface DetailsViewController ()<OSSClientZhangDelegate,UIActionSheetDelegate,UIImagePickerControllerDelegate,MBProgressHUDDelegate>
+@end
+
+@implementation DetailsViewController
+@synthesize tableView = _tableView;
+@synthesize client = _client;
+@synthesize bucketName = _bucketName;
+@synthesize objects = _objects;
+@synthesize prefix = _prefix;
+@synthesize folders = _folders;
+@synthesize objectsst = _objectsst;
+@synthesize foldersst = _foldersst;
+-(void) dealloc
+{
+    self.client = nil;
+    self.tableView = nil;
+    self.bucketName = nil;
+    self.objects = nil;
+    self.prefix = nil;
+    self.folders = nil;
+    self.objectsst = nil;
+    self.foldersst = nil;
+    [super dealloc];
+}
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+    }
+    return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    _objects = [[NSMutableArray alloc] init];
+    _folders = [[NSMutableArray alloc] init];
+    _objectsst = [[NSMutableArray alloc] init];
+    _foldersst = [[NSMutableArray alloc] init];
+    self.navigationItem.title = @"Objects";
+    UIBarButtonItem * addItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd  target:self action:@selector(addOSSObject:)];
+    [self.navigationItem setRightBarButtonItem:addItem];
+    _client.delegate = self;
+    ListObjectsRequest * lor = [[ListObjectsRequest alloc] initWithBucketName:self.bucketName prefix:self.prefix marker:nil maxKeys:0 delimiter:@"/"];
+    [_client listObjects:lor];
+    [lor release];
+    lor = nil;
+}
+
+-(void) addOSSObject:(id) sender
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc]
+                                  initWithTitle:@"创建Object类型"
+                                  delegate:self
+                                  cancelButtonTitle:@"取消"
+                                  destructiveButtonTitle:nil
+                                  otherButtonTitles:@"文件夹", @"拍照",@"图库",nil];
+    actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
+    [actionSheet showInView:self.view];
+}
+
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    switch (buttonIndex) {
+        case 0:
+        {
+            [self addFolder];
+        }
+            break;
+        case 1:
+        {
+            [self addPictureFromCamera];
+        }
+        case 2:
+        {
+            [self addPictureFromPhotoLibrary];
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+-(void) addFolder
+{
+    UIAlertView  *alert = [[UIAlertView alloc] initWithTitle:@"输入文件夹名称" message:@"" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil];
+    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [alert show];
+    [alert release];
+}
+
+#pragma mark UIAlertViewDelegate
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1) {
+        UITextField * textField = [alertView textFieldAtIndex:0];
+        if (textField.text != nil && ![textField.text isEqualToString:@""]) {
+            NSString *strKey = [NSString stringWithFormat:@"%@%@/",self.prefix,textField.text];
+            NSLog(@"%@",strKey);
+            ObjectMetadata * objMetadata = [[ObjectMetadata alloc] init];
+            [_client putObject:self.bucketName key:strKey data:nil objectMetadata:objMetadata];
+            [objMetadata release];
+        }
+    }
+}
+
+-(void)OSSObjectPutObjectFinish:(OSSClientZhang*) client result:(PutObjectResult*) result
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    if ([result.key endsWith:@"/"]) {
+        [self.folders addObject:result.key];
+    }
+    else
+    {
+        OSSObjectSummary * obj= [[OSSObjectSummary  alloc] initWithBucketName:self.bucketName key:result.key eTag:nil size:0 lastModified:nil storageClass:nil owner:nil];
+        [self.objects addObject:obj];
+        [obj release];
+    }
+    [self.tableView reloadData];
+}
+
+-(void)OSSObjectPutObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    [self showError:error];
+}
+
+-(void) showError:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error.errorMessage delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    [alert release];
+    alert = nil;
+}
+
+-(void) addPictureFromCamera
+{
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera])
+    {
+        UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+        picker.delegate = self;
+        picker.allowsEditing = NO;
+        picker.sourceType = sourceType;
+        [self presentModalViewController:picker animated:YES];
+        [picker release];
+    }
+    else
+    {
+        NSLog(@"模拟其中无法打开照相机,请在真机中使用");
+    }
+}
+
+-(void)addPictureFromPhotoLibrary
+{
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    [self presentModalViewController:picker animated:YES];
+    [picker release];
+}
+
+-(void)imagePickerController:(UIImagePickerController*)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
+    NSString *imageId;
+    NSString *imageType;
+    [picker dismissModalViewControllerAnimated:YES];
+    if ([type isEqualToString:@"public.image"])
+    {
+        UIImage* image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+        image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+        image = [image fixOrientation];
+        NSURL *url = [info objectForKey: @"UIImagePickerControllerReferenceURL"];
+        imageId = [url absoluteString];
+        NSArray *tmpArray = [imageId componentsSeparatedByString: @"="];
+        imageId = [tmpArray objectAtIndex:1];
+        imageType = [tmpArray objectAtIndex:2];
+        NSArray *tmpArray2 = [imageId componentsSeparatedByString: @"&"];
+        imageId = [tmpArray2 objectAtIndex:0];
+        NSString *fileName;
+        NSDate * date = [NSDate date];
+        NSData *data;
+        if (UIImagePNGRepresentation(image) == nil)
+        {
+            data = UIImageJPEGRepresentation(image, 1.0);
+        }else{
+            data = UIImagePNGRepresentation(image);
+            imageType = @"png";
+        }
+        if (imageId == nil || [imageId isEqualToString:@""]) {
+            NSString *strTime =[NSString stringWithFormat:@"%ld",(long)date.timeIntervalSinceReferenceDate];
+            fileName = [[NSString alloc] initWithFormat: @"photo%@.%@", strTime, imageType];
+        }else{
+            fileName = [[NSString alloc] initWithFormat: @"%@.%@", imageId, imageType];
+        }
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
+        hud.labelText = @"图片上传中...";
+        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+            [self putObject:fileName data:data];
+        });
+    }
+}
+
+- (void)hudWasHidden:(MBProgressHUD *)hud {
+    [hud removeFromSuperview];
+}
+
+-(void) putObject:(NSString * )fileName data:(NSData*) data
+{
+    _client.delegate = self;
+    NSString *strKey = [NSString stringWithFormat:@"%@%@",self.prefix,fileName];
+    NSLog(@"%@",strKey);
+    ObjectMetadata * objMetadata = [[ObjectMetadata alloc] init];
+    [_client putObject:self.bucketName key:strKey data:data objectMetadata:objMetadata];
+    [objMetadata release];
+}
+
+- (void)viewDidUnload
+{
+    [super viewDidUnload];
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return UITableViewCellEditingStyleDelete;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return nil;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        _indexPath = [indexPath retain];
+        NSString *strKey = @"";
+        if (indexPath.row < [self.folders count]) {
+            strKey = [self.folders objectAtIndex:indexPath.row];
+        }
+        else
+        {
+            OSSObjectSummary * obj = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+            strKey = obj.key;
+        }
+        _client.delegate = self;
+        [_client deleteObject:self.bucketName key:strKey];
+    }else if (editingStyle == UITableViewCellEditingStyleInsert) {
+    }
+}
+
+-(void)OSSObjectDeleteObjectFinish:(OSSClientZhang*) client bucketName:(NSString*) bucketName key:(NSString*)key
+{
+    if (_indexPath != nil) {
+        if (_indexPath.row < [self.folders count]) {
+            [self.folders removeObjectAtIndex:_indexPath.row];
+        }
+        else
+        {
+            [self.objects removeObjectAtIndex:_indexPath.row-[self.folders count]];
+        }
+        [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:_indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        [_indexPath release];
+    }
+    
+    _indexPath = nil;
+}
+
+-(void)OSSObjectDeleteObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [self showError:error];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    int rtn =0;
+    rtn = [self.folders count] +[self.objects count];
+    return rtn;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[CloudMaterialTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+    }
+    NSString *strIndex;
+    if (indexPath.row < [self.folders count]) {
+        NSString *strFolder = [self.folders objectAtIndex:indexPath.row];
+        NSArray *sSplit = [strFolder componentsSeparatedByString:@"/"];
+        strIndex =[NSString stringWithFormat:@"%@",[sSplit objectAtIndex:[sSplit count]-2] ];
+        cell.imageView.image = [UIImage imageNamed:@"folder_show"];
+    }
+    else {
+        OSSObjectSummary * obj = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        strIndex =[NSString stringWithFormat:@"%@",strKey];
+        NSString *selectItem = [self.objectsst objectAtIndex:indexPath.row - [self.folders count]];
+        if ([selectItem isEqualToString:@"FALSE"]) {
+            cell.accessoryType = UITableViewCellAccessoryNone;
+        }else{
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        }
+    }
+    cell.textLabel.text = strIndex;
+    cell.textLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+    return cell;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.row < [self.folders count]) {
+        NSString * str = [self.folders objectAtIndex:indexPath.row];
+        DetailsViewController * detailsVC = [[DetailsViewController alloc] initWithNibName:@"DetailsViewController" bundle:nil];
+        detailsVC.client = _client;
+        detailsVC.bucketName = self.bucketName;
+        detailsVC.prefix = str;
+        [self.navigationController pushViewController:detailsVC animated:YES];
+        [detailsVC release];
+    }
+    else
+    {
+        OSSObjectSummary * obj = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        NSString * obj1 = [self.objectsst objectAtIndex:indexPath.row-[self.folders count]];
+        if([obj1 isEqualToString:@"FALSE"])
+        {
+            OSSObjectSummary *ss = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+            obj1 = @"TRUE";
+            [self.objectsst replaceObjectAtIndex:indexPath.row-[self.folders count]  withObject:@"TRUE"];
+            NewOrderVideoMaterial *newOrderVideoMaterial = [[NewOrderVideoMaterial alloc] init];
+            NewNSOrderDetail *newNSOrderDetail = [[NewNSOrderDetail alloc] init];
+            newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+            newOrderVideoMaterial.createTime = newNSOrderDetail.createTime;
+            newNSOrderDetail = [[APPUserPrefs Singleton] APP_OrderDetailCacheInformationDBSearch:newNSOrderDetail];
+            newOrderVideoMaterial.order_id = newNSOrderDetail.order_id;
+            newOrderVideoMaterial.file_st = 0;
+            newOrderVideoMaterial.material_type = 3;
+            newOrderVideoMaterial.material_index = orderCurrent;
+            newOrderVideoMaterial.material_localURL = @"";
+            newOrderVideoMaterial.material_ossURL = [@"http://movier-vdc.oss-cn-beijing.aliyuncs.com/" stringByAppendingFormat:@"%@",ss.key ];
+            NSString *videoUrl = @"http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier/admin/modules/module-1/1422258921437.jpg";
+            NSError *error=nil;
+            newOrderVideoMaterial.material_stream = [UIImage imageWithData:[NSURLConnection sendSynchronousRequest:[[NSURLRequest alloc] initWithURL:[NSURL URLWithString:videoUrl]] returningResponse:nil error:&error]];
+            newOrderVideoMaterial.material_assetsURL = @"";
+            [[APPUserPrefs Singleton] APP_MaterialCacheInformationDBInsert:newOrderVideoMaterial];
+        }else{
+            obj1 = @"FALSE";
+            [self.objectsst replaceObjectAtIndex:indexPath.row-[self.folders count]  withObject:@"FALSE"];
+            NewOrderVideoMaterial *newOrderVideoMaterial = [[NewOrderVideoMaterial alloc] init];
+            NewNSOrderDetail *newNSOrderDetail = [[NewNSOrderDetail alloc] init];
+            newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+            newOrderVideoMaterial.order_id = newNSOrderDetail.order_id;
+            [[APPUserPrefs Singleton] APP_MaterialCacheInformationDBDelete:newOrderVideoMaterial];
+            orderCurrent--;
+        }
+        [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    }
+}
+
+-(void) fetchObject:(NSString*) bucketName key:(NSString*) key
+{
+    _client.delegate = self;
+    [_client fetchObject:bucketName key:key];
+}
+-(void)OSSObjectFetchObjectFinish:(OSSClientZhang*) client result:(OSSObjectZhang*) result
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+}
+
+-(void)OSSObjectFetchObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    [self showError:error];
+}
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
+{
+    
+}
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+-(void)bucketListObjectsFinish:(OSSClientZhang*) client result:(ObjectListing*) result
+{
+    NSArray * objs = result.objectSummaries;
+    NSMutableArray * newobjs = [NSMutableArray arrayWithCapacity:[objs count]];
+    for (int j =0; j< [objs count]; j++) {
+        OSSObjectSummary * objSummary = [objs objectAtIndex:j];
+        if (![objSummary.key isEqualToString:self.prefix]) {
+            [newobjs addObject:objSummary];
+            NSString *ObjStatue = @"FALSE";
+            [[OssTemp Singleton].selectedobjs addObject:ObjStatue];
+            NSString *fileurl = @"";
+            fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+            NSArray *sSplit2 = [objSummary.key componentsSeparatedByString:@"/"];
+            NSString *strKey;
+            if ([sSplit2 count] >1) {
+                strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+            }
+            else {
+                strKey= objSummary.key;
+            }
+            fileurl = [fileurl stringByAppendingString:strKey];
+            [self.objectsst addObject:ObjStatue];
+        }
+    }
+    [self.objects addObjectsFromArray: newobjs];
+    [self.folders addObjectsFromArray: result.commonPrefixes];
+    [self.tableView reloadData];
+}
+
+-(void)bucketListObjectsFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [self showError:error];
+}
+
+@end

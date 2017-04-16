@@ -1,0 +1,17 @@
+//
+//  MyIcloudFilmsTableViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/3.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MyIcloudFilmsViewController : UIViewController
+{
+    NSArray *_dataSource; //用于存放显示在cell上面的数据
+    BOOL _isOpen[100];
+
+}
+@end

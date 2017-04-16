@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10116" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" rowHeight="268" id="KGk-i7-Jjw" customClass="InshowNoticeCell">
+            <rect key="frame" x="0.0" y="0.0" width="457" height="268"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="457" height="267"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="inshow_Notice" translatesAutoresizingMaskIntoConstraints="NO" id="lu2-Ym-VXA">
+                        <rect key="frame" x="15" y="12" width="45" height="45"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="45" id="MK4-Xx-VmW"/>
+                            <constraint firstAttribute="width" secondItem="lu2-Ym-VXA" secondAttribute="height" multiplier="1:1" id="NUk-9i-6Bv"/>
+                            <constraint firstAttribute="width" constant="45" id="mAJ-rx-9YJ"/>
+                        </constraints>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="inshow通知" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CbU-uN-4Pb">
+                        <rect key="frame" x="70" y="15" width="387" height="17"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="17" id="vb3-9p-I3J"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                        <color key="textColor" red="0.25098039215686274" green="0.29019607843137252" blue="0.34509803921568627" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2016-06-15" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bhp-CL-sR4">
+                        <rect key="frame" x="70" y="41" width="387" height="14"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="14" id="sg4-NY-Q53"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <color key="textColor" red="0.59999999999999998" green="0.59999999999999998" blue="0.59999999999999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" text="系统通知是打发第三方多少噶是大哥大气缸的风格我也认同感和对方水电费是个人风格鬼地方个发的撒个打工奋斗过恢复的收费的共和国和人体优惠个红包的风格和地方干部对这个合适的话把多个地方还是放过的数据库反馈和" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MkA-Ea-cf6">
+                        <rect key="frame" x="65" y="55" width="386" height="212"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="textColor" red="0.25098039220000001" green="0.2901960784" blue="0.34509803919999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                    </textView>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="bhp-CL-sR4" secondAttribute="trailing" id="0gW-Fe-7Uy"/>
+                    <constraint firstItem="MkA-Ea-cf6" firstAttribute="top" secondItem="bhp-CL-sR4" secondAttribute="bottom" id="7r3-UW-znO"/>
+                    <constraint firstItem="bhp-CL-sR4" firstAttribute="leading" secondItem="lu2-Ym-VXA" secondAttribute="trailing" constant="10" id="GDA-cw-BOX"/>
+                    <constraint firstItem="CbU-uN-4Pb" firstAttribute="leading" secondItem="lu2-Ym-VXA" secondAttribute="trailing" constant="10" id="I9F-Xo-AJd"/>
+                    <constraint firstItem="CbU-uN-4Pb" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="15" id="IbG-sF-opC"/>
+                    <constraint firstAttribute="trailing" secondItem="MkA-Ea-cf6" secondAttribute="trailing" constant="6" id="JYl-yF-ECl"/>
+                    <constraint firstItem="lu2-Ym-VXA" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="12" id="Kfl-yL-0YH"/>
+                    <constraint firstItem="lu2-Ym-VXA" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="15" id="W92-gA-0KQ"/>
+                    <constraint firstItem="MkA-Ea-cf6" firstAttribute="leading" secondItem="lu2-Ym-VXA" secondAttribute="trailing" constant="5" id="cdv-5h-vaW"/>
+                    <constraint firstItem="bhp-CL-sR4" firstAttribute="top" secondItem="CbU-uN-4Pb" secondAttribute="bottom" constant="9" id="gP6-Vz-9GT"/>
+                    <constraint firstAttribute="trailing" secondItem="CbU-uN-4Pb" secondAttribute="trailing" id="lH0-Vq-olk"/>
+                    <constraint firstAttribute="bottom" secondItem="MkA-Ea-cf6" secondAttribute="bottom" id="n0z-lD-KdD"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="systemNoticeContentTextView" destination="MkA-Ea-cf6" id="TRY-dm-cEe"/>
+                <outlet property="systemNoticeTimeLabel" destination="bhp-CL-sR4" id="jbo-m8-6tD"/>
+            </connections>
+            <point key="canvasLocation" x="289.5" y="228"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="inshow_Notice" width="45" height="45"/>
+    </resources>
+</document>

@@ -1,0 +1,124 @@
+//
+//  MapTableViewCell.m
+//  M-Cut
+//
+//  Created by apple on 16/10/24.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MapTableViewCell.h"
+#import "CustomeClass.h"
+#import "CustomAnnotation.h"
+
+@interface MapTableViewCell()<MKMapViewDelegate,
+                              CLLocationManagerDelegate>
+
+//地理编码
+@property (nonatomic, strong) CLGeocoder * geocoder;
+
+//定位控制对象
+@property (nonatomic, strong) CLLocationManager * locationManager;
+@end
+
+@implementation MapTableViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    [self setView];
+}
+
+#pragma mark - CLLocationManagerDelegate
+
+- (void)locationManager:(CLLocationManager *)manager
+     didUpdateLocations:(NSArray<CLLocation *> *)locations{
+//    CLLocation * location = [locations lastObject];
+//    CLLocationCoordinate2D locationCoorinate = location.coordinate;
+    [self getCoordinateWithAddress:@"国美"];
+}
+
+#pragma mark - 功能模块
+
+/**
+ *  开始请求地理信息
+ */
+- (void)startGetLocation{
+    
+    //判断定位功能是否可用
+    if ([CLLocationManager locationServicesEnabled] &&
+        ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized ||
+         [CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)) {
+            self.mapView.userTrackingMode = MKUserTrackingModeFollow;
+            [self.locationManager startUpdatingLocation];
+        }else{
+            [CustomeClass showMessage:@"定位功能不可用" ShowTime:3];
+        }
+}
+
+/**
+ *  设置view
+ */
+- (void)setView{
+    [self startGetLocation];
+}
+
+/**
+ *  正地理编码
+ */
+- (void)getCoordinateWithAddress:(NSString *)addressStr
+{
+    [self.geocoder geocodeAddressString:addressStr
+                     completionHandler:^(NSArray<CLPlacemark *> * _Nullable placemarks, NSError * _Nullable error) {
+                         
+                         //设置大头针
+                         MAINQUEUEUPDATEUI({
+                             for (CLPlacemark * placeMark in placemarks) {
+                                 CLLocation * location = placeMark.location;
+                                 CLLocationCoordinate2D coordinate = location.coordinate;
+                                 
+                             }
+                         })
+                         
+                     }];
+}
+
+/**
+ *  获得cell
+ */
++ (instancetype)MapTableViewCellWithTable:(UITableView *)tableView
+                              ResuableStr:(NSString *)resuableStr
+{
+    MapTableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:resuableStr];
+    if (!cell) {
+        cell = XIBCELL(@"MapTableViewCell")
+    }
+    
+    return cell;
+}
+
+#pragma mark - 懒加载
+
+/**
+ *  懒加载地理编码控制器
+ */
+- (CLGeocoder *)geocoder{
+    if (!_geocoder) {
+        _geocoder = [CLGeocoder new];
+    }
+    return _geocoder;
+}
+
+/**
+ *  懒加载定位控制对象
+ */
+- (CLLocationManager *)locationManager{
+    if (!_locationManager) {
+        _locationManager = [CLLocationManager new];
+        _locationManager.delegate = self;
+        _locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+        [_locationManager requestAlwaysAuthorization];
+    }
+    return _locationManager;
+}
+
+@end

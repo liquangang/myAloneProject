@@ -1,0 +1,13 @@
+//
+//  PersonalInformationSet.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/1.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "PersonalInformationSet.h"
+
+@implementation PersonalInformationSet
+
+@end

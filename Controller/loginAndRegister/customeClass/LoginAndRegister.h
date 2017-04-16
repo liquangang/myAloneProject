@@ -1,0 +1,26 @@
+//
+//  LoginAndRegister.h
+//  M-Cut
+//
+//  Created by liquangang on 16/9/30.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "MovierDCInterfaceSvc.h"
+
+@interface LoginAndRegister : NSObject
+/** 登录（用来判断是否需要注册的方法，如果已经注册就登录, 没有注册的话就进行注册）(（要换绑的账号类型（0-手机、1-微信、2-QQ、3-微博)*/
++ (void)loginWithAccountInfo:(NSDictionary *)accountInfo
+                 AccountType:(NSInteger)accountType;
+
+/** 每次进入app时获得session（已经登录状态下）*/
++ (void)getSessionWhenUserAlreadyLogin;
+
+/** 每次进入app时的默认获得session*/
++ (void)fillUseEntity:(MovierDCInterfaceSvc_VDCSession*)ws_session;
+
+/** 设置session*/
++ (MovierDCInterfaceSvc_VDCSession *)setSessionWithDic:(NSMutableDictionary *)serverDataDictionary;
+@end
+

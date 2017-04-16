@@ -1,0 +1,147 @@
+//
+//  FriendTypeCell.m
+//  M-Cut
+//
+//  Created by apple on 16/7/4.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "FriendTypeCell.h"
+#import "SoapOperation.h"
+#import "VideoDBOperation.h"
+
+
+
+
+@implementation FriendTypeCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+    ADDTAPGESTURE(self.friendBackView, friendTap);
+    ADDTAPGESTURE(self.followBackView, followTap);
+    ADDTAPGESTURE(self.fansBackView, fansTap);
+    [self downloadData];
+}
+
+- (void)followTap:(UITapGestureRecognizer *)tap{
+    [self setColorWithIndex:@"关注"];
+    self.selectFollow();
+}
+
+- (void)selectFollow:(SELECTFOLLOW)followBlock{
+    self.selectFollow = followBlock;
+}
+
+- (void)fansTap:(UITapGestureRecognizer *)tapP{
+    [self setColorWithIndex:@"粉丝"];
+    self.selectFans();
+}
+
+- (void)selectFans:(SELECTFANS)fansBlock{
+    self.selectFans = fansBlock;
+}
+
+- (void)friendTap:(UITapGestureRecognizer *)tap{
+    [self setColorWithIndex:@"好友"];
+    self.selectFriend();
+}
+
+- (void)selectFriend:(SELECTFRIEND)friendBlock{
+    self.selectFriend = friendBlock;
+}
+
+- (void)setColorWithIndex:(NSString *)myIndex{
+    self.friendDownLabel.backgroundColor = [UIColor groupTableViewBackgroundColor];
+    self.followDownLabel.backgroundColor = [UIColor groupTableViewBackgroundColor];
+    self.fansDownLabel.backgroundColor = [UIColor groupTableViewBackgroundColor];
+    self.friendLabel.textColor = ISGRAYCOLOR2;
+    self.followLabel.textColor = ISGRAYCOLOR2;
+    self.fansLabel.textColor = ISGRAYCOLOR2;
+    self.fansNumLabel.textColor = ISGRAYCOLOR2;
+    self.followNumLabel.textColor = ISGRAYCOLOR2;
+    self.friendNumLabel.textColor = ISGRAYCOLOR2;
+    if ([myIndex isEqualToString:@"好友"]) {
+        self.friendNumLabel.textColor = ISRedColor;
+        self.friendLabel.textColor = ISRedColor;
+        self.friendDownLabel.backgroundColor = ISRedColor;
+    }else if([myIndex isEqualToString:@"关注"]){
+        self.followNumLabel.textColor = ISRedColor;
+        self.followLabel.textColor = ISRedColor;
+        self.followDownLabel.backgroundColor = ISRedColor;
+    }else{
+        self.fansNumLabel.textColor = ISRedColor;
+        self.fansLabel.textColor = ISRedColor;
+        self.fansDownLabel.backgroundColor = ISRedColor;
+    }
+}
+
+static NSString * FriendTypeCellId = @"FriendTypeCell";
+
+- (void)downloadData{
+    
+    WEAKSELF(weakSelf);
+    
+    
+    
+    dispatch_group_async(dispatch_group_create(), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSInteger num1 = [[VideoDBOperation Singleton] selectFriendNumTabWithType:@"关注"];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            weakSelf.followNumLabel.text = [NSString stringWithFormat:@"%ld", num1];
+        });
+        [[SoapOperation Singleton] WS_getfriendamountWithFriendType:1 Success:^(NSNumber *num) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (num1 != [num integerValue]) {
+                    weakSelf.followNumLabel.text = [num stringValue];
+                }
+            });
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error);
+        }];
+    });
+    
+    dispatch_group_async(dispatch_group_create(), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSInteger num1 = [[VideoDBOperation Singleton] selectFriendNumTabWithType:@"好友"];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            weakSelf.friendNumLabel.text = [NSString stringWithFormat:@"%ld", num1];
+        });
+        [[SoapOperation Singleton] WS_getfriendamountWithFriendType:2 Success:^(NSNumber *num) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (num1 != [num integerValue]) {
+                    weakSelf.friendNumLabel.text = [num stringValue];
+                }
+            });
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error)
+        }];
+    });
+    
+    dispatch_group_async(dispatch_group_create(), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSInteger num1 = [[VideoDBOperation Singleton] selectFriendNumTabWithType:@"粉丝"];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            weakSelf.fansNumLabel.text = [NSString stringWithFormat:@"%ld", num1];
+        });
+        [[SoapOperation Singleton] WS_getfriendamountWithFriendType:3 Success:^(NSNumber *num) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (num1 != [num integerValue]) {
+                    weakSelf.fansNumLabel.text = [num stringValue];
+                }
+                
+            });
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error);
+        }];
+    });
+}
+
++ (id)getFriendTypeCellWithTable:(UITableView *)myTable FriendType:(NSString *)friendType{
+    FriendTypeCell * cell = [myTable dequeueReusableCellWithIdentifier:FriendTypeCellId];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:FriendTypeCellId owner:nil options:nil] lastObject];
+    }
+    [cell setColorWithIndex:friendType];
+    return cell;
+}
+
+@end

@@ -1,0 +1,28 @@
+//
+//  MWICloudOrderListModel.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import <Foundation/Foundation.h>
+
+@interface MWICloudOrderListModel : NSObject
+/**  订单编号 */
+@property (copy, nonatomic) NSString *orderNum;
+/**  订单容量 */
+@property (assign, nonatomic) int capacity;
+/**  有效期 */
+@property (copy, nonatomic) NSString *effectTime;
+/**  应付款金额 */
+@property (assign, nonatomic) int money;
+/**  订单状态 */
+@property (copy, nonatomic) NSString *state;
+
+/**   标记所在的 cell 是否被选中 */
+@property (assign, nonatomic) BOOL isSelected;
+
+
++ (instancetype)modelWithDict:(NSDictionary *)dict;
+@end

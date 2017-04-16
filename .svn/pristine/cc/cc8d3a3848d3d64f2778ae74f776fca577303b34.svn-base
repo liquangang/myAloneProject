@@ -1,0 +1,15 @@
+//
+//  MaterialModel.h
+//  M-Cut
+//
+//  Created by apple on 16/10/11.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface MaterialModel : NSObject
+@property (nonatomic, copy) NSString * materialUrl;
+@property (nonatomic, assign) NSInteger materialIndex;
+@property (nonatomic, copy) NSString * materialArId;
+@end

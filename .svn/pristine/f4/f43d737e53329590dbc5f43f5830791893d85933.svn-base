@@ -1,0 +1,27 @@
+//
+//  MWICloudUploadingCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel, MWICloudUploadingOtherCell;
+
+@protocol MWICloudUploadingOtherCellDelegate <NSObject>
+
+@optional
+
+/**  点击  正在上传每一行的 cell 右侧的操作(状态转换)按钮 */
+- (void)iCloudUploadingOtherCell:(MWICloudUploadingOtherCell *)uploadingOtherCell didClickButton:(UIButton *)button;
+@end
+
+@interface MWICloudUploadingOtherCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+@property (weak, nonatomic) id<MWICloudUploadingOtherCellDelegate> delegate;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView ;
+
+
+@end

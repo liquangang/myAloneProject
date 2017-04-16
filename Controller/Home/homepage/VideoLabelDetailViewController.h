@@ -1,0 +1,21 @@
+//
+//  VideoLabelDetailViewController.h
+//  M-Cut
+//
+//  Created by apple on 16/8/17.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "HaveLoginAndRegisterWindowViewController.h"
+#import "MovierDCInterfaceSvc.h"
+
+@interface VideoLabelDetailViewController : HaveLoginAndRegisterWindowViewController
+/** 该页面标签id*/
+@property (nonatomic, copy) NSString * labelId;
+/** 该页面标签name*/
+@property (nonatomic, copy) NSString * labelName;
+/** 如果是活动，活动的详细描述*/
+@property (nonatomic, copy) NSString * activityDes;
+//父标签id
+@property (nonatomic, strong) NSString * parentLabelId;
+@end

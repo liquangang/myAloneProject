@@ -1,0 +1,167 @@
+
+
+
+
+//
+//  LginAndRegisterViewController.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/26.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "LginAndRegisterViewController.h"
+#import "LoginViewController.h"
+#import "ServiceTermsViewController.h"
+#import "TelephoneViewController.h"
+#import "TelNumLoginViewController.h"
+#import "PerfectPersonalInfoViewController.h"
+#import "LoginAndRegister.h"
+#import "EditPersonalInfoViewController.h"
+
+@interface LginAndRegisterViewController ()<UMSocialUIDelegate>
+@property (weak, nonatomic) IBOutlet UIView *loginAndRegisterView;
+/** 是否显示状态栏*/
+@property (nonatomic, assign) BOOL isShowStatusBar;
+/** 从微信获取的数据*/
+@property (nonatomic, strong) NSDictionary * thirtyPartyInfo;
+@end
+
+@implementation LginAndRegisterViewController
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    //注册跳转到完善用户信息页面
+    REGISTEREDNOTI(pushToPerfectUserInfoVc:, @"pushToPerfectUserInfoVc");
+}
+
+/** 手机登录按钮点击方法*/
+- (IBAction)phoneNumLoginButtonAction:(id)sender {
+    [self pushToTelLogin];
+}
+
+/** 微信登录按钮点击方法*/
+- (IBAction)wechatLoginButtonAction:(id)sender {
+    [self loginWithThirtyPartyType:UMShareToWechatSession AccountType:1];
+}
+
+/** 微博登录按钮点击方法*/
+- (IBAction)weiboLoginButtonAction:(id)sender {
+    [self loginWithThirtyPartyType:UMShareToSina AccountType:3];
+}
+
+/** qq登录按钮点击方法*/
+- (IBAction)qqLoginButtonAction:(id)sender {
+    [self loginWithThirtyPartyType:UMShareToQQ AccountType:2];
+}
+
+/** 协议按钮点击方法*/
+- (IBAction)agreementButtonAction:(id)sender {
+    [self pushToAgreement];
+}
+
+/** 立即注册按钮点击方法*/
+- (IBAction)atOnceRegisterButtonAction:(id)sender {
+    [self pushToTelRegister];
+}
+
+/** 隐藏window*/
+- (IBAction)hiddenButtonAction:(id)sender {
+    [UIView animateWithDuration:0.4 animations:^{
+        self.loginAndRegisterView.frame = CGRectMake(ISScreen_Width / 2 - 270 / 2,
+                                                     ISScreen_Height,
+                                                     self.loginAndRegisterView.frame.size.width,
+                                                     self.loginAndRegisterView.frame.size.height);
+    } completion:^(BOOL finished) {
+        POSTNOTI(HIDDENLOGINANDREGISTERWINDOW, nil);
+    }];
+}
+
+#pragma mark - 接口
+/** 跳转手机登录界面*/
+- (void)pushToTelLogin{
+    TelNumLoginViewController * telNumLoginVc = [TelNumLoginViewController new];
+    [self.navigationController pushViewController:telNumLoginVc animated:YES];
+}
+
+/** 跳转协议界面*/
+- (void)pushToAgreement{
+    UIStoryboard *setStroyBoard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+    ServiceTermsViewController *serviceTermsVC =[setStroyBoard instantiateViewControllerWithIdentifier:@"ServiceTermsVCStoryBoardID"];
+    [self.navigationController pushViewController:serviceTermsVC animated:YES];
+}
+
+/** 跳转手机注册界面*/
+- (void)pushToTelRegister{
+    UIStoryboard *mainStroyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    TelephoneViewController *telephoneVC = [mainStroyBoard instantiateViewControllerWithIdentifier:@"telephone"] ;
+    [self.navigationController pushViewController:telephoneVC animated:YES];
+}
+
+/** 三方登录调用这个方法(thirtpartyType:三方账户类型（根据友盟提供的填写）accountType:三方账户类型（根据映像的填（0-手机、1-微信、2-QQ、3-微博)）) */
+- (void)loginWithThirtyPartyType:(NSString *)thirtpartyType AccountType:(NSInteger)accountType{
+    [UMSocialControllerService defaultControllerService].socialUIDelegate = self;
+    UMSocialSnsPlatform *snsPlatform = [UMSocialSnsPlatformManager getSocialPlatformWithName:thirtpartyType];
+    snsPlatform.loginClickHandler(self,
+                                  [UMSocialControllerService defaultControllerService],
+                                  YES,
+                                  ^(UMSocialResponseEntity *responseFirst){
+        if (responseFirst.responseCode == UMSResponseCodeSuccess) {
+                [[UMSocialDataService defaultDataService] requestSnsInformation:thirtpartyType
+                                                                     completion:^(UMSocialResponseEntity *response){
+                NSMutableDictionary * userInfo = [[NSMutableDictionary alloc] initWithDictionary:response.data];
+                 
+                if (![[userInfo allKeys] containsObject:@"openid"]) {
+                    [userInfo setObject:response.data[@"uid"] forKey:@"openid"];
+                }
+                [LoginAndRegister loginWithAccountInfo:[userInfo copy] AccountType:accountType];
+                                          }];
+        } else {
+                [CustomeClass showMessage:@"获取信息失败" ShowTime:1.5];
+        }
+    });
+}
+
+/** 跳转个人信息完善界面*/
+- (void)pushToPerfectUserInfoVc:(NSNotification *)noti{
+    EditPersonalInfoViewController * editUserInfoVc = [EditPersonalInfoViewController new];
+    editUserInfoVc.fromVc = fromLoginVc;
+    [self.navigationController pushViewController:editUserInfoVc animated:YES];
+}
+
+#pragma mark - 懒加载
+- (NSDictionary *)thirtyPartyInfo{
+    if (!_thirtyPartyInfo) {
+        _thirtyPartyInfo = [NSDictionary new];
+    }
+    return _thirtyPartyInfo;
+}
+
+#pragma mark - 状态栏控制
+/** 显示状态栏*/
+- (void)hiddenStatusBar{
+    self.isShowStatusBar = YES;
+    [[[[UIApplication sharedApplication] keyWindow] rootViewController] setNeedsStatusBarAppearanceUpdate];
+}
+
+/** 隐藏状态栏*/
+- (void)showStatusBar{
+    self.isShowStatusBar = NO;
+    [[[[UIApplication sharedApplication] keyWindow] rootViewController] setNeedsStatusBarAppearanceUpdate];
+}
+
+/** 是否隐藏状态栏*/
+- (BOOL)prefersStatusBarHidden{
+    return self.isShowStatusBar;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
+}
+@end

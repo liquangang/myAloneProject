@@ -1,0 +1,40 @@
+//
+//  MWICloudSearchBar.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//  
+//
+
+#import "MWICloudSearchBar.h"
+
+@implementation MWICloudSearchBar
+
++ (instancetype)searchBar {
+    return [[self alloc] init];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        self.backgroundColor = MWICloudColor(199, 199, 199);
+        
+        self.borderStyle = UITextBorderStyleRoundedRect;
+        self.clearButtonMode = UITextFieldViewModeWhileEditing;
+        
+        // 设置搜索框的文字大小
+        self.font = [UIFont systemFontOfSize:15];
+        
+        // 设置搜索框左边的放大镜
+        UIImageView *searchIcon = [[UIImageView alloc] init];
+        searchIcon.image = [UIImage imageNamed:@"icloud_search"];
+        searchIcon.width = 30;
+        searchIcon.height = 30;
+        searchIcon.contentMode = UIViewContentModeCenter;
+        self.leftView = searchIcon;
+        self.leftViewMode = UITextFieldViewModeAlways;
+        
+    }
+    return self;
+}
+
+@end

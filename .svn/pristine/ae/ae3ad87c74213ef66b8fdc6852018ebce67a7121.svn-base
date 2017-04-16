@@ -1,0 +1,108 @@
+//
+//  MWICloudUploadingCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import "MWICloudEditUploadingCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudEditUploadingCell ()
+/**  全部操作按钮 的父 View */
+@property (weak, nonatomic) IBOutlet UIView *upView;
+/**  顶部按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *allChooseButton;
+/**  顶部按钮点击事件 */
+- (IBAction)allChoose:(UIButton *)sender;
+
+/**  上面的间距 */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *topSpace;
+/**  右边操作按钮, 控制文件上传和暂停 */
+@property (weak, nonatomic) IBOutlet UIButton *operationButton;
+/**  右边操作按钮点击事件 */
+- (IBAction)operation:(UIButton *)sender;
+
+/**  文件缩略图 */
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+/**  进度 label --- 上传时显示进度 */
+@property (weak, nonatomic) IBOutlet UILabel *percentLabel;
+/**  文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+
+/**  左侧选择按钮点击 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseButton;
+- (IBAction)chooseClick:(UIButton *)sender;
+
+@end
+
+@implementation MWICloudEditUploadingCell
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"editUploading";
+    MWICloudEditUploadingCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudEditUploadingCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
++ (instancetype)cellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    static NSString *ID = @"editUploading";
+    MWICloudEditUploadingCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudEditUploadingCell" owner:nil options:nil] lastObject];
+    }
+    if (indexPath.row != 0) {
+        [cell hideButton];
+    }
+    return cell;
+}
+- (void)hideButton {
+    self.upView.hidden = YES;
+    self.topSpace.constant = 0;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+//    self.iconView.image = model.image;
+    self.nameLabel.text = model.file_name;
+    self.operationButton.selected = model.isUploading;
+    self.chooseButton.selected = model.isSelected;
+}
+
+- (IBAction)allChoose:(UIButton *)sender {
+    if (sender.selected == NO) {    // 上传状态, 点击后 全部 变为停止状态
+        sender.titleLabel.text = @"全部暂停上传";
+    } else {    // 暂停状态, 点击之后变为暂停上传状态
+        sender.titleLabel.text = @"全部恢复上传";
+    }
+    
+    if ([self.delegate respondsToSelector:@selector(editUploadingAllButtonClick:)]) {
+        [self.delegate editUploadingAllButtonClick:sender];
+    }
+    
+    sender.selected = !sender.selected;
+}
+
+- (IBAction)operation:(UIButton *)sender {
+    
+    if ([self.delegate respondsToSelector:@selector(iCloudEditUploadingCell:didClickButton:)]) {
+        [self.delegate iCloudEditUploadingCell:self didClickButton:sender];
+    }
+    
+    sender.selected = !sender.selected;
+}
+
+
+- (IBAction)chooseClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if ([self.delegate respondsToSelector:@selector(iCloudEditUploadingCell:didClickChooseButton:)]) {
+        [self.delegate iCloudEditUploadingCell:self didClickChooseButton:sender];
+    }
+}
+@end

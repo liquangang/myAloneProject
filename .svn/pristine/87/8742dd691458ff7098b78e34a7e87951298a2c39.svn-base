@@ -1,0 +1,469 @@
+//
+//  ViewController.m
+//  UIImagePickerController
+//
+//  Created by Kenshin Cui on 14/04/05.
+//  Copyright (c) 2014年 cmjstudio. All rights reserved.
+//
+
+#import "ViewController.h"
+#import <MobileCoreServices/MobileCoreServices.h>
+#import <AVFoundation/AVFoundation.h>
+#import "APPUserPrefs.h"
+
+int k = -1;
+int p = 0;
+
+@interface ViewController ()<UIImagePickerControllerDelegate,UINavigationControllerDelegate>
+@property (assign,nonatomic) int isVideo;
+@property (strong,nonatomic) UIImagePickerController *imagePicker;
+@property (strong ,nonatomic) AVPlayer *player;
+@end
+
+@implementation ViewController
+@synthesize locationDate,nsOrderDetail;
+@synthesize client = _client;
+@synthesize objects = _objects;
+@synthesize selectedobjs = _selectedobjs;
+@synthesize bucketName = _bucketName;
+@synthesize cloudId = _cloudId;
+@synthesize cloudKey = _cloudKey;
+@synthesize endPoint = _endPoint;
+@synthesize objectsURL = _objectsURL;
+
+
+
+//-(void)viewWillAppear:(BOOL)animated{
+//
+//    [super viewWillAppear:animated];
+//    //self.navigationController.tabBarController.tabBar.hidden = YES;
+//   // [self.navigationController.tabBarController.tabBar removeFromSuperview];
+//    self.hidesBottomBarWhenPushed = NO;
+//}
+//-(void)viewWillDisappear:(BOOL)animated{
+//
+//    [super viewWillDisappear: animated];
+//    //self.navigationController.tabBarController.tabBar.hidden = NO;
+//    //[self.navigationController.tabBarController.tabBar addSubview:b];
+//    self.hidesBottomBarWhenPushed = YES;
+//}
+
+
+#pragma mark - 控制器视图事件
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    _isVideo=YES;
+    self.nsOrderDetail = [[NSOrderDetail alloc] init];
+    self.imageViewArray = [[NSMutableArray alloc] init];
+    self.imageUrlArray = [[NSMutableArray alloc] init];
+    self.imageLocalUrlArray = [[NSMutableArray alloc] init];
+    self.imageLocalArray = [[NSMutableArray alloc] init];
+    [self.imageViewArray addObject:self.imageView1];
+    [self.imageViewArray addObject:self.imageView2];
+    [self.imageViewArray addObject:self.imageView3];
+    [self.imageViewArray addObject:self.imageView4];
+    [self.imageViewArray addObject:self.imageView5];
+    [self.imageViewArray addObject:self.imageView6];
+    [self.imageViewArray addObject:self.imageView7];
+    [self.imageViewArray addObject:self.imageView8];
+    [self.imageViewArray addObject:self.imageView9];
+    [self.imageViewArray addObject:self.imageView10];
+    [self.imageViewArray addObject:self.imageView11];
+    [self.imageViewArray addObject:self.imageView12];
+    [self.imageViewArray addObject:self.imageView13];
+    [self.imageViewArray addObject:self.imageView14];
+    [self.imageViewArray addObject:self.imageView15];
+    [self.imageViewArray addObject:self.imageView16];
+    [self.imageViewArray addObject:self.imageView17];
+    [self.imageViewArray addObject:self.imageView18];
+    [self.imageViewArray addObject:self.imageView19];
+    [self.imageViewArray addObject:self.imageView20];
+    k = 0;
+    if (![UIImagePickerController isSourceTypeAvailable:
+          UIImagePickerControllerSourceTypeCamera])
+    {
+        //        self.takePictureButton.hidden = YES;
+    }
+    [self ossinit];
+    NSDate *date=[NSDate date];
+    NSDateFormatter *dateformatter=[[NSDateFormatter alloc] init];
+    [dateformatter setDateFormat:@"YYYYMMdd"];
+    self.locationDate=[dateformatter stringFromDate:date];
+    NSLog(@"locationString:%@",locationDate);
+    
+    
+    
+    //self.hidesBottomBarWhenPushed = YES;
+}
+
+-(void)ossinit{
+    NSString* myossid = [UserEntity sharedSingleton].ossID;
+    NSString* myosskey = [UserEntity sharedSingleton].ossKey;
+    NSString* myossEndpoint =@"http://";
+    myossEndpoint = [NSString stringWithFormat:@"http://%@",[UserEntity sharedSingleton].ossEndpoint];
+    //登录云端
+    [self loginWithUser:myossid andPsw:myosskey andEndP:myossEndpoint];
+    
+    _objects = [[NSMutableArray alloc] initWithCapacity:10000];
+    _folders = [[NSMutableArray alloc] initWithCapacity:1000];
+    _selectedobjs = [[NSMutableArray alloc] initWithCapacity:10000];
+    _objectsURL = [[NSMutableArray alloc] initWithCapacity:100];
+    
+    self.bucketName = [UserEntity sharedSingleton].ossBucket;
+    self.prefix = [UserEntity sharedSingleton].ossDir;
+    
+    ListObjectsRequest * lor = [[ListObjectsRequest alloc] initWithBucketName:self.bucketName prefix:self.prefix marker:nil maxKeys:0 delimiter:@"/"];
+    [_client listObjects:lor];
+    lor = nil;
+    
+}
+
+-(void) loginWithUser:(NSString*) userName andPsw:(NSString *)psw andEndP:(NSString*)endp
+{
+    if (_client != nil) {
+        _client = nil;
+    }
+    _client = [[OSSClient alloc] initWithEndPoint:endp AccessId:userName andAccessKey:psw];
+    _client.delegate = self;
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    int a = (int)[[OssTemp Singleton].OssTempList count];
+    if (a > 0 && a > p)
+    {
+        int j = 20-k;
+        if (a <= j) {
+            for (int i = 0; i < a; i++) {
+                OssTempDetail *ossTempDetail = [[OssTempDetail alloc] init];
+                OrderVideoMaterial *orderVideoMaterial = [[OrderVideoMaterial alloc]init];
+                ossTempDetail = [[OssTemp Singleton].OssTempList objectAtIndex:i];
+                orderVideoMaterial.maURL = ossTempDetail.MaterialUrl;
+                orderVideoMaterial.Index = k;
+                [self.nsOrderDetail.Material addObject:orderVideoMaterial];
+                self.nsOrderDetail.Materialsize++;
+                NSString *videoUrl = @"http://movier-vdc.oss-cn-beijing.aliyuncs.com/2807171981d443ad4f4f648/order-generate/1422258921437.jpg";
+                NSError *error=nil;
+                UIImage *img=nil;
+                img=[UIImage imageWithData:[NSURLConnection sendSynchronousRequest:[[NSURLRequest alloc] initWithURL:[NSURL URLWithString:videoUrl]] returningResponse:nil error:&error]];
+                UIImageView *imageView = self.imageViewArray[k];
+                imageView.image = img;
+                imageView.hidden = NO;
+                k++;
+            }
+        }else{
+            UIAlertView *alert = [[UIAlertView alloc]
+                                  initWithTitle:@"MessageBox"
+                                  message:@"素材数量太多！"
+                                  delegate:nil
+                                  cancelButtonTitle:@"OK"
+                                  otherButtonTitles:nil];
+            [alert show];
+        }
+        p = a;
+    }
+}
+
+- (UIImage *)shrinkImage:(UIImage *)original toSize:(CGSize)size
+{
+    UIGraphicsBeginImageContextWithOptions(size, YES, 0);
+    
+    CGFloat originalAspect = original.size.width / original.size.height;
+    CGFloat targetAspect = size.width / size.height;
+    CGRect targetRect;
+    
+    if (originalAspect > targetAspect) {
+        // original is wider than target
+        targetRect.size.width = size.width;
+        targetRect.size.height = size.height * targetAspect / originalAspect;
+        targetRect.origin.x = 0;
+        targetRect.origin.y = (size.height - targetRect.size.height) * 0.5;
+    } else if (originalAspect < targetAspect) {
+        // original is narrower than target
+        targetRect.size.width = size.width * originalAspect / targetAspect;
+        targetRect.size.height = size.height;
+        targetRect.origin.x = (size.width - targetRect.size.width) * 0.5;
+        targetRect.origin.y = 0;
+    } else {
+        // original and target have same aspect ratio
+        targetRect = CGRectMake(0, 0, size.width, size.height);
+    }
+    
+    [original drawInRect:targetRect];
+    UIImage *final = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return final;
+}
+
+#pragma mark - UI事件
+- (IBAction)takeClick:(UIButton *)sender
+{
+    [self pickMediaFromSource:UIImagePickerControllerSourceTypeCamera];
+}
+
+- (IBAction)selectExistingPictureOrVideo:(id)sender
+{
+    [self pickMediaFromSource:UIImagePickerControllerSourceTypePhotoLibrary];
+}
+
+
+
+- (void)pickMediaFromSource:(UIImagePickerControllerSourceType)sourceType
+{
+    NSArray *mediaTypes = [UIImagePickerController
+                           availableMediaTypesForSourceType:sourceType];
+    if ([UIImagePickerController
+         isSourceTypeAvailable:sourceType] && [mediaTypes count] > 0)
+    {
+        NSArray *mediaTypes = [UIImagePickerController
+                               availableMediaTypesForSourceType:sourceType];
+        if (!_imagePicker)
+        {
+            _imagePicker=[[UIImagePickerController alloc]init];
+        }
+        self.imagePicker.mediaTypes = mediaTypes;
+        self.imagePicker.delegate = self;
+        self.imagePicker.allowsEditing = YES;
+        self.imagePicker.sourceType = sourceType;
+        if (self.imagePicker.sourceType == UIImagePickerControllerSourceTypeCamera)
+        {
+            _imagePicker.sourceType=UIImagePickerControllerSourceTypeCamera;
+            _imagePicker.cameraDevice=UIImagePickerControllerCameraDeviceRear;
+            if (self.isVideo)
+            {
+                _imagePicker.mediaTypes=@[(NSString *)kUTTypeMovie];
+                _imagePicker.videoQuality=UIImagePickerControllerQualityTypeIFrame1280x720;
+                _imagePicker.cameraCaptureMode=UIImagePickerControllerCameraCaptureModeVideo;
+            }else{
+                _imagePicker.cameraCaptureMode=UIImagePickerControllerCameraCaptureModePhoto;
+            }
+            [self presentViewController:_imagePicker animated:YES completion:NULL];
+        }else if (self.imagePicker.sourceType == UIImagePickerControllerSourceTypePhotoLibrary)
+        {
+            [self presentViewController:_imagePicker animated:YES completion:NULL];;
+        }
+    } else {
+        UIAlertView *alert =
+        [[UIAlertView alloc] initWithTitle:@"Error accessing media"
+                                   message:@"Unsupported media source."
+                                  delegate:nil
+                         cancelButtonTitle:@"Drat!"
+                         otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+#pragma mark - UIImagePickerController代理方法
+-(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
+    NSString *mediaType=[info objectForKey:UIImagePickerControllerMediaType];
+    if ([mediaType isEqualToString:(NSString *)kUTTypeImage]) {
+        UIImage *image;
+        if (self.imagePicker.allowsEditing) {
+            image=[info objectForKey:UIImagePickerControllerEditedImage];
+        }else{
+            image=[info objectForKey:UIImagePickerControllerOriginalImage];
+        }
+        UIImageView *imageView = self.imageViewArray[k];
+        imageView.image = image;
+        imageView.hidden = NO;
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+        [self.imageLocalArray addObject:image];
+        
+        NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
+        NSString *imageId;
+        NSString *imageType;
+        if ([type isEqualToString:@"public.image"])
+        {
+            UIImage* image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+            image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+            NSURL *url = [info objectForKey: @"UIImagePickerControllerReferenceURL"];
+            imageId = [url absoluteString];
+            NSArray *tmpArray = [imageId componentsSeparatedByString: @"="];
+            imageId = [tmpArray objectAtIndex:1];
+            imageType = [tmpArray objectAtIndex:2];
+            NSArray *tmpArray2 = [imageId componentsSeparatedByString: @"&"];
+            imageId = [tmpArray2 objectAtIndex:0];
+            NSString *fileName;
+            NSDate * date = [NSDate date];
+            NSData *data;
+            if (UIImagePNGRepresentation(image) == nil)
+            {
+                data = UIImageJPEGRepresentation(image, 1.0);
+            }
+            else
+            {
+                data = UIImagePNGRepresentation(image);
+                imageType = @"png";
+            }
+            if (imageId == nil || [imageId isEqualToString:@""]) {
+                NSString *strTime =[NSString stringWithFormat:@"%ld",(long)date.timeIntervalSinceReferenceDate];
+                fileName = [[NSString alloc] initWithFormat: @"Resouse/%@/%@.%@",self.locationDate, strTime, imageType];
+            }
+            else
+            {
+                fileName = [[NSString alloc] initWithFormat: @"Resouse/%@/%@.%@",self.locationDate,imageId, imageType];
+            }
+            
+            OrderVideoMaterial *orderVideoMaterial = [[OrderVideoMaterial alloc]init];
+            NSString *fileurl = @"";
+            fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+            fileurl = [fileurl stringByAppendingString:fileName];
+            orderVideoMaterial.maURL = fileurl;
+            orderVideoMaterial.Index = k;
+            [self.nsOrderDetail.Material addObject:orderVideoMaterial];
+            self.nsOrderDetail.Materialsize++;
+//            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
+//            hud.labelText = @"图片上传中...";
+            dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self putObject:fileName data:data];
+                });
+            });
+        }
+    }else if([mediaType isEqualToString:(NSString *)kUTTypeMovie]){
+        NSLog(@"video...");
+        NSURL *url=[info objectForKey:UIImagePickerControllerMediaURL];
+        NSString *urlStr=[url path];
+        MPMoviePlayerController *mp = [[MPMoviePlayerController alloc] initWithContentURL:url];
+        UIImage *thumbnail = [mp thumbnailImageAtTime:0.0 timeOption:MPMovieTimeOptionNearestKeyFrame];
+        self.image = thumbnail;
+        UIImageView *imageView = self.imageViewArray[k];
+        imageView.image = self.image;
+        imageView.hidden = NO;
+        if (UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(urlStr)) {
+            UISaveVideoAtPathToSavedPhotosAlbum(urlStr, self, @selector(video:didFinishSavingWithError:contextInfo:), nil);
+        }
+        [self.imageLocalUrlArray addObject:urlStr];
+        
+        NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
+        NSString *videoId;
+        NSString *videoType;
+        if ([type isEqualToString:@"public.movie"])
+        {
+            NSString *videoPath = [url path];
+            NSData *fileData = [NSData dataWithContentsOfFile:videoPath];
+            NSDate * date = [NSDate date];
+            NSString *strTime =[NSString stringWithFormat:@"%ld",(long)date.timeIntervalSinceReferenceDate];
+            NSArray *tmpArray = [videoPath componentsSeparatedByString: @"."];
+            int j = (int)[tmpArray count];
+            videoId = strTime;
+            videoType = [tmpArray objectAtIndex:j-1];
+            NSString *fileName = [[NSString alloc] initWithFormat: @"Resouse/%@/%@.%@",self.locationDate,videoId,videoType];
+            OrderVideoMaterial *orderVideoMaterial = [[OrderVideoMaterial alloc]init];
+            NSString *fileurl = @"";
+            fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+            fileurl = [fileurl stringByAppendingString:fileName];
+            orderVideoMaterial.maURL = fileurl;
+            orderVideoMaterial.Index = k;
+            [self.nsOrderDetail.Material addObject:orderVideoMaterial];
+            self.nsOrderDetail.Materialsize++;
+//            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
+            dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self putObject:fileName data:fileData];
+                });
+            });
+        }
+    }
+    k++;
+    
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
+    NSLog(@"取消");
+    [picker dismissViewControllerAnimated:YES completion:NULL];
+}
+
+- (void)video:(NSString *)videoPath didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo{
+    if (error) {
+        NSLog(@"保存视频过程中发生错误，错误信息:%@",error.localizedDescription);
+    }else{
+        NSLog(@"视频保存成功.");
+    }
+}
+
+-(void) putObject:(NSString * )fileName data:(NSData*) data
+{
+    _client.delegate = self;
+    NSString *strKey = [NSString stringWithFormat:@"%@%@",self.prefix,fileName];
+    NSLog(@"%@",strKey);
+    ObjectMetadata * objMetadata = [[ObjectMetadata alloc] init];
+    [_client putObject:self.bucketName key:strKey data:data objectMetadata:objMetadata];
+}
+
+-(void)OSSObjectPutObjectFinish:(OSSClient*) client result:(PutObjectResult*) result
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    //folder
+    if ([result.key endsWith:@"/"]) {
+        [self.folders addObject:result.key];
+    }
+    else
+    {
+        OSSObjectSummary * obj= [[OSSObjectSummary  alloc] initWithBucketName:self.bucketName key:result.key eTag:nil size:0 lastModified:nil storageClass:nil owner:nil];
+        [self.objects addObject:obj];
+        
+        NSString* objectSelect = @"FALSE";
+        [self.selectedobjs addObject:objectSelect];
+        NSString *fileurl = @"";
+        fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        fileurl = [fileurl stringByAppendingString:strKey];
+        [self.objectsURL addObject:fileurl];
+    }
+    //    [self.view reloadData];
+}
+
+-(void)OSSObjectPutObjectFailed:(OSSClient*) client error:(OSSError*) error
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    [self showError:error];
+}
+
+-(void) showError:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error.errorMessage delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    alert = nil;
+}
+
+- (IBAction)clickOK:(id)sender
+{
+    self.nsOrderDetail.MoudleID = 1;
+    self.nsOrderDetail.MusicID = 1;
+    self.nsOrderDetail.VideoLength=90;
+    self.nsOrderDetail.MusicType=1;
+    self.nsOrderDetail.MusicStart = 0;
+    self.nsOrderDetail.MusicEnd = 90;
+    self.nsOrderDetail.Materialsize = (int)[self.nsOrderDetail.Material count];
+    self.nsOrderDetail.MusicUrl = @"";
+    self.nsOrderDetail.SubtitleURL = @"";
+    self.nsOrderDetail.VideoName = @"";
+    self.nsOrderDetail.VideoLabel = @"";
+    self.nsOrderDetail.videoPublicityStatus = VIDEO_SHARE_PUBLIC;
+    //    if (self.nsOrderDetail.Materialsize <1) {
+    //        return;
+    //    }
+    [[UserOrderList Singleton].cutlist addObject:self.nsOrderDetail];
+    [self performSegueWithIdentifier:@"tomodule" sender:self];
+    
+}
+
+
+
+
+
+
+@end

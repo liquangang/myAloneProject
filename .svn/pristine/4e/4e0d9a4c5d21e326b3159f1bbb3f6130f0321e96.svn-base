@@ -1,0 +1,117 @@
+//
+//  MWUploadChooseView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//
+//
+
+#import "MWUploadChooseView.h"
+
+@interface MWUploadChooseView()
+@property (weak, nonatomic) UIButton *uploadPhotoButton;
+@property (weak, nonatomic) UIButton *uploadVideoButton;
+@property (weak, nonatomic) UIButton *cancleButton;
+@end
+
+
+@implementation MWUploadChooseView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
+        
+        [self setupView];
+    }
+    return self;
+}
+
+/**
+ *  创建选择视图
+ */
++ (instancetype)uploadChooseView {
+    return [[self alloc] init];
+}
+
+/**
+ *  初始化内部视图
+ */
+- (void)setupView {
+    // 按钮的宽高
+    CGFloat buttonH = 30;
+    CGFloat buttonW = 120;
+    
+    // 按钮之间的间距
+    CGFloat padding = 20;
+    CGFloat cancleX = (MWScreenWidth - buttonW) * 0.5;
+    CGFloat cancleY = MWScreenHeight * 0.8 - buttonH - padding;
+    
+    // 取消按钮
+    UIButton *cancleButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [cancleButton setBackgroundImage:[UIImage imageNamed:@"cutpro_icould_button"] forState:UIControlStateNormal];
+    [cancleButton setTitle:@"取消" forState:UIControlStateNormal];
+    [cancleButton addTarget:self action:@selector(cancle) forControlEvents:UIControlEventTouchUpInside];
+    cancleButton.frame = CGRectMake(cancleX, cancleY, buttonW, buttonH);
+    [self addSubview:cancleButton];
+    self.cancleButton = cancleButton;
+    
+    // 上传图片按钮
+    CGFloat uploadPhotoX = (MWScreenWidth - 2 * buttonW - padding) * 0.5;
+    CGFloat uploadPhotoY = cancleY - padding - buttonH;
+    UIButton *uploadPhotoButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [uploadPhotoButton setBackgroundImage:[UIImage imageNamed:@"cutpro_icould_button"] forState:UIControlStateNormal];
+    [uploadPhotoButton setTitle:@"上传图片" forState:UIControlStateNormal];
+    [uploadPhotoButton addTarget:self action:@selector(uploadPhoto) forControlEvents:UIControlEventTouchUpInside];
+    uploadPhotoButton.frame = CGRectMake(uploadPhotoX, uploadPhotoY, buttonW, buttonH);
+    [self addSubview:uploadPhotoButton];
+    self.uploadPhotoButton = uploadPhotoButton;
+    
+    // 上传视频按钮
+    CGFloat uploadVideoX = uploadPhotoX + buttonW + padding;
+    UIButton *uploadVideoButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [uploadVideoButton setBackgroundImage:[UIImage imageNamed:@"cutpro_icould_button"] forState:UIControlStateNormal];
+    [uploadVideoButton setTitle:@"上传视频" forState:UIControlStateNormal];
+    [uploadVideoButton addTarget:self action:@selector(uploadVideo) forControlEvents:UIControlEventTouchUpInside];
+    uploadVideoButton.frame = CGRectMake(uploadVideoX, uploadPhotoY, buttonW, buttonH);
+    [self addSubview:uploadVideoButton];
+    self.uploadVideoButton = uploadVideoButton;
+}
+
+/**
+ *  上传照片
+ */
+- (void)uploadPhoto {
+    if ([self.delegate respondsToSelector:@selector(uploadChooseView:didClickButton:)]) {
+        [self.delegate uploadChooseView:self didClickButton:MWUploadChooseViewUploadPhoto];
+    }
+    [self dismiss];
+}
+
+/**
+ *  上传视频
+ */
+- (void)uploadVideo {
+    if ([self.delegate respondsToSelector:@selector(uploadChooseView:didClickButton:)]) {
+        [self.delegate uploadChooseView:self didClickButton:MWUploadChooseViewUploadVideo];
+    }
+    [self dismiss];
+}
+
+/**
+ *  取消上传
+ */
+- (void)cancle {
+    [self dismiss];
+}
+
+/**
+ *  销毁
+ */
+- (void)dismiss {
+    [self removeFromSuperview];
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self dismiss];
+}
+@end

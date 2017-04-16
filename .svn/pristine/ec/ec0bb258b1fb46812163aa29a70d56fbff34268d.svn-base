@@ -1,0 +1,16 @@
+//
+//  APPDBManage.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/5/10.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+//数据库操作管理对象
+@interface APPDBManage : NSObject
+//文件锁
+@property (retain,nonatomic) NSLock* lock;
+//单例
++ (APPDBManage *)sharedSingleton;
+@end

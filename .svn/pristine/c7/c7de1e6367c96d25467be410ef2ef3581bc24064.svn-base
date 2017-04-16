@@ -1,0 +1,106 @@
+
+
+
+//
+//  CouponTableViewCell.m
+//  M-Cut
+//
+//  Created by apple on 16/10/21.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "CouponTableViewCell.h"
+#import "ElectrialCollectionViewCell2.h"
+
+@interface CouponTableViewCell()<UICollectionViewDelegate,
+                                 UICollectionViewDataSource>
+
+//collectionview
+@property (nonatomic, strong) UICollectionView * electrialCollectionView;
+
+//数据源
+@property (nonatomic, strong) NSMutableArray * electrialMuArray;
+@end
+
+@implementation CouponTableViewCell
+
+static NSString * const resuableStr = @"ElectrialCollectionViewCell2";
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+    [self.electrialCollectionView reloadData];
+}
+
+#pragma mark - collectionview 代理
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
+    return 100;
+}
+
+- (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView
+                           cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    ElectrialCollectionViewCell2 * cell = [ElectrialCollectionViewCell2 ElectrialCollectionViewCell2WithCollectionView:collectionView
+                                                                                                           ResuableStr:resuableStr
+                                                                                                                 Index:indexPath];
+    return cell;
+}
+
+#pragma mark - 功能接口
+
+/**
+ *  获得cell
+ */
++ (instancetype)CouponTableViewCellWithTable:(UITableView *)superTable
+                                 ResubaleStr:(NSString *)resubaleStr{
+    CouponTableViewCell * cell = [superTable dequeueReusableCellWithIdentifier:resubaleStr];
+    if (!cell) {
+        cell = XIBCELL(@"CouponTableViewCell")
+    }
+    return cell;
+}
+
+#pragma mark - 懒加载
+
+/**
+ *  collectionview懒加载
+ */
+- (UICollectionView *)electrialCollectionView{
+    if (!_electrialCollectionView) {
+        UICollectionViewFlowLayout * collectionViewFlowLayout = [UICollectionViewFlowLayout new];
+        collectionViewFlowLayout.itemSize = CGSizeMake(70,
+                                                       118);
+        collectionViewFlowLayout.minimumLineSpacing = 0;
+        collectionViewFlowLayout.minimumInteritemSpacing = 0;
+        collectionViewFlowLayout.sectionInset = UIEdgeInsetsMake(10,
+                                                                 10,
+                                                                 10,
+                                                                 10);
+        collectionViewFlowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+        _electrialCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, 138)
+                                                      collectionViewLayout:collectionViewFlowLayout];
+        [self.contentView addSubview:_electrialCollectionView];
+        _electrialCollectionView.delegate = self;
+        _electrialCollectionView.dataSource = self;
+        _electrialCollectionView.clipsToBounds = YES;
+        _electrialCollectionView.backgroundColor = [UIColor whiteColor];
+        _electrialCollectionView.showsHorizontalScrollIndicator = NO;
+        
+        //注册cell
+        [_electrialCollectionView registerNib:[UINib nibWithNibName:resuableStr bundle:nil]
+                   forCellWithReuseIdentifier:resuableStr];
+    }
+    return _electrialCollectionView;
+}
+
+/**
+ *  数据源懒加载
+ */
+- (NSMutableArray *)electrialMuArray{
+    if (!_electrialMuArray) {
+        _electrialMuArray = [NSMutableArray new];
+    }
+    return _electrialMuArray;
+}
+
+@end

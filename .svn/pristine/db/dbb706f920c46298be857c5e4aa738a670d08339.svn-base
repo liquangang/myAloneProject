@@ -1,0 +1,480 @@
+//
+//  IcloudStorageViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/30.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "IcloudStorageViewController.h"
+#import "LocalMaterialsViewController.h"
+#import "IcloudStorageTableViewCell.h"
+#import "MyIcloudFilmsViewController.h"
+#import "NewFolderAddMaterialViewController.h"
+#import "DetailsViewController1.h"
+#import "UINavigationController+SGProgress.h"
+
+
+@implementation IcloudStorageViewController
+@synthesize client,objects,selectedobjs,bucketName,cloudId,cloudKey,endPoint,objectsURL,icloudFolderButton,icloudTabV,folders,transportButton,prefix,buckets,indexPaths,isOpen,countButtonClick;
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    if (![UserEntity sharedSingleton].customerId || [[UserEntity sharedSingleton].customerId isEqualToString:@""]) {
+        self.icloudFolderButton.enabled = NO;
+        self.transportButton.enabled = NO;
+        self.addFolderButton.enabled = NO;
+    }else{
+        self.icloudFolderButton.enabled = YES;
+        self.transportButton.enabled = YES;
+        self.addFolderButton.enabled = NO;
+    }
+    icloudFolderButton.selected = YES;
+    icloudTabV.contentInset = UIEdgeInsetsMake(-1.0f, 0, 0, 0);
+    [self ossinit];
+    
+    RKTabItem *AddFilefolder = [RKTabItem createButtonItemWithImage:[UIImage imageNamed:@"head"] target:self selector:@selector(buttonTabPressed:)];
+    RKTabItem *resortFiles = [RKTabItem createButtonItemWithImage:[UIImage imageNamed:@"head"] target:self selector:@selector(buttonTabPressed:)];
+    RKTabItem *CloudeOperation = [RKTabItem createButtonItemWithImage:[UIImage imageNamed:@"head"] target:self selector:@selector(buttonTabPressed:)];
+    RKTabItem *SearchFile = [RKTabItem createButtonItemWithImage:[UIImage imageNamed:@"head"] target:self selector:@selector(buttonTabPressed:)];
+    RKTabItem *TranList = [RKTabItem createButtonItemWithImage:[UIImage imageNamed:@"head"] target:self selector:@selector(buttonTabPressed:)];
+    
+    self.TopTabView.horizontalInsets = HorizontalEdgeInsetsMake(170, 170);
+    self.TopTabView.drawSeparators = YES;
+    [self.TopTabView setTabItems:@[AddFilefolder, resortFiles, CloudeOperation,SearchFile, TranList]];
+    
+    // 监听   制作影片素材上传进度改变的通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(uploadProgressChange:) name:UploadFileProgressChange object:nil];
+}
+// 制作影片素材上传进度改变
+- (void)uploadProgressChange:(NSNotification *)noti {
+    CGFloat progress = [noti.userInfo[@"finishProgress"] floatValue];
+    [self.navigationController setSGProgressPercentage:progress*100 andTintColor:[UIColor colorWithRed:235.f/255.f green:51.f/255.f blue:73.f/255.f alpha:1.f]];
+}
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+-(void)ossinit{
+    NSString* myossid = [UserEntity sharedSingleton].ossID;
+    NSString* myosskey = [UserEntity sharedSingleton].ossKey;
+    NSString* myossEndpoint =@"http://";
+    myossEndpoint = [NSString stringWithFormat:@"http://%@",[UserEntity sharedSingleton].ossEndpoint];
+    [self loginWithUser:myossid andPsw:myosskey andEndP:myossEndpoint];
+    objects = [[NSMutableArray alloc] init];
+    folders = [[NSMutableArray alloc] init];
+    selectedobjs = [[NSMutableArray alloc] init];
+    objectsURL = [[NSMutableArray alloc] init];
+    self.bucketName = [UserEntity sharedSingleton].ossBucket;
+    self.prefix = [UserEntity sharedSingleton].ossDir;
+    self.bucketName = [UserEntity sharedSingleton].ossBucket;
+    ListObjectsRequest * lor = [[ListObjectsRequest alloc] initWithBucketName:self.bucketName prefix:self.prefix marker:nil maxKeys:0 delimiter:@"/"];
+    [client listObjects:lor];
+    lor = nil;
+}
+
+-(void) loginWithUser:(NSString*) userName andPsw:(NSString *)psw andEndP:(NSString*)endp
+{
+    if (client != nil) {
+        client = nil;
+    }
+    client = [[OSSClientZhang alloc] initWithEndPoint:endp AccessId:userName andAccessKey:psw];
+    client.delegate = self;
+}
+
+-(void) listBucket
+{
+    [client listBuckets];
+}
+
+-(void)bucketListFinish:(OSSClientZhang*) client result:(NSArray*) bucketList
+{
+    indexPaths = nil;
+    buckets = [[NSMutableArray alloc] initWithCapacity:20];
+    [self dismissModalViewControllerAnimated:YES];
+    [self.buckets addObjectsFromArray: bucketList];
+    [self.icloudTabV reloadData];
+}
+
+-(void)bucketListFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"登陆失败，请检查用户名密码" delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    alert = nil;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    if (![UserEntity sharedSingleton].customerId || [[UserEntity sharedSingleton].customerId isEqualToString:@""]) {
+        self.icloudFolderButton.enabled = NO;
+        self.transportButton.enabled = NO;
+        self.addFolderButton.enabled = NO;
+        [folders removeAllObjects];
+    }else{
+        self.icloudFolderButton.enabled = YES;
+        self.transportButton.enabled = YES;
+        self.addFolderButton.enabled = NO;
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    self.navigationController.tabBarController.tabBar.hidden = NO;
+    client.delegate = self;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    int rtn =0;
+    rtn = (int)[self.folders count] + (int)[self.objects count];
+    return rtn;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"Cell";
+    IcloudStorageTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[IcloudStorageTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+    }
+    NSString *strIndex;
+    if (indexPath.row < [self.folders count]) {
+        NSString *strFolder = [self.folders objectAtIndex:indexPath.row];
+        NSArray *sSplit = [strFolder componentsSeparatedByString:@"/"];
+        strIndex =[NSString stringWithFormat:@"%@",[sSplit objectAtIndex:[sSplit count]-2] ];
+        cell.imageView.image = [UIImage imageNamed:@"folder"];
+    }
+    else {
+        OSSObjectSummary * obj = [self.objects objectAtIndex:indexPath.row-[self.folders count]];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        cell.imageView.image = [UIImage imageNamed:@"file"];
+        strIndex =[NSString stringWithFormat:@"%@",strKey];
+        NSString *selectItem = [self.selectedobjs objectAtIndex:indexPath.row - [self.folders count]];
+        if ([selectItem isEqualToString:@"FALSE"]) {
+            cell.accessoryType = UITableViewCellAccessoryNone;
+        }else{
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        }
+    }
+    cell.textLabel.text = strIndex;
+    cell.textLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+    return cell;
+}
+-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
+    if (transportButton.selected) {
+        if (section == 0) {
+            return @"正在下载";
+        }
+        return @"正在上传";
+    }
+    return nil;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    if (transportButton.selected){
+        return 30;
+    } else {
+        return 1.0f;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.row < [self.folders count]) {
+        NSString * str = [self.folders objectAtIndex:indexPath.row];
+        DetailsViewController1 * detailsVC = [[DetailsViewController1 alloc] initWithNibName:@"DetailsViewController1" bundle:nil];
+        detailsVC.client = client;
+        detailsVC.bucketName = self.bucketName;
+        detailsVC.prefix = str;
+        [self.navigationController pushViewController:detailsVC animated:YES];
+    }else{
+        NSString * obj = [self.selectedobjs objectAtIndex:indexPath.row-[self.folders count]];
+        if([obj isEqualToString:@"FALSE"])
+        {
+            obj = @"TRUE";
+        }
+        else
+            obj = @"FALSE";
+        [self.selectedobjs replaceObjectAtIndex:indexPath.row-[self.folders count] withObject:obj];
+        [icloudTabV reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    }
+}
+
+- (IBAction)icloudButtonAction:(id)sender {
+    icloudFolderButton.selected = YES;
+    transportButton.selected = NO;
+    [icloudTabV reloadData];
+}
+
+- (IBAction)transportButtonAction:(id)sender {
+    icloudFolderButton.selected = NO;
+    transportButton.selected = YES;
+    [icloudTabV reloadData];
+}
+
+- (IBAction)addFoldersButtonAction:(id)sender
+{
+    UIAlertView  *alert = [[UIAlertView alloc] initWithTitle:@"输入文件夹名称" message:@"" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil];
+    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [alert show];
+}
+
+-(void)bucketListObjectsFinish:(OSSClientZhang*) client result:(ObjectListing*) result
+{
+    NSArray * objs = result.objectSummaries;
+    NSMutableArray * newobjs = [NSMutableArray arrayWithCapacity:[objs count]];
+    for (int j =0; j< [objs count]; j++) {
+        OSSObjectSummary * objSummary = [objs objectAtIndex:j];
+        if (![objSummary.key isEqualToString:self.prefix]) {
+            [newobjs addObject:objSummary];
+            NSString *ObjStatue = @"FALSE";
+            [self.selectedobjs addObject:ObjStatue];
+            NSString *fileurl = @"";
+            fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+            NSArray *sSplit2 = [objSummary.key componentsSeparatedByString:@"/"];
+            NSString *strKey;
+            if ([sSplit2 count] >1) {
+                strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+            }else{
+                strKey= objSummary.key;
+            }
+            fileurl = [fileurl stringByAppendingString:strKey];
+            [self.objectsURL addObject:fileurl];
+        }
+    }
+    [self.objects addObjectsFromArray: newobjs];
+    [self.folders addObjectsFromArray: result.commonPrefixes];
+    [icloudTabV reloadData];
+}
+
+-(IBAction) addOSSObject:(id) sender
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc]
+                                  initWithTitle:@"创建文件类型"
+                                  delegate:self
+                                  cancelButtonTitle:@"取消"
+                                  destructiveButtonTitle:nil
+                                  otherButtonTitles:@"文件夹", @"拍照",@"图库",nil];
+    actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
+    [actionSheet showInView:self.view];
+}
+
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    switch (buttonIndex) {
+        case 0:
+        {
+            [self addFolder];
+        }
+            break;
+        case 1:
+        {
+            [self addPictureFromCamera];
+        }
+        case 2:
+        {
+            [self addPictureFromPhotoLibrary];
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+-(void) addFolder
+{
+    UIAlertView  *alert = [[UIAlertView alloc] initWithTitle:@"输入文件夹名称" message:@"" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil];
+    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [alert show];
+}
+
+-(void) addPictureFromCamera
+{
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera])
+    {
+        UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+        picker.delegate = self;
+        picker.allowsEditing = NO;
+        picker.sourceType = sourceType;
+        
+        [self presentModalViewController:picker animated:YES];
+    }
+    else
+    {
+        NSLog(@"模拟其中无法打开照相机,请在真机中使用");
+    }
+}
+
+-(void)addPictureFromPhotoLibrary
+{
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    [self presentModalViewController:picker animated:YES];
+}
+
+-(void)imagePickerController:(UIImagePickerController*)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
+    NSString *imageId;
+    NSString *imageType;
+    [picker dismissModalViewControllerAnimated:YES];
+    if ([type isEqualToString:@"public.image"])
+    {
+        UIImage* image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+        NSURL *url = [info objectForKey: @"UIImagePickerControllerReferenceURL"];
+        imageId = [url absoluteString];
+        NSArray *tmpArray = [imageId componentsSeparatedByString: @"="];
+        imageId = [tmpArray objectAtIndex:1];
+        imageType = [tmpArray objectAtIndex:2];
+        NSArray *tmpArray2 = [imageId componentsSeparatedByString: @"&"];
+        imageId = [tmpArray2 objectAtIndex:0];
+        NSString *fileName;
+        NSDate * date = [NSDate date];
+        NSData *data;
+        if (UIImagePNGRepresentation(image) == nil)
+        {
+            data = UIImageJPEGRepresentation(image, 1.0);
+        }
+        else
+        {
+            data = UIImagePNGRepresentation(image);
+            imageType = @"png";
+        }
+        if (imageId == nil || [imageId isEqualToString:@""]) {
+            NSString *strTime =[NSString stringWithFormat:@"%ld",(long)date.timeIntervalSinceReferenceDate];
+            fileName = [[NSString alloc] initWithFormat: @"photo%@.%@", strTime, imageType];
+        }
+        else
+        {
+            fileName = [[NSString alloc] initWithFormat: @"%@.%@", imageId, imageType];
+        }
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
+        hud.labelText = @"图片上传中...";
+        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+            [self putObject:fileName data:data];
+        });
+    }
+}
+-(void) putObject:(NSString * )fileName data:(NSData*) data
+{
+    client.delegate = self;
+    NSString *strKey = [NSString stringWithFormat:@"%@%@",self.prefix,fileName];
+    NSLog(@"%@",strKey);
+    ObjectMetadata * objMetadata = [[ObjectMetadata alloc] init];
+    [client putObject:self.bucketName key:strKey data:data objectMetadata:objMetadata];
+}
+
+-(void)OSSObjectPutObjectFinish:(OSSClientZhang*) client result:(PutObjectResult*) result
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    if ([result.key endsWith:@"/"]) {
+        [self.folders addObject:result.key];
+    }
+    else
+    {
+        OSSObjectSummary * obj= [[OSSObjectSummary  alloc] initWithBucketName:self.bucketName key:result.key eTag:nil size:0 lastModified:nil storageClass:nil owner:nil];
+        [self.objects addObject:obj];
+        
+        NSString* objectSelect = @"FALSE";
+        [self.selectedobjs addObject:objectSelect];
+        NSString *fileurl = @"";
+        fileurl = [fileurl stringByAppendingFormat:@"http://%@.%@/%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,[UserEntity sharedSingleton].ossDir];
+        NSArray *sSplit2 = [obj.key componentsSeparatedByString:@"/"];
+        NSString *strKey;
+        if ([sSplit2 count] >1) {
+            strKey =[NSString stringWithFormat:@"%@",[sSplit2 objectAtIndex:[sSplit2 count]-1] ];
+        }
+        else {
+            strKey= obj.key;
+        }
+        fileurl = [fileurl stringByAppendingString:strKey];
+        [self.objectsURL addObject:fileurl];
+    }
+    [icloudTabV reloadData];
+}
+
+-(void)OSSObjectPutObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    [self showError:error];
+}
+
+-(void) fetchObject:(NSString*) bucketName key:(NSString*) key
+{
+    client.delegate = self;
+    [client fetchObject:bucketName key:key];
+}
+
+-(void)OSSObjectFetchObjectFinish:(OSSClientZhang*) client result:(OSSObjectZhang*) result
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+}
+
+-(void)OSSObjectFetchObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
+    [self showError:error];
+}
+
+-(void) showError:(OSSError*) error
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error.errorMessage delegate:nil cancelButtonTitle:@"取消" otherButtonTitles:nil];
+    [alert show];
+    alert = nil;
+}
+
+-(void)bucketListObjectsFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [self showError:error];
+}
+
+-(void)OSSObjectDeleteObjectFinish:(OSSClientZhang*) client bucketName:(NSString*) bucketName key:(NSString*)key
+{
+    if (indexPaths != nil) {
+        if (indexPaths.row < [self.folders count]) {
+            [self.folders removeObjectAtIndex:indexPaths.row];
+        }
+        else
+        {
+            [self.objects removeObjectAtIndex:indexPaths.row-[self.folders count]];
+        }
+        [self.icloudTabV deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPaths] withRowAnimation:UITableViewRowAnimationFade];
+    }
+    
+    indexPaths = nil;
+}
+
+-(void)OSSObjectDeleteObjectFailed:(OSSClientZhang*) client error:(OSSError*) error
+{
+    [self showError:error];
+}
+
+#pragma mark - Button handler
+
+- (void)buttonTabPressed:(id)sender {
+    NSLog(@"Button %@ has been pressed in tabView", sender);
+}
+
+@end
+

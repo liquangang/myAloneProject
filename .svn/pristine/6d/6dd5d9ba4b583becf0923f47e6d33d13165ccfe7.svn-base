@@ -1,0 +1,15 @@
+//
+//  MCScrubber.h
+//  M-Cut
+//
+//  Created by arbin on 16/7/26.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <VKFoundation/VKFoundation.h>
+#import "VKScrubber.h"
+#import "VKSlider.h"
+
+@interface MCScrubber : VKSlider<VKScrubberDelegate>
+@property (nonatomic, weak) id <VKScrubberDelegate> delegate;
+@end

@@ -1,0 +1,41 @@
+//
+//  NameAndColor.m
+//  table by selfcell
+//
+//  Created by Xu Wenbing on 12-8-30.
+//  Copyright (c) 2012年 Xu Wenbing. All rights reserved.
+//
+
+#import "MusicCell.h"
+#import "CommonMacro.h"
+
+@implementation MusicCell
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated
+{
+    [super setSelected:selected animated:animated];
+    // Configure the view for the selected state
+    
+//    CGSize size1 = [UIImage imageNamed:@"playstatus.gif"].size;
+//    self.playview.size = [UIImage imageNamed:@"playstatus.gif"].size;
+//    CGRect rect = self.playview.frame;
+    // 读取gif图片数据
+    NSData *gif;
+    if (IS_OS_9_OR_LATER) {
+       gif = [NSData dataWithContentsOfFile: [[NSBundle mainBundle] pathForResource:@"playstatus" ofType:@"gif"]];
+    }else
+        gif = [NSData dataWithContentsOfFile: [[NSBundle mainBundle] pathForResource:@"playstatus@100" ofType:@"gif"]];
+    // view生成
+    self.playview.userInteractionEnabled = NO;//用户不可交互
+    self.playview.scalesPageToFit = NO;
+    [self.playview setBackgroundColor:[UIColor clearColor]];
+    [self.playview setOpaque:NO];
+//    dispatch_async(dispatch_get_main_queue(), ^{
+////        [resultTextView setText:resultsSummary];    // *** 将UI操作放到主线程中执行 ***
+//        [self.playview loadData:gif MIMEType:@"image/gif" textEncodingName:nil baseURL:nil];
+//    });
+        [self.playview loadData:gif MIMEType:@"image/gif" textEncodingName:nil baseURL:nil];
+    
+}
+
+@end

@@ -1,0 +1,51 @@
+//
+//  MWFooterUploadView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//  云空间选择照片和视频信息界面底部的上传视图
+//
+
+#import "MWFooterUploadView.h"
+
+@interface MWFooterUploadView ()
+/**  云空间按钮点击 */
+- (IBAction)iCloud:(UIButton *)sender;
+/**  上传按钮点击 */
+- (IBAction)upload:(UIButton *)sender;
+
+/**  上传按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *uploadButton;
+
+@end
+
+@implementation MWFooterUploadView
+
++ (instancetype)uploadView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWFooterUploadView" owner:nil options:nil] lastObject];
+}
+
+/**  上传按钮点击 */
+- (IBAction)upload:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(footerUploadView:didClickButton:)]) {
+        [self.delegate footerUploadView:self didClickButton:MWFooterUploadViewButtonTypeUpload];
+    }
+}
+
+/**  云空间按钮点击 */
+- (IBAction)iCloud:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(footerUploadView:didClickButton:)]) {
+        [self.delegate footerUploadView:self didClickButton:MWFooterUploadViewButtonTypeICloud];
+    }
+}
+
+- (void)setTitleWithFilesCount:(NSInteger)count {
+    if (count != 0) {
+        NSString *download = [NSString stringWithFormat:@"上传(%zd)", count];
+        [self.uploadButton setTitle:download forState:UIControlStateNormal];
+    } else {
+        [self.uploadButton setTitle:@"上传" forState:UIControlStateNormal];
+    }
+}
+@end

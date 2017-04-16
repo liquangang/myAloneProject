@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>icon</key>
+		<string>赞-拷贝</string>
+		<key>title</key>
+		<string>点赞</string>
+		<key>des</key>
+		<string>给朋友点赞获取更多点赞哟！</string>
+	</dict>
+	<dict>
+		<key>icon</key>
+		<string>评论点赞</string>
+		<key>title</key>
+		<string>评论</string>
+		<key>des</key>
+		<string>暂时没有评论！</string>
+	</dict>
+	<dict>
+		<key>icon</key>
+		<string>通知</string>
+		<key>title</key>
+		<string>通知</string>
+		<key>des</key>
+		<string>暂时没有收到消息！</string>
+	</dict>
+</array>
+</plist>

@@ -1,0 +1,57 @@
+//
+//  MWICloudOrderMoreViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudOrderMoreViewController.h"
+
+@interface MWICloudOrderMoreViewController ()
+@property (strong, nonatomic) NSArray *titles;
+//@property (strong, nonatomic) NSArray *images;
+@end
+
+@implementation MWICloudOrderMoreViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.titles = [NSArray arrayWithObjects:@"投诉", @"删除列表", nil];
+    self.view.frame = CGRectMake(200, 200, 120, 88);
+    self.tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.titles.count;
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *ID = @"orderMore";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ID];
+    }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.textLabel.text = self.titles[indexPath.row];
+    [cell.textLabel setFont:[UIFont systemFontOfSize:13]];
+    
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
+    if ([self.delegate respondsToSelector:@selector(orderMoreViewControllerDidClickRow:)]) {
+        [self.delegate orderMoreViewControllerDidClickRow:indexPath.row];
+    }
+}
+
+
+@end

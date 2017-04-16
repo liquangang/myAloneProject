@@ -1,0 +1,293 @@
+//
+//  FirstClipViewC.m
+//  SCNavTabbarDemo
+//
+//  Created by Crab00 on 15/8/12.
+//  Copyright (c) 2015年 SCNavTabbarDemo. All rights reserved.
+//
+
+#import "FirstClipViewC.h"
+#import "APPUserPrefs.h"
+#import "MC_OrderAndMaterialCtrl.h"
+
+
+@interface FirstClipViewC ()
+@property (strong, nonatomic) NSArray *images;
+@end
+
+@implementation FirstClipViewC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    
+    static NSString *CellIdentifier = @"Cell";
+    [self.StyleTableList registerClass:[PPImageScrollingTableViewCell class] forCellReuseIdentifier:CellIdentifier];
+    
+    //设置默认值
+    self.images = @[
+                    @{ @"category": @"Category A",
+                       @"images":
+                           @[
+                               @{ @"name":@"我们约会吧", @"title":@"A-0", @"URL":@"http://"},
+                               @{ @"name":@"sample_2", @"title":@"A-1", @"URL":@"http://"},
+                               @{ @"name":@"sample_6", @"title":@"A-5", @"URL":@"http://"}
+                               
+                               ]
+                       }
+                    ];
+//    self.StyleShow.backgroundColor = [UIColor orangeColor];//arbin 测试 ，用来判断位置
+    
+    [self setStyleView];
+//    
+//    NSLayoutConstraint *con = [NSLayoutConstraint
+//                               constraintWithItem:_StyleTableList
+//                               attribute:NSLayoutAttributeWidth
+//                               relatedBy:NSLayoutRelationEqual
+//                               toItem:_StyleShow
+//                               attribute:NSLayoutAttributeWidth
+//                               multiplier:0.75
+//                               constant:0];
+//    con.priority = UILayoutPriorityRequired;
+//    [self.view addConstraint:con];
+    
+//    self.StyleTableList.delegate = self;
+
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+-(UIImage*)OriginImage:(UIImage *)image   scaleToSize:(CGSize)size
+{
+    // 创建一个bitmap的context
+    // 并把它设置成为当前正在使用的context
+    UIGraphicsBeginImageContext(size);
+    
+    // 绘制改变大小的图片
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    
+    // 从当前context中创建一个改变大小后的图片
+    UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    
+    // 使当前的context出堆栈
+    UIGraphicsEndImageContext();
+    
+    // 返回新的改变大小后的图片
+    return scaledImage;
+}
+
+//初始化的时候执行一次
+-(void)setStyleView
+{
+    App_vpQueryCond *app_vpQueryCond;
+    app_vpQueryCond = [[App_vpQueryCond alloc] init];
+    [app_vpQueryCond setCond:0 filter:0 music:0 sub:0];//查询条件
+    
+    dispatch_async(dispatch_get_global_queue(0, 0),^(void){
+        
+        NSMutableArray *StyleArrays = [[NSMutableArray alloc]init];
+        StyleArrays = [[APPUserPrefs Singleton] APP_vpgetheaderandtail:app_vpQueryCond Noffset:0 Ncount:120];
+        
+        while ([StyleArrays count]==0) {
+            StyleArrays = [[APPUserPrefs Singleton] APP_vpgetheaderandtail:app_vpQueryCond Noffset:0 Ncount:120];
+            sleep(1);
+        }
+        
+        _StyleList = [[NSMutableArray alloc]initWithCapacity:1];
+        
+        for (int i = 0 ; i < StyleArrays.count; i++) {
+            App_vpVDCHeaderAndTail_C *Styleinfo = [StyleArrays objectAtIndex:i];
+            NSString *StyleName = Styleinfo.szName;
+            NSString *StyleThumbnail = Styleinfo.szThumbnail;
+            NSString *StyleURL = Styleinfo.szReference;
+            NSString *StyleDis = Styleinfo.szDesc;
+            NSString *Styleid = [NSString  stringWithFormat:@"%d",Styleinfo.nID ];
+            NSString *StyleClass = [NSString stringWithFormat:@"%d",Styleinfo.nHeaderAndTailStyle];
+            NSString *scene = Styleinfo.szScene;
+            //字典表  name   URL    id    PlayURL   Discribe   Class fitScene
+            NSDictionary *StyleItem = [NSDictionary dictionaryWithObjectsAndKeys:StyleName,@"name",
+                                       StyleThumbnail,@"URL",Styleid,@"id",StyleURL,@"PlayURL",
+                                       StyleDis,@"Discribe",StyleClass,@"Class",scene,@"fitScene",nil];
+            [_StyleList addObject:StyleItem];
+        }
+        NSMutableArray *temp = [[NSMutableArray alloc]initWithCapacity:1];
+        NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"Category A",@"category",_StyleList,@"images", nil];
+        [temp addObject:dictionary];
+
+        self.images = temp;
+        dispatch_async(dispatch_get_main_queue(),^(void){
+            [self.StyleTableList reloadData];
+        });
+    });
+    
+    
+}
+
+-(void)playinit:(NSString*)url Name:(NSString*)videoname{
+    
+    if (self.player == nil) {
+        self.player = [[NGMoviePlayer alloc] init];
+        [self.player addToSuperview:self.StyleShow withFrame:self.StyleShow.frame];
+        self.player.airPlayEnabled =false;
+//        [self.player.layout.zoomControl setHidden:TRUE];
+//        [self.player.layout.airPlayControl setHidden:TRUE];
+//        self.player
+    }
+    self.player.delegate = self;
+    [self.player.view setHidden:TRUE];
+    [self.player setURL:[NSURL URLWithString:url] title:videoname];
+}
+
+-(void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear: animated];
+    [self.player setURL:nil];
+}
+
+-(void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear: animated];
+    [self.player setURL:nil];
+}
+
+-(void)viewWillLayoutSubviews
+{
+//    CGRect frame = self.StyleShow.frame;
+//    frame.size.height = frame.size.width*408/720;
+//    [self.StyleShow setFrame:frame];
+    
+}
+
+-(void)viewDidLayoutSubviews
+{
+    //image
+//    CGRect frame = self.StyleShow.frame;
+//    frame.size.width = [UIScreen mainScreen].bounds.size.width-2;
+//    frame.size.height = frame.size.width*408/720;
+//    [self.StyleShow setFrame:frame];
+//
+    
+    //加载底部边框
+    UIImage *img =[UIImage imageNamed:@"frame"];
+    UIImage *scaledImg = [self OriginImage:img scaleToSize:_BottomView.frame.size];
+    [_BottomView setBackgroundColor:[UIColor colorWithPatternImage:scaledImg]];
+}
+- (IBAction)slide2left:(id)sender {
+    
+    return;
+}
+- (IBAction)slide2right:(id)sender {
+    
+    return;
+    
+}
+
+-(void)StopPlay
+{
+    [self.player setURL:nil];
+    [self.player.view setHidden:true];
+}
+
+-(void)changeOrderInfo:(int)StyleId
+{
+    NewNSOrderDetail *newNSOrderDetail = [[NewNSOrderDetail alloc] init];
+    newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+    if ([[NewUserOrderList Singleton].newcutlist count]) {
+        newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+    }else{
+        NSLog(@"NewUserOrderList error!");
+        return;
+    }
+    newNSOrderDetail.nHeaderAndTailID = StyleId;
+    [[NewUserOrderList Singleton].newcutlist replaceObjectAtIndex:0 withObject:newNSOrderDetail];
+    
+    [[APPUserPrefs Singleton] APP_OrderDetailCacheInformationDBChange:newNSOrderDetail];
+    
+    NewNSOrderDetail *noworder = [MC_OrderAndMaterialCtrl GetFreshOrder:[[UserEntity sharedSingleton].customerId intValue]];
+    noworder.nHeaderAndTailID = StyleId;
+    [MC_OrderAndMaterialCtrl UpdateFresh:noworder];
+}
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"Cell";
+    NSDictionary *cellData = [self.images objectAtIndex:[indexPath section]];
+    PPImageScrollingTableViewCell *customCell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+    [customCell setWidth:self.StyleTableList.width];
+    [customCell setBackgroundColor:[UIColor clearColor]];
+    [customCell setDelegate:self];
+    [customCell setImageData:cellData];
+    [customCell setTag:[indexPath section]];
+    [customCell setCollectionViewBackgroundColor:[UIColor clearColor]];
+    
+    return customCell;
+}
+
+#pragma mark - UITableViewDelegate
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return self.StyleTableList.height;
+}
+
+#pragma mark - PPImageScrollingTableViewCellDelegate
+
+- (void)scrollingTableViewCell:(PPImageScrollingTableViewCell *)scrollingTableViewCell didSelectImageAtIndexPath:(NSIndexPath*)indexPathOfImage atCategoryRowIndex:(NSInteger)categoryRowIndex
+{
+    
+    NSDictionary *images = [self.images objectAtIndex:categoryRowIndex];
+    NSArray *imageCollection = [images objectForKey:@"images"];
+    NSString *imageTitle = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"name"];
+    NSString *StyleId = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"id"];
+    NSString *playURL = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"PlayURL"];
+    NSString *ImageURL = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"URL"];
+    
+    ImageURL = [ImageURL stringByReplacingOccurrencesOfString:@"thumbnail" withString:@"thumbnail720"];
+    
+    if (playURL!=nil||imageTitle!=nil) {
+        [self playinit:playURL Name:imageTitle];
+    }
+    [self.StyleShow setImageWithURL:[NSURL URLWithString:ImageURL]
+                   placeholderImage:[UIImage imageNamed:@"default720"]];
+    self.StyleName.text =imageTitle;
+    self.StyleBrief.text = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"Discribe"];
+    _StyleScene.text = [[imageCollection objectAtIndex:[indexPathOfImage row]]objectForKey:@"fitScene"];
+    
+    [self changeOrderInfo:[StyleId intValue]];
+}
+
+- (void)moviePlayer:(NGMoviePlayer *)moviePlayer didStartPlaybackOfURL:(NSURL *)URL{
+    [self.player.view setHidden:false];
+}
+
+- (void)moviePlayer:(NGMoviePlayer *)moviePlayer didFinishPlaybackOfURL:(NSURL *)URL {
+    [self.player.view setHidden:true];
+    [self.player pause];
+}
+
+@end

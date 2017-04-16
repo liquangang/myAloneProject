@@ -1,0 +1,25 @@
+//
+//  MWICloudOrderMoreViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//  订单界面右侧更多按钮点击的控制器
+
+#import <UIKit/UIKit.h>
+
+@class MWICloudOrderMoreViewController;
+@protocol MWICloudOrderMoreViewControllerDelegate <NSObject>
+
+@optional
+/**
+ *  订单更多功能
+ *
+ *  @param row 0:投诉   1:删除列表
+ */
+- (void)orderMoreViewControllerDidClickRow:(NSInteger)row;
+@end
+
+@interface MWICloudOrderMoreViewController : UITableViewController
+@property (weak, nonatomic) id<MWICloudOrderMoreViewControllerDelegate> delegate;
+@end

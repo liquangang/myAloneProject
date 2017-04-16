@@ -1,0 +1,411 @@
+
+
+
+//
+//  VideoLabelDetailViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/8/17.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "VideoLabelDetailViewController.h"
+#import "MyFourSearchCell2.h"
+#import "MovierDCInterfaceSvc.h"
+#import "VideoInformationObject.h"
+#import <UIImageView+WebCache.h>
+#import "Video.h"
+#import "HomeVideoDetailViewController.h"
+#import "VideoShowViewController.h"
+#import "SoapOperation.h"
+#import "MJRefresh.h"
+#import "CustomeClass.h"
+#import "WTImageScroll.h"
+#import "SearchVideoTableViewCell.h"
+
+@interface VideoLabelDetailViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UIButton *joinButton;
+@property (weak, nonatomic) IBOutlet UITableView *videoTable;
+/** 标签数据源*/
+@property (nonatomic, strong) NSMutableArray * videoDataMuArray;
+/**  存放展示视频的对象（一个数组对应cell的一个位置的数据源）*/
+@property (nonatomic, strong) NSMutableArray * oneVideoMuArray;
+@property (nonatomic, strong) NSMutableArray * twoVideoMuArray;
+@property (nonatomic, strong) NSMutableArray * threeVideoMuArray;
+@property (nonatomic, strong) NSMutableArray * fourVideoMuArray;
+
+/** bannerImagearray*/
+@property (nonatomic, strong) NSMutableArray * bannerMuArray;
+/** bannerinfoarray*/
+@property (nonatomic, strong) NSMutableArray * bannerInfoMuArray;
+
+/** bannerview*/
+@property (nonatomic, strong) UIView * bannerView;
+
+/** 展示无数据提示*/
+@property (nonatomic, assign) BOOL isShowNoVideo;
+@end
+
+@implementation VideoLabelDetailViewController
+
+- (NSMutableArray *)bannerInfoMuArray{
+    if (!_bannerInfoMuArray) {
+        _bannerInfoMuArray = [NSMutableArray new];
+    }
+    return _bannerInfoMuArray;
+}
+
+- (NSMutableArray *)bannerMuArray{
+    if (!_bannerMuArray) {
+        _bannerMuArray = [NSMutableArray new];
+    }
+    return _bannerMuArray;
+}
+
+- (NSMutableArray *)videoDataMuArray{
+    if (!_videoDataMuArray) {
+        _videoDataMuArray = [NSMutableArray new];
+    }
+    
+    return _videoDataMuArray;
+}
+
+- (NSMutableArray *)oneVideoMuArray
+{
+    if (_oneVideoMuArray == nil) {
+        _oneVideoMuArray = [[NSMutableArray alloc] init];
+    }
+    return _oneVideoMuArray;
+}
+
+- (NSMutableArray *)twoVideoMuArray
+{
+    if (_twoVideoMuArray == nil) {
+        _twoVideoMuArray = [[NSMutableArray alloc] init];
+    }
+    return _twoVideoMuArray;
+}
+
+- (NSMutableArray *)threeVideoMuArray
+{
+    if (_threeVideoMuArray == nil) {
+        _threeVideoMuArray = [[NSMutableArray alloc] init];
+    }
+    return _threeVideoMuArray;
+}
+
+- (NSMutableArray *)fourVideoMuArray
+{
+    if(_fourVideoMuArray == nil){
+        _fourVideoMuArray = [[NSMutableArray alloc] init];
+    }
+    return _fourVideoMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    [self initUI];
+    
+    [self downloadDataWithStart:0];
+    
+    [self downloadBannerData];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [self.tabBarController.tabBar setHidden:YES];
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+}
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    NSLog(@"videoLabelDetailViewController dealloc");
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    self.title = self.labelName;
+    
+    [self.videoTable addFooterWithTarget:self action:@selector(footerRefresh)];
+    [self.videoTable addHeaderWithTarget:self action:@selector(headerRefresh)];
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    if (self.activityDes.length > 0) {
+        self.joinButton.hidden = NO;
+    }
+}
+
+#pragma mark - 加载banner
+- (void)downloadBannerData{
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        [CustomeClass hudShowWithView:self.view Tag:123456];
+        WEAKSELF(weakSelf);
+        [[SoapOperation Singleton] WS_getbannerlistWithCategory:1 Where:self.labelId Offset:0 Count:66 Success:^(NSMutableArray *serverDataArray) {
+            /*
+             Printing description of ((__NSDictionaryM *)0x000000015c5c1a80):
+             {
+             category = 1;
+             id = 3;
+             indexorder = 0;
+             labelid = 12;
+             para1 = 15;
+             para2 = 0;
+             para3 = "";
+             status = 0;
+             thumbnail = "http://movier-vdc.oss-cn-beijing.aliyuncs.com/movier/sysres/LabelRes/BannerRes/GuoMei/GM-banner.jpg";
+             topicid = 0;
+             type = 2;
+             }
+             */
+            
+            MAINQUEUEUPDATEUI({
+                [CustomeClass hudHiddenWithView:self.view Tag:123456];
+                [weakSelf.bannerMuArray removeAllObjects];
+                [weakSelf.bannerInfoMuArray removeAllObjects];
+                [weakSelf.bannerInfoMuArray addObjectsFromArray:[serverDataArray copy]];
+                for (NSDictionary * dic in serverDataArray) {
+                    [weakSelf.bannerMuArray addObject:dic[@"thumbnail"]];
+                }
+                if (weakSelf.bannerMuArray.count > 0) {
+                    self.bannerView = [WTImageScroll ShowNetWorkImageScrollWithFream:CGRectMake(0, 0, ISScreen_Width, 138) andImageArray:self.bannerMuArray andBtnClick:^(NSInteger tagValue) {
+                        //点击图片操作
+                        
+                    }];
+                    [weakSelf.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+            })
+            
+        } Fail:^(NSError *error) {
+            [CustomeClass hudHiddenWithView:self.view Tag:123456];
+            RELOADSERVERDATA([weakSelf downloadBannerData];);
+        }];
+    }, {})
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)footerRefresh{
+    [self downloadDataWithStart:self.videoDataMuArray.count];
+}
+
+- (void)headerRefresh{
+    [self downloadDataWithStart:0];
+}
+
+- (void)downloadDataWithStart:(NSInteger)StartIndex{
+    
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        [CustomeClass hudShowWithView:self.view Tag:123456];
+        WEAKSELF(weakSelf);
+        [[SoapOperation Singleton] WS_GetVideosbyLabel:nil Label:[NSNumber numberWithInt:[self.labelId intValue]] Start:@(StartIndex) Count:@(36) Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+            if (StartIndex == 0) {
+                [self.videoDataMuArray removeAllObjects];
+                [self.oneVideoMuArray removeAllObjects];
+                [self.twoVideoMuArray removeAllObjects];
+                [self.threeVideoMuArray removeAllObjects];
+                [self.fourVideoMuArray removeAllObjects];
+            }
+            [weakSelf.videoDataMuArray addObjectsFromArray:[array.item copy]];
+            for(int i = 0; i < [array.item count]; i++){
+                MovierDCInterfaceSvc_VDCVideoInfoEx * videoInfo = array.item[i];
+                switch (i % 4) {
+                    case 0:
+                    {
+                        [weakSelf.oneVideoMuArray addObject:videoInfo];
+                    }
+                        break;
+                    case 1:
+                    {
+                        [weakSelf.twoVideoMuArray addObject:videoInfo];
+                    }
+                        break;
+                    case 2:
+                    {
+                        [weakSelf.threeVideoMuArray addObject:videoInfo];
+                    }
+                        break;
+                    case 3:
+                    {
+                        [weakSelf.fourVideoMuArray addObject:videoInfo];
+                    }
+                        break;
+                        
+                    default:
+                        break;
+                }
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                weakSelf.isShowNoVideo = YES;
+                [CustomeClass hudHiddenWithView:self.view Tag:123456];
+                [weakSelf.videoTable reloadData];
+                [weakSelf.videoTable footerEndRefreshing];
+                [weakSelf.videoTable headerEndRefreshing];
+                if (array.item.count == 0) {
+                    [CustomeClass showMessage:@"没有更多影片了" ShowTime:1.5];
+                }
+            });
+        } Fail:^(NSError *error) {
+            [CustomeClass hudHiddenWithView:self.view Tag:123456];
+            RELOADSERVERDATA([weakSelf downloadDataWithStart:StartIndex];);
+        }];
+    }, {})
+}
+
+#pragma mark - tabledelegate
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 1) {
+        return 460;
+    }else{
+        if (self.activityDes.length > 0) {
+            if (self.bannerMuArray.count > 0) {
+                return 138 + 148;
+            }
+            return 138;
+        }
+        
+        if (self.bannerMuArray.count > 0) {
+            return 138;
+        }
+        return 0;
+    }
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+        if (section == 0) {
+            return 1;
+        }
+    BACKPROPMTVIEW(self.oneVideoMuArray.count == 0 && self.isShowNoVideo, 12345678, @"还没有影片", self.videoTable)
+        return self.oneVideoMuArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        UIView * headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, 138 + 148)];
+        if (self.bannerMuArray.count > 0) {
+            
+            [headerView addSubview:self.bannerView];
+        }else{
+            self.bannerView.frame = CGRectMake(0, 0, 0, 0);
+        }
+        
+        if (self.activityDes.length > 0) {
+            UIImageView * leftImage = [[UIImageView alloc] initWithFrame:CGRectMake(15, self.bannerView.frame.size.height + 12, 26, 30)];
+            [headerView addSubview:leftImage];
+            leftImage.image = [UIImage imageNamed:@"activityIntroduceImage"];
+            
+            UILabel * activityLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 20 + self.bannerView.frame.size.height, 188, 15)];
+            [headerView addSubview:activityLabel];
+            activityLabel.text = @"活动介绍";
+            activityLabel.textColor = ISLIKEGRAYCOLOR;
+            activityLabel.font = ISFont_15;
+            
+            UITextView * activityTextView = [[UITextView alloc] initWithFrame:CGRectMake(28, self.bannerView.frame.size.height + 50, ISScreen_Width - 56, 72)];
+            [headerView addSubview:activityTextView];
+            activityTextView.textColor = ISLIKEGRAYCOLOR;
+            activityTextView.font = ISFont_12;
+            activityTextView.text = self.activityDes;
+        }
+        UITableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:@"headerCell"];
+        if (!cell) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"headerCell"];
+        }
+        [cell.contentView addSubview:headerView];
+        cell.contentView.clipsToBounds = YES;
+        return cell;
+    }
+    SearchVideoTableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:@"SearchVideoTableViewCell"];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"SearchVideoTableViewCell" owner:nil options:nil] lastObject];
+    }
+    [self setCellWithIndex:indexPath BackImage:cell.backImage1 UserHeaderImage:cell.userHeaderImage1 UserNameLabel:cell.userNameLabel1 LookTimesLabel:cell.lookTimesLabel1 VideoNameLabel:cell.videoNameLabel1 BackView:cell.backView1 CellInfoArray:self.oneVideoMuArray backViewTag:20000];
+    [self setCellWithIndex:indexPath BackImage:cell.backImage2 UserHeaderImage:cell.userHeaderImage2 UserNameLabel:cell.userNameLabel2 LookTimesLabel:cell.lookTimesLabel2 VideoNameLabel:cell.videoNameLabel2 BackView:cell.backView2 CellInfoArray:self.twoVideoMuArray backViewTag:40000];
+    [self setCellWithIndex:indexPath BackImage:cell.backImage3 UserHeaderImage:cell.userHeaderImage3 UserNameLabel:cell.userNameLabel3 LookTimesLabel:cell.lookTimesLabel3 VideoNameLabel:cell.videoNameLabel3 BackView:cell.backView3 CellInfoArray:self.threeVideoMuArray backViewTag:60000];
+    [self setCellWithIndex:indexPath BackImage:cell.backImage4 UserHeaderImage:cell.userheaderImage4 UserNameLabel:cell.userNameLabel4 LookTimesLabel:cell.lookTimesLabel4 VideoNameLabel:cell.videoNameLabel4 BackView:cell.backView4 CellInfoArray:self.fourVideoMuArray backViewTag:80000];
+    return cell;
+}
+
+- (void)setCellWithIndex:(NSIndexPath *)indexPath BackImage:(UIImageView *)backImage UserHeaderImage:(UIImageView *)userHeaderImage UserNameLabel:(UILabel *)userNameLabel LookTimesLabel:(UILabel *)lookTimesLabel VideoNameLabel:(UILabel *)videoNameLabel BackView:(UIView *)backView CellInfoArray:(NSMutableArray *)videoInfoArray backViewTag:(NSInteger)backViewTag{
+    if (indexPath.row < videoInfoArray.count) {
+        MovierDCInterfaceSvc_VDCVideoInfoEx * videoInfoEx = videoInfoArray[indexPath.row];
+        VideoInformationObject * videoInfo = [VideoInformationObject setAssignment:videoInfoEx];
+        
+        [backImage sd_setImageWithURL:[NSURL URLWithString:videoInfo.videoThumbnailUrl] placeholderImage:DEFAULTVIDEOTHUMAIL options:SDWebImageRetryFailed | SDWebImageProgressiveDownload];
+        
+        [userHeaderImage sd_setImageWithURL:[NSURL URLWithString:videoInfo.ownerAcatar] placeholderImage:DEFAULTHEADIMAGE options:SDWebImageRetryFailed | SDWebImageProgressiveDownload];
+        
+        userNameLabel.text = videoInfo.ownerName;
+        
+        NSString * videoPlayCount = videoInfo.videoPlayCount;
+        int playCount = [videoPlayCount intValue];
+        if (playCount > 10000) {
+            videoPlayCount = [NSString stringWithFormat:@"%.1f万", (float)playCount / 10000];
+        }
+        lookTimesLabel.text = videoPlayCount;
+        
+        videoNameLabel.text = videoInfo.videoName;
+        
+        //手势
+        backView.tag = backViewTag + indexPath.row;
+        ADDTAPGESTURE(backView, videoAction)
+    }else if (indexPath.row >= videoInfoArray.count){
+        backView.hidden = YES;
+    }
+}
+
+//跳转到视频播放页面
+- (void)videoAction:(UITapGestureRecognizer *)tap
+{
+    UIView * btn = tap.view;
+    if (btn.tag >= 20000 && btn.tag < 40000) {
+        [self pushToHomeVideoDetailWithVideoInfoEx:self.oneVideoMuArray[btn.tag - 20000]];
+    }
+    else if (btn.tag >= 40000 && btn.tag < 60000){
+        [self pushToHomeVideoDetailWithVideoInfoEx:self.twoVideoMuArray[btn.tag - 40000]];
+    }
+    else if (btn.tag >= 60000 && btn.tag < 80000)
+    {
+        [self pushToHomeVideoDetailWithVideoInfoEx:self.threeVideoMuArray[btn.tag - 60000]];
+    }
+    else {
+        [self pushToHomeVideoDetailWithVideoInfoEx:self.fourVideoMuArray[btn.tag - 80000]];
+    }
+}
+
+/** 跳转到搜索视频播放页面*/
+- (void)pushToHomeVideoDetailWithVideoInfoEx:(MovierDCInterfaceSvc_VDCVideoInfoEx *)videoInfoEx{
+    [[Video Singleton] setContent:[VideoInformationObject setAssignment:videoInfoEx]];
+    HomeVideoDetailViewController * detail = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"MovieDetailPreviewStoryboardID1"];
+    VideoShowViewController * detailViewC = [VideoShowViewController new];
+    detail.videoId = [videoInfoEx.nVideoID intValue];
+    detail.isHiddenTabbar = YES;
+    [self.navigationController pushViewController:detailViewC animated:YES];
+}
+
+- (IBAction)joinButtonAction:(id)sender {
+    //参加活动的方法
+    [CustomeClass showMessage:@"没有可以参加的活动" ShowTime:1.5];
+}
+@end

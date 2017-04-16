@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="ElectrialCollectionViewCell2">
+            <rect key="frame" x="0.0" y="0.0" width="313" height="391"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="313" height="391"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="cardBottomSmallImage" translatesAutoresizingMaskIntoConstraints="NO" id="InK-q9-jl0">
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qr8-oq-Fh8">
+                        <constraints>
+                            <constraint firstAttribute="height" constant="11" id="mH3-LN-ryH"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="cardAboveSmallImage" translatesAutoresizingMaskIntoConstraints="NO" id="nEX-GG-eFE"/>
+                </subviews>
+            </view>
+            <constraints>
+                <constraint firstItem="nEX-GG-eFE" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="C4f-c9-LWa"/>
+                <constraint firstItem="InK-q9-jl0" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="2" id="Dbf-V2-cm4"/>
+                <constraint firstItem="InK-q9-jl0" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="Vfc-BT-zg0"/>
+                <constraint firstAttribute="trailing" secondItem="Qr8-oq-Fh8" secondAttribute="trailing" constant="2" id="XcU-ad-tvG"/>
+                <constraint firstAttribute="trailing" secondItem="nEX-GG-eFE" secondAttribute="trailing" id="eHm-aD-bXL"/>
+                <constraint firstAttribute="bottom" secondItem="InK-q9-jl0" secondAttribute="bottom" id="rvg-Ha-Aug"/>
+                <constraint firstItem="nEX-GG-eFE" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="sY1-Sm-BQt"/>
+                <constraint firstAttribute="bottom" secondItem="Qr8-oq-Fh8" secondAttribute="bottom" constant="20" id="slq-ka-kRF"/>
+                <constraint firstAttribute="trailing" secondItem="InK-q9-jl0" secondAttribute="trailing" constant="2" id="xbD-Ep-IYP"/>
+                <constraint firstItem="Qr8-oq-Fh8" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="2" id="y1d-4R-bv5"/>
+                <constraint firstItem="Qr8-oq-Fh8" firstAttribute="top" secondItem="nEX-GG-eFE" secondAttribute="bottom" id="zxv-KT-JNn"/>
+            </constraints>
+            <size key="customSize" width="313" height="391"/>
+            <connections>
+                <outlet property="electrialImage" destination="InK-q9-jl0" id="Gtk-n8-lOz"/>
+                <outlet property="electrialMachine" destination="nEX-GG-eFE" id="pTn-IP-cHA"/>
+                <outlet property="electrialNumLabel" destination="Qr8-oq-Fh8" id="gN4-bA-fo2"/>
+            </connections>
+            <point key="canvasLocation" x="165.5" y="-116.5"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="cardAboveSmallImage" width="55" height="85"/>
+        <image name="cardBottomSmallImage" width="55" height="85"/>
+    </resources>
+</document>

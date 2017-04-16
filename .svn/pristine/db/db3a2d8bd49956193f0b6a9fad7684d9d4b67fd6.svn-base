@@ -1,0 +1,31 @@
+//
+//  MWICloudUploadingCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel, MWICloudEditDownloadingOtherCell;
+
+@protocol MWICloudEditDownloadingOtherCellDelegate <NSObject>
+
+@optional
+
+/**  编辑状态  正在下载cell  右侧的操作(状态改变)按钮 */
+- (void)iCloudEditDownloadingOtherCell:(MWICloudEditDownloadingOtherCell *)downloadingOtherCell didClickButton:(UIButton *)button;
+
+/**  编辑状态  正在下载cell  左侧的选择按钮(选择) */
+- (void)iCloudEditDownloadingOtherCell:(MWICloudEditDownloadingOtherCell *)downloadingOtherCell didClickChooseButton:(UIButton *)button;
+@end
+
+@interface MWICloudEditDownloadingOtherCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+@property (weak, nonatomic) id<MWICloudEditDownloadingOtherCellDelegate> delegate;
+
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+
+
+@end

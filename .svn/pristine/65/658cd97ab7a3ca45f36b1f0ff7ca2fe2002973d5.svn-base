@@ -1,0 +1,32 @@
+//
+//  LKButton.h
+//  Test
+//
+//  Created by 李亚飞 on 15/10/20.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+//  上传下载列表操作按钮
+
+#import <UIKit/UIKit.h>
+// 定义开始位置
+#define LIStartAngle (- M_PI_2)
+
+@interface MWButton : UIButton
+/**  进度 */
+@property (assign, nonatomic) CGFloat progress;
+
+/**  普通状态下  背景填充色 */
+@property (strong, nonatomic) UIColor *normalBGColor;
+/**  普通状态下  背景填充色 */
+@property (strong, nonatomic) UIColor *selectedBGColor;
+
+/**  设置中间两条竖线的颜色 */
+@property (strong, nonatomic) UIColor *lineColor;
+/**  进度条 背景 颜色 */
+@property (strong, nonatomic) UIColor *trackTintColor;
+/**  进度条颜色 */
+@property (strong, nonatomic) UIColor *progressTintColor;
+
+/**  选中状态下  背景填充图片 */
+@property (copy, nonatomic) NSString *selectedImageName;
+@end

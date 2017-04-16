@@ -1,0 +1,512 @@
+//
+//  AppDelegate.m
+//  M-Cut
+//
+//  Created by Crab shell on 12/21/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#import "AppDelegate.h"
+#import "GlobalVars.h"
+#import "MovierUtils.h"
+#import "UMSocial.h"
+#import "UMSocialWechatHandler.h"
+#import "UMSocialSinaSSOHandler.h"
+#import "UMSocialQQHandler.h"
+#import "VideoDBOperation.h"
+#import "UpDateSql.h"
+#import "SoapOperation.h"
+//用户设置类(总体的通知数量操作在这个类中完成)
+#import "APPUserData.h"
+//通知消息解析类
+#import "AnalysisMes.h"
+#import <Bugly/Bugly.h>
+
+
+
+// 新用户
+#define ISFreshUser         @"ISFreshUser"
+// 网络图片url
+#define ISLaunchImageUrl    @"ISLaunchImageUrl"
+#define NotifyActionKey "NotifyAction"
+//#define ALERT(alertStr) UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:alertStr delegate:nil cancelButtonTitle:@"ok" otherButtonTitles:nil];[alert show];
+
+NSString *const NotificationCategoryIdent = @"ACTIONABLE";
+NSString *const NotificationActionOneIdent = @"ACTION_ONE";
+NSString *const NotificationActionTwoIdent = @"ACTION_TWO";
+
+@interface AppDelegate ()<UIAlertViewDelegate>
+@property (strong, nonatomic) UIView *launchView;
+@property (nonatomic, assign) BOOL userHasNoPlayMovie;
+
+/** 记录用户点击的外部消息的字典*/
+@property (nonatomic, strong) NSDictionary * noticeDic;
+@end
+
+@implementation AppDelegate
+
+
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    
+    [[SoapOperation Singleton] WS_getappversionSuccess:^(MovierDCInterfaceSvc_AppVersionEx *appVersionInfo) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (![[CustomeClass getAppVersion] isEqualToString:[NSString stringWithFormat:@"%@.%@", appVersionInfo.szMainVersion, appVersionInfo.szSubVersion]]) {
+                UIAlertView * alertView = [[UIAlertView alloc] initWithTitle:@"新版本来了" message:appVersionInfo.szDescription delegate:self cancelButtonTitle:@"去更新" otherButtonTitles:@"取消", nil];
+                alertView.tag = 12345678;
+                [alertView show];
+            }
+        });
+    } Fail:^(NSError *error) {
+        
+    }];
+    
+    
+    NSString *path_sandox = NSHomeDirectory();
+    //设置一个图片的存储路径
+    NSString *imagePath = [path_sandox stringByAppendingString:@"/Documents/orderThumail"];
+    
+    NSLog(@"%@", imagePath);
+    
+    self.window.backgroundColor = [UIColor whiteColor];
+    
+    self.showNoticeVc = withoutVc;
+    
+    NSLog(@"NSHomeDirectory------------%@", NSHomeDirectory());
+    UIDevice *device =[UIDevice currentDevice];
+    NSLog(@"%@",[device model]);
+    if (!([[device model] isEqualToString:@"iPad Simulator"]||[[device model]isEqualToString:@"iPhone Simulator"])) {
+//    [self redirectNSLogToDocumentFolder];
+    }
+    
+    NSArray *dirPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *docsDir = [dirPaths objectAtIndex:0];
+    databasePath = [[NSString alloc] initWithString: [docsDir stringByAppendingPathComponent: @"contacts.db"]];
+    [[VideoDBOperation Singleton] CreateTable];
+    
+    [UMSocialData setAppKey:@"55f9088b67e58e3dbd000488"];//友盟 key ：55f9088b67e58e3dbd000488   55f9088b67e58e3dbd000488
+//    [WXApi registerApp:@"wxaf98baf2b5b8590b" withDescription:@"InShian Product"];
+    [UMSocialWechatHandler setWXAppId:@"wxaf98baf2b5b8590b" appSecret:@"66f662fe399ba00da5e286d2eafe302c" url:@"http://www.movier.cc"];
+    //打开新浪微博的SSO开关，设置新浪微博回调地址，这里必须要和你在新浪微博后台设置的回调地址一致。若在新浪后台设置我们的回调地址，“http://sns.whalecloud.com/sina2/callback”，这里可以传nil
+//    [UMSocialSinaSSOHandler openNewSinaSSOWithRedirectURL:@"http://sns.whalecloud.com/sina2/callback"];
+    [UMSocialSinaSSOHandler openNewSinaSSOWithAppKey:@"1065048023" RedirectURL:@"http://sns.whalecloud.com/sina2/callback"];
+    [UMSocialQQHandler setQQWithAppId:@"1104735856" appKey:@"Z8HMchORzgwyKzCD" url:@"http://www.umeng.com/social"];
+    
+    [application setStatusBarHidden:NO];
+    [application setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    [SMSSDK registerApp:@"88aefdbb59b8" withSecret:@"18f4a9f71679b009c3087ea06335a357"];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"USEGUIDE"]) {
+        [self showGuideView];
+    } else {
+        UIStoryboard *storyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+        self.window.rootViewController = [storyBoard instantiateViewControllerWithIdentifier:@"MainTabView"];
+    }
+    [self.window makeKeyAndVisible];
+    
+    // 动态加载图片
+    [self loadLaunchImages];
+
+    //根据版本增量更新数据库
+    UpDateSql *freshsql = [[UpDateSql alloc]init];
+    [freshsql UpDateSqlite];
+//    [[CrashReporter sharedInstance] enableLog:YES];
+    [Bugly startWithAppId:@"900011027"]; //900011027 bugly中的id
+    
+    // 通过个推平台分配的appId、 appKey 、appSecret 启动SDK，注：该方法需要在主线程中调用
+    [GeTuiSdk startSdkWithAppId:kGtAppId appKey:kGtAppKey appSecret:kGtAppSecret delegate:self];
+    [GeTuiSdk runBackgroundEnable:YES];
+    // 注册APNS
+    [self registerRemoteNotification];
+    
+    // 处理远程通知启动APP
+//    [self receiveNotificationByLaunchingOptions:launchOptions];
+    
+//    [self performSelector:@selector(crash) withObject:nil afterDelay:3.0];
+    self.window.backgroundColor = [UIColor whiteColor];
+    return YES;
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (alertView.tag == 12345678) {
+        if (buttonIndex == 0) {
+            //
+            NSLog(@"更新");
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://itunes.apple.com/cn/app/ying-xiang/id1013565760?mt=8"]];
+        }
+    }
+}
+
+- (void)willPresentAlertView:(UIAlertView *)alertView
+
+{
+    if (alertView.tag == 12345678) {
+        for( UIView * view in alertView.subviews )
+            
+        {
+            
+            if( [view isKindOfClass:[UILabel class]] )
+                
+            {
+                
+                UILabel* label = (UILabel*) view;
+                
+                label.textAlignment = UITextAlignmentLeft;
+                
+            }
+            
+        }
+    }
+}
+
+//观察者的回调方法
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context{
+    if ([keyPath isEqualToString:@"isShowMessage"]) {
+        //对消息进行处理
+    }
+}
+
+
+// 加载网络启动图片
+- (void)loadLaunchImages {
+
+    UIViewController *launch = [[UIStoryboard storyboardWithName:@"Launch Screen" bundle:nil] instantiateInitialViewController];
+    CGFloat logoHeight = 50.0 / 667 * ISScreen_Height;
+    CGFloat imageH = ISScreen_Height;
+    CGRect frame = CGRectMake(0, 0, ISScreen_Width, imageH);
+    [self.window addSubview:launch.view];
+    
+    UIImageView *imageV = [[UIImageView alloc] initWithFrame:frame];
+    imageV.contentMode = UIViewContentModeScaleToFill;
+    [launch.view insertSubview:imageV atIndex:0];
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    NSString *title = @"跳过";
+    [button setTitle:title forState:UIControlStateNormal];
+    [button setTitleColor:ISRGBColor(64, 74, 88) forState:UIControlStateNormal];
+    button.titleLabel.font = ISFont_16;
+    
+    // 按钮和左边的间距是20
+    CGFloat buttonW = 60;
+    CGFloat buttonH = logoHeight;
+    CGFloat buttonX = ISScreen_Width - 20 - buttonW;
+    CGFloat buttonY = ISScreen_Height - logoHeight;
+    button.frame = CGRectMake(buttonX, buttonY, buttonW, buttonH);
+    [button addTarget:self action:@selector(removeLun) forControlEvents:UIControlEventTouchUpInside];
+    [launch.view addSubview:button];
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    BOOL isFreshUser = NO;
+    if (![defaults objectForKey:ISFreshUser]) {
+        isFreshUser = YES;
+        [defaults setObject:ISFreshUser forKey:ISFreshUser];
+    }
+    
+    if (isFreshUser == NO) {
+        NSString *str = [defaults objectForKey:ISLaunchImageUrl];
+        if (str && [MovierUtils GetCurrntNet]) {
+            [imageV sd_setImageWithURL:[NSURL URLWithString:str]];
+        }
+    }
+    
+    // 根据屏幕尺寸, 获得不同比例的图片
+    NSNumber *launchNum = nil;
+    if (iPhone4) {      // 图片比例  320 / 480 = 0.667
+        launchNum = @(5);
+    } else {            // 图片比例  320 / 568 = 0.563 || 375 / 667 = 0.562 || 414 / 736	= 0.5625
+        launchNum = @(4);
+    }
+    
+    [self performSelector:@selector(removeLun) withObject:nil afterDelay:3.0];
+    __weak typeof(self) vc = self;
+    [[SoapOperation Singleton] WS_GetLaunchPage:launchNum Success:^(MovierDCInterfaceSvc_StringArr *launchinfos) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (launchinfos.item.count > 0) {
+                NSString *str = launchinfos.item[0];
+                [defaults setObject:str forKey:ISLaunchImageUrl];
+                [defaults synchronize];
+                [imageV sd_setImageWithURL:[NSURL URLWithString:str]];
+                [vc.window bringSubviewToFront:launch.view];
+                vc.launchView = launch.view;
+            }
+        });
+    } Fail:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [vc.window bringSubviewToFront:launch.view];
+            vc.launchView = launch.view;
+        });
+    }];
+
+}
+
+- (void)removeLun {
+    [self.launchView setHidden:TRUE];
+    [self.launchView removeFromSuperview];
+}
+
+-(void)crash{
+    NSException *e = [NSException
+                      exceptionWithName: @"BoxOverflowException"
+                      reason: @"The level is above 100"
+                      userInfo: nil];
+    @throw e;
+
+}
+
+-(void)showGuideView
+{
+    [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"USEGUIDE"];
+    UIStoryboard *storyBoard2 = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    UseGuideViewController  *guideVC = [storyBoard2 instantiateViewControllerWithIdentifier:@"UserGuideVCStoryboardID"];
+    self.window.rootViewController = guideVC;
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
+-(void) onReq:(BaseReq*)req
+{
+    if([req isKindOfClass:[GetMessageFromWXReq class]])
+    {
+        NSString *strTitle = [NSString stringWithFormat:@"微信请求App提供内容"];
+        NSString *strMsg = @"微信请求App提供内容，App要调用sendResp:GetMessageFromWXResp返回给微信";
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strTitle message:strMsg delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        alert.tag = 1000;
+        [alert show];
+    }
+    else if([req isKindOfClass:[ShowMessageFromWXReq class]])
+    {
+        ShowMessageFromWXReq* temp = (ShowMessageFromWXReq*)req;
+        WXMediaMessage *msg = temp.message;
+        WXAppExtendObject *obj = msg.mediaObject;
+        NSString *strTitle = [NSString stringWithFormat:@"微信请求App显示内容"];
+        NSString *strMsg = [NSString stringWithFormat:@"标题：%@ \n内容：%@ \n附带信息：%@ \n缩略图:%lu bytes\n\n", msg.title, msg.description, obj.extInfo, (unsigned long)msg.thumbData.length];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strTitle message:strMsg delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
+    }
+    else if([req isKindOfClass:[LaunchFromWXReq class]])
+    {
+        NSString *strTitle = [NSString stringWithFormat:@"从微信启动"];
+        NSString *strMsg = @"这是从微信启动的消息";
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strTitle message:strMsg delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
+    }
+}
+
+-(void) onResp:(BaseResp*)resp
+{
+    if([resp isKindOfClass:[SendMessageToWXResp class]])
+    {
+//        NSString *strTitle = [NSString stringWithFormat:@"发送媒体消息结果"];
+        NSString *strMsg = [NSString stringWithFormat:@"errcode:%d", resp.errCode];
+        NSLog(@"%@",strMsg);
+    }
+}
+
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+{
+//    return  [WXApi handleOpenURL:url delegate:self];
+     return  [UMSocialSnsService handleOpenURL:url];
+}
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+    // 登录需要编写
+    [UMSocialSnsService applicationDidBecomeActive];
+}
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    BOOL result = [UMSocialSnsService handleOpenURL:url];
+    if (result == FALSE) {
+        //调用其他SDK，例如支付宝SDK等
+    }
+    return result;
+}
+
+
+#pragma mark --引导图代理
+-(void)removeGuideView
+{
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+    
+}
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    
+    NSLog(@"application Did Enter Back ground!");
+    self.isForeground = NO;
+    [self beingBackgroundUpdateTask];
+//    MovierTranslation* tmpload = [MovierTranslation Singleton];
+//    [tmpload reTranslateData];
+    
+    POSTNOTI(APPBACKGROUND, nil);
+}
+
+- (void)beingBackgroundUpdateTask
+{
+    self.backgroundUpdateTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        [self endBackgroundUpdateTask];
+    }];
+}
+- (void)endBackgroundUpdateTask
+{
+    [[UIApplication sharedApplication] endBackgroundTask: self.backgroundUpdateTask];
+    self.backgroundUpdateTask = UIBackgroundTaskInvalid;
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    NSLog(@"application Will Enter Foreground!");
+    self.isForeground = YES;
+    
+    POSTNOTI(APPFOREGROUND, nil);
+    
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    
+}
+//定义日志文件格式和输出位置
+- (void)redirectNSLogToDocumentFolder{
+    
+    NSString *fileName =[NSString stringWithFormat:@"%@.log",[MovierUtils stringFromDate:[NSDate date] ]];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *logFilePath = [documentsDirectory stringByAppendingPathComponent:fileName];
+    freopen([logFilePath cStringUsingEncoding:NSASCIIStringEncoding],"a+",stderr);
+}
+
+#pragma mark  个推
+/** 注册远程通知 */
+- (void)registerRemoteNotification {
+    
+#ifdef __IPHONE_8_0
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+        //IOS8 新的通知机制category注册
+        UIMutableUserNotificationAction *action1;
+        action1 = [[UIMutableUserNotificationAction alloc] init];
+        [action1 setActivationMode:UIUserNotificationActivationModeBackground];
+        [action1 setTitle:@"取消"];
+        [action1 setIdentifier:NotificationActionOneIdent];
+        [action1 setDestructive:NO];
+        [action1 setAuthenticationRequired:NO];
+        
+        UIMutableUserNotificationAction *action2;
+        action2 = [[UIMutableUserNotificationAction alloc] init];
+        [action2 setActivationMode:UIUserNotificationActivationModeBackground];
+        [action2 setTitle:@"回复"];
+        [action2 setIdentifier:NotificationActionTwoIdent];
+        [action2 setDestructive:NO];
+        [action2 setAuthenticationRequired:NO];
+        
+        
+        UIMutableUserNotificationCategory *actionCategory;
+        actionCategory = [[UIMutableUserNotificationCategory alloc] init];
+        [actionCategory setIdentifier:NotificationCategoryIdent];
+        [actionCategory setActions:@[ action1, action2 ]
+                        forContext:UIUserNotificationActionContextDefault];
+        
+        NSSet *categories = [NSSet setWithObject:actionCategory];
+        UIUserNotificationType types = (UIUserNotificationTypeAlert |
+                                        UIUserNotificationTypeSound |
+                                        UIUserNotificationTypeBadge);
+        
+        UIUserNotificationSettings *settings;
+        settings = [UIUserNotificationSettings settingsForTypes:types categories:categories];
+        [[UIApplication sharedApplication] registerForRemoteNotifications];
+        [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+        
+    } else {
+        UIRemoteNotificationType apn_type = (UIRemoteNotificationType)(UIRemoteNotificationTypeAlert |
+                                                                       UIRemoteNotificationTypeSound |
+                                                                       UIRemoteNotificationTypeBadge);
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:apn_type];
+    }
+#else
+    UIRemoteNotificationType apn_type = (UIRemoteNotificationType)(UIRemoteNotificationTypeAlert |
+                                                                   UIRemoteNotificationTypeSound |
+                                                                   UIRemoteNotificationTypeBadge);
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:apn_type];
+#endif
+}
+
+/** 远程通知注册成功委托 */
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    NSString *myToken = [[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
+    myToken = [myToken stringByReplacingOccurrencesOfString:@" " withString:@""];
+    [GeTuiSdk registerDeviceToken:myToken];    /// 向个推服务器注册deviceToken
+    NSLog(@"\n>>>[DeviceToken Success]:%@\n\n",myToken);
+    self.thisDeviceToken = myToken;
+}
+/** 远程通知注册失败委托 */
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+    // [3-EXT]:如果APNS注册失败，通知个推服务器
+    [GeTuiSdk registerDeviceToken:@""];
+    NSLog(@"%@",[NSString stringWithFormat:@"didFailToRegisterForRemoteNotificationsWithError:%@", [error localizedDescription]]);
+}
+
+
+- (void)application:(UIApplication *)application performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+    /// Background Fetch 恢复SDK 运行
+    [GeTuiSdk resume];
+    completionHandler(UIBackgroundFetchResultNewData);
+}
+
+
+/** SDK启动成功返回cid */
+- (void)GeTuiSdkDidRegisterClient:(NSString *)clientId {
+    // [4-EXT-1]: 个推SDK已注册，返回clientId
+    NSLog(@"\n>>>[GeTuiSdk RegisterClient]:%@\n\n", clientId);
+}
+
+/** SDK遇到错误回调 */
+- (void)GeTuiSdkDidOccurError:(NSError *)error {
+    // [EXT]:个推错误报告，集成步骤发生的任何错误都在这里通知，如果集成后，无法正常收到消息，查看这里的通知。
+    NSLog(@"\n>>>[GexinSdk error]:%@\n\n", [error localizedDescription]);
+}
+
+/** SDK收到透传消息回调 */
+- (void)GeTuiSdkDidReceivePayloadData:(NSData *)payloadData andTaskId:(NSString *)taskId andMsgId:(NSString *)msgId andOffLine:(BOOL)offLine fromGtAppId:(NSString *)appId{
+    
+    NSString *payloadMsg = nil;
+    if (payloadData) {
+        payloadMsg = [[NSString alloc] initWithBytes:payloadData.bytes
+                                              length:payloadData.length
+                                            encoding:NSUTF8StringEncoding];
+    }
+    
+    //解析json形式的数据
+    [AnalysisMes analysisMes:payloadMsg];
+    NSLog(@"Payload Msg:%@", payloadMsg);
+    
+    // 汇报个推自定义事件
+    [GeTuiSdk sendFeedbackMessage:90001 andTaskId:taskId andMsgId:msgId];
+}
+
+/** APP已经接收到“远程”通知(推送) - 透传推送消息  */
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+
+    //该方法在个推第一次推送时会调用，同时在用户点击外部消息时也调用
+    // 处理APNs代码，通过userInfo可以取到推送的信息（包括内容，角标，自定义参数等）。如果需要弹窗等其他操作，则需要自行编码。
+    NSLog(@"\n>>>APP已经接收到“远程”通知(推送) - 透传推送消息 - [Receive RemoteNotification - Background Fetch]:%@\n\n",userInfo);
+    if (!self.isForeground) {
+    }
+    if (application.applicationState != UIApplicationStateBackground && application.applicationState != UIApplicationStateActive) {
+        
+         [[UIApplication sharedApplication] cancelAllLocalNotifications];
+        //进入前台时处理跳转，只要运行进入这里就有消息，并且是用户点击app外部消息进入
+        
+        //解析消息类根据信息跳转到相应的页面
+        [AnalysisMes pushVcWithDic:userInfo];
+    }else{
+        [UIApplication sharedApplication].applicationIconBadgeNumber += 1;
+    }
+    completionHandler(UIBackgroundFetchResultNewData);
+}
+
+/** 更新showNoticeVc属性*/
+- (void)updateshowNoticeVcWithData:(NSInteger)showNoticeVc{
+    self.showNoticeVc = showNoticeVc;
+}
+
+@end

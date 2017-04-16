@@ -1,0 +1,17 @@
+//
+//  WkWebViewViewController.h
+//  M-Cut
+//
+//  Created by liquangang on 16/9/23.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "BaseViewController.h"
+
+@interface WkWebViewViewController : BaseViewController
+/** 需要设置的title*/
+@property (nonatomic, copy) NSString * titleStr;
+/** 需要打开的URL*/
+@property (nonatomic, copy) NSString * needOpenURL;
+@end

@@ -1,0 +1,13 @@
+//
+//  FriendsViewController.h
+//  M-Cut
+//
+//  Created by Crab shell on 12/21/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface FriendsViewController : UIViewController
+
+@end

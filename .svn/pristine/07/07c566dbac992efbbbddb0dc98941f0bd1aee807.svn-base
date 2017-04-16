@@ -1,0 +1,13 @@
+//
+//  MWICloudSearchBar.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//  搜索按钮点击出现的搜索框
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MWICloudSearchBar : UITextField
++ (instancetype)searchBar;
+@end

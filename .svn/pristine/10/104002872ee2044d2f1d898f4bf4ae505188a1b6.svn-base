@@ -1,0 +1,47 @@
+//
+//  ViewController.m
+//  FirstDemo
+//
+//  Created by admin on 16/2/29.
+//  Copyright © 2016年 admin. All rights reserved.
+//
+#import <AFNetworking.h>
+#import "ViewController.h"
+
+@interface ViewController ()
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    [self downloadData];
+}
+
+#pragma mark - downloadData
+- (void)downloadData
+{
+    NSString * urlString = @"http://www.bundpic.com/app-post?n=10&p=3";
+    NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    NSURLRequest * request = [NSURLRequest requestWithURL:url];
+    AFHTTPRequestOperation * operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSString * string = operation.responseString;
+        NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
+        id dic = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        NSLog(@"%@", dic);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"错误%@", error);
+    }];
+    NSOperationQueue * queue = [[NSOperationQueue alloc] init];
+    [queue addOperation:operation];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+@end

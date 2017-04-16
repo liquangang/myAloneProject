@@ -1,0 +1,16 @@
+//
+//  MWICloudListCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//  上传或下载完成的 cell
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel;
+
+@interface MWICloudListCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

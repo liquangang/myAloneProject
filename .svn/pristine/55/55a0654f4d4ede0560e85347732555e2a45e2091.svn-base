@@ -1,0 +1,53 @@
+//
+//  IcloudStorageTableViewCell.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/2.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "IcloudStorageTableViewCell.h"
+
+
+@implementation IcloudStorageTableViewCell
+
+- (void)awakeFromNib {
+    // Initialization code
+    //[self initViews];
+}
+//- (void)initViews{
+//
+//    if (self.isExpand) {
+//        //_downLoadAnddeleteButtonView = [[[NSBundle mainBundle]loadNibNamed:@"DownLoadAnddeleteButtonView" owner:self options:nil] lastObject];
+//      //  [self.contentView addSubview:_downLoadAnddeleteButtonView];
+//    }
+//    
+//}
+
+//- (void)layoutSubviews
+//{
+//    [super layoutSubviews];
+//    if (self.isExpand) {
+//       
+//        _downLoadAnddeleteButtonView.frame = CGRectMake(0, self.icloudFolderImgv.bottom+10, self.width, self.height);
+//        _downLoadAnddeleteButtonView.downloadButtton.hidden = NO;
+//        _downLoadAnddeleteButtonView.cancelButton.hidden = NO;
+//        
+//    }else {
+//        _downLoadAnddeleteButtonView.downloadButtton.hidden = YES;
+//        _downLoadAnddeleteButtonView.cancelButton.hidden = YES;
+//        _downLoadAnddeleteButtonView.frame = CGRectZero;
+//    
+//    }
+//}
+
+- (IBAction)pullDownButtonAction:(id)sender {
+    self.isExpand =  !self.isExpand;
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+@end

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10116" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" rowHeight="191" id="KGk-i7-Jjw" customClass="UploadCell">
+            <rect key="frame" x="0.0" y="0.0" width="504" height="191"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="504" height="190"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XXU-uB-vwH">
+                        <rect key="frame" x="4" y="2" width="496" height="186"/>
+                        <subviews>
+                            <view alpha="0.30000001192092901" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ha0-z8-3eE">
+                                <rect key="frame" x="0.0" y="0.0" width="496" height="186"/>
+                                <color key="backgroundColor" red="0.18823529411764706" green="0.22745098039215686" blue="0.27843137254901962" alpha="1" colorSpace="calibratedRGB"/>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WrK-H3-ciD">
+                                <rect key="frame" x="4" y="3" width="492" height="61"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="正在上传中..." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ax1-cr-wqW">
+                                <rect key="frame" x="4" y="64" width="492" height="61"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AQa-5C-2mN">
+                                <rect key="frame" x="4" y="125" width="426" height="61"/>
+                                <subviews>
+                                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uvt-82-McS">
+                                        <rect key="frame" x="0.0" y="29" width="404" height="5"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="5" id="54T-zv-yE3"/>
+                                            <constraint firstAttribute="width" constant="150" id="6wb-bS-NS4"/>
+                                        </constraints>
+                                        <color key="progressTintColor" red="1" green="0.30588235289999999" blue="0.29803921570000003" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="trackTintColor" red="0.25098039220000001" green="0.2901960784" blue="0.34509803919999998" alpha="1" colorSpace="calibratedRGB"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="6wb-bS-NS4"/>
+                                            </mask>
+                                        </variation>
+                                    </progressView>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="uvt-82-McS" firstAttribute="leading" secondItem="AQa-5C-2mN" secondAttribute="leading" id="JQe-Ds-yvz"/>
+                                    <constraint firstItem="uvt-82-McS" firstAttribute="centerY" secondItem="AQa-5C-2mN" secondAttribute="centerY" id="XGS-2O-0IG"/>
+                                    <constraint firstItem="uvt-82-McS" firstAttribute="centerX" secondItem="AQa-5C-2mN" secondAttribute="centerX" id="dyB-K8-HMZ"/>
+                                    <constraint firstAttribute="trailing" secondItem="uvt-82-McS" secondAttribute="trailing" id="jfE-zB-wvv"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="ax1-cr-wqW" firstAttribute="leading" secondItem="XXU-uB-vwH" secondAttribute="leading" constant="4" id="2ok-um-3aP"/>
+                            <constraint firstItem="AQa-5C-2mN" firstAttribute="leading" secondItem="XXU-uB-vwH" secondAttribute="leading" constant="4" id="A3r-vG-ZLS"/>
+                            <constraint firstAttribute="trailing" secondItem="ax1-cr-wqW" secondAttribute="trailing" id="BNF-5j-uWC"/>
+                            <constraint firstAttribute="bottom" secondItem="ha0-z8-3eE" secondAttribute="bottom" id="CnP-3e-VLZ"/>
+                            <constraint firstItem="AQa-5C-2mN" firstAttribute="height" secondItem="WrK-H3-ciD" secondAttribute="height" id="Ftr-qd-UOX"/>
+                            <constraint firstItem="ax1-cr-wqW" firstAttribute="top" secondItem="WrK-H3-ciD" secondAttribute="bottom" id="H2u-8R-JGf"/>
+                            <constraint firstItem="AQa-5C-2mN" firstAttribute="top" secondItem="ax1-cr-wqW" secondAttribute="bottom" id="LGn-DG-AOd"/>
+                            <constraint firstAttribute="bottom" secondItem="AQa-5C-2mN" secondAttribute="bottom" id="MlR-9r-BWT"/>
+                            <constraint firstItem="ha0-z8-3eE" firstAttribute="leading" secondItem="XXU-uB-vwH" secondAttribute="leading" id="S2P-AV-O4j"/>
+                            <constraint firstAttribute="trailing" secondItem="WrK-H3-ciD" secondAttribute="trailing" id="cOU-ez-rU1"/>
+                            <constraint firstItem="ha0-z8-3eE" firstAttribute="top" secondItem="XXU-uB-vwH" secondAttribute="top" id="eKB-QT-NCT"/>
+                            <constraint firstAttribute="trailing" secondItem="AQa-5C-2mN" secondAttribute="trailing" constant="66" id="eV9-da-vCC"/>
+                            <constraint firstItem="WrK-H3-ciD" firstAttribute="leading" secondItem="XXU-uB-vwH" secondAttribute="leading" constant="4" id="rcH-k9-Zc9"/>
+                            <constraint firstItem="WrK-H3-ciD" firstAttribute="top" secondItem="XXU-uB-vwH" secondAttribute="top" constant="3" id="rij-AF-4dQ"/>
+                            <constraint firstAttribute="trailing" secondItem="ha0-z8-3eE" secondAttribute="trailing" id="u3s-Jv-nMe"/>
+                            <constraint firstItem="ax1-cr-wqW" firstAttribute="height" secondItem="WrK-H3-ciD" secondAttribute="height" id="yom-Lw-21N"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="XXU-uB-vwH" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="YVu-SB-Yrr"/>
+                    <constraint firstItem="XXU-uB-vwH" firstAttribute="centerX" secondItem="H2p-sc-9uM" secondAttribute="centerX" id="log-OC-7od"/>
+                    <constraint firstItem="XXU-uB-vwH" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="-4" id="tKe-Fs-HtM"/>
+                    <constraint firstItem="XXU-uB-vwH" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" constant="-6" id="unL-T8-BcF"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="uploadProgressView" destination="uvt-82-McS" id="INi-l8-k0G"/>
+                <outlet property="videoNameLabel" destination="WrK-H3-ciD" id="Suz-Oc-FcA"/>
+            </connections>
+            <point key="canvasLocation" x="759" y="367.5"/>
+        </tableViewCell>
+    </objects>
+</document>

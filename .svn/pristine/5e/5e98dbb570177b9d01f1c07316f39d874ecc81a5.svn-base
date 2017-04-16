@@ -1,0 +1,45 @@
+//
+//  InstructionsViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/11.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "InstructionsViewController.h"
+
+@implementation InstructionsViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+//    NSURLRequest *request =[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://115.28.154.117/phproot/service/index.html"]];
+//    [_instructionsWebView loadRequest:request];
+    
+    _instructionsWebView.delegate=self;
+  
+    NSString *filePath = [[NSBundle mainBundle]pathForResource:@"index" ofType:@"html"];
+    NSString *htmlString = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
+    [_instructionsWebView loadHTMLString:htmlString baseURL:[NSURL URLWithString:filePath]];
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+- (void)webViewDidFinishLoad:(UIWebView *)webView{
+//    [webView stringByEvaluatingJavaScriptFromString:@"rewrite();"];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+@end

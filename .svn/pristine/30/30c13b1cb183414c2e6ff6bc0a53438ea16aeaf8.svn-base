@@ -1,0 +1,42 @@
+//
+//  BaseNavigationBar.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/10.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "BaseNavigationBar.h"
+
+@implementation BaseNavigationBar
+
+-(void)awakeFromNib{
+    
+    
+    //    //把导航栏设置成不透明
+   //self.translucent = NO;
+
+    
+    
+    //set NavigationBar 背景颜色&title 颜色
+//    [self setBarTintColor:[UIColor colorWithRed:20/255.0 green:155/255.0 blue:213/255.0 alpha:1.0]];
+    [self setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIColor whiteColor],NSForegroundColorAttributeName,nil]];
+    [[UINavigationBar appearance]setBackgroundImage:[UIImage imageNamed:@"navigation_bg"] forBarMetrics:UIBarMetricsDefault];
+    
+    //self.barTintColor = [UIColor whiteColor];
+    self.tintColor = [UIColor whiteColor];
+
+    
+    
+    [self setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIColor whiteColor], NSForegroundColorAttributeName,[UIFont fontWithName:@"黑体" size:40],nil]];
+}
+
+/*
+// Only override drawRect: if you perform custom drawing.
+// An empty implementation adversely affects performance during animation.
+- (void)drawRect:(CGRect)rect {
+    // Drawing code
+}
+*/
+
+@end

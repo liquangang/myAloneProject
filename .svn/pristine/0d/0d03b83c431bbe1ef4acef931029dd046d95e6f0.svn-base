@@ -1,0 +1,13 @@
+//
+//  PersonalCollectionViewCell.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/2/5.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "PersonalTableViewCell.h"
+
+@implementation PersonalTableViewCell
+
+@end

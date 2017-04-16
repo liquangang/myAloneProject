@@ -1,0 +1,28 @@
+//
+//  UseGuideViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/12.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import <MediaPlayer/MediaPlayer.h>
+
+@protocol  UseGuideDelegate <NSObject>
+
+-(void)removeGuideView;
+
+@end
+
+@interface UseGuideViewController : UIViewController
+{
+    int currentPage;
+}
+@property (retain,nonatomic) IBOutlet UIScrollView *scrollView;
+@property(nonatomic,retain)MPMoviePlayerViewController *playerVC;
+@property (retain,nonatomic) UIPageControl *pageControl;
+@property (retain,nonatomic) UIImageView *guideView;
+@property (assign,nonatomic) id<UseGuideDelegate> delegate;
+
+@end

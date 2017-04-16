@@ -1,0 +1,33 @@
+//
+//  CircleQueryOrder.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/1/9.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+
+@interface QueryOrderDetail:NSObject{
+    
+}
+@property (nonatomic) NSInteger OrderID;//订单ID
+@property (nonatomic) NSInteger OrderStatus;//订单状态
+@property (strong,nonatomic) NSString *Time;//创建时间
+@property (strong,nonatomic) NSString *Thumbnail;//缩略图url
+@property (strong,nonatomic) NSString *szUrl;//生成视频url
+
+@end
+
+
+@interface CircleQueryOrderList : NSObject
+{
+    NSMutableArray *querylist;
+}
+
+
+@property(retain,nonatomic) NSMutableArray *querylist;
+
++ (CircleQueryOrderList *)Singleton;
+@end

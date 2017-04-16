@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="MWICloudFooterView">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="49"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jTW-S2-8Vs" userLabel="下载 view">
+                    <rect key="frame" x="0.0" y="0.0" width="200" height="49"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="I2n-17-aLg">
+                            <rect key="frame" x="64" y="11" width="72" height="27"/>
+                            <color key="backgroundColor" red="0.70980392156862748" green="0.70980392156862748" blue="0.71372549019607845" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="27" id="Udj-J7-b7I"/>
+                                <constraint firstAttribute="width" constant="72" id="a2m-3H-6dU"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <state key="normal" title="下载">
+                                <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="download:" destination="iN0-l3-epB" eventType="touchUpInside" id="MKf-4R-0jG"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerY" secondItem="I2n-17-aLg" secondAttribute="centerY" id="R1w-cu-Oio"/>
+                        <constraint firstAttribute="centerX" secondItem="I2n-17-aLg" secondAttribute="centerX" id="vpL-Jr-wV0"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MG2-hs-ypY" userLabel="移动 view">
+                    <rect key="frame" x="200" y="0.0" width="200" height="49"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wzo-5l-Pzi">
+                            <rect key="frame" x="64" y="11" width="72" height="27"/>
+                            <color key="backgroundColor" red="0.70980392160000005" green="0.70980392160000005" blue="0.71372549019999998" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="27" id="Dy1-Vx-Qs1"/>
+                                <constraint firstAttribute="width" constant="72" id="OPL-UK-dhp"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <state key="normal" title="移动">
+                                <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="move:" destination="iN0-l3-epB" eventType="touchUpInside" id="GH4-Qa-n58"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerX" secondItem="wzo-5l-Pzi" secondAttribute="centerX" id="A2d-MA-3Sp"/>
+                        <constraint firstAttribute="centerY" secondItem="wzo-5l-Pzi" secondAttribute="centerY" id="YbL-lm-vum"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="YdX-9d-fFc" userLabel="删除 view">
+                    <rect key="frame" x="400" y="0.0" width="200" height="49"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ApE-Mb-VCy">
+                            <rect key="frame" x="64" y="11" width="72" height="27"/>
+                            <color key="backgroundColor" red="0.93725490196078431" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="27" id="aa8-Fh-Z4D"/>
+                                <constraint firstAttribute="width" constant="72" id="jcR-w6-gUU"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <state key="normal" title="删除">
+                                <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="delete:" destination="iN0-l3-epB" eventType="touchUpInside" id="eSv-48-UU6"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerX" secondItem="ApE-Mb-VCy" secondAttribute="centerX" id="8xO-GK-TjE"/>
+                        <constraint firstAttribute="centerY" secondItem="ApE-Mb-VCy" secondAttribute="centerY" id="bZN-N0-vjh"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="0.55538137335526316" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="MG2-hs-ypY" firstAttribute="width" secondItem="YdX-9d-fFc" secondAttribute="width" id="6Eu-nw-mF0"/>
+                <constraint firstItem="jTW-S2-8Vs" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="8fj-H1-zrN"/>
+                <constraint firstItem="MG2-hs-ypY" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="DXj-FK-KXz"/>
+                <constraint firstItem="jTW-S2-8Vs" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="DiQ-82-H8p"/>
+                <constraint firstAttribute="bottom" secondItem="YdX-9d-fFc" secondAttribute="bottom" id="DkR-4Q-NGW"/>
+                <constraint firstItem="YdX-9d-fFc" firstAttribute="leading" secondItem="MG2-hs-ypY" secondAttribute="trailing" id="Edd-hV-G89"/>
+                <constraint firstItem="YdX-9d-fFc" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="HFU-de-lJm"/>
+                <constraint firstAttribute="trailing" secondItem="YdX-9d-fFc" secondAttribute="trailing" id="SrG-IS-M2I"/>
+                <constraint firstItem="YdX-9d-fFc" firstAttribute="leading" secondItem="MG2-hs-ypY" secondAttribute="trailing" id="elO-fl-kL3"/>
+                <constraint firstAttribute="bottom" secondItem="MG2-hs-ypY" secondAttribute="bottom" id="lNT-7t-dHZ"/>
+                <constraint firstItem="MG2-hs-ypY" firstAttribute="leading" secondItem="jTW-S2-8Vs" secondAttribute="trailing" id="oEY-gG-D5U"/>
+                <constraint firstItem="MG2-hs-ypY" firstAttribute="width" secondItem="jTW-S2-8Vs" secondAttribute="width" id="v0w-sF-hjf"/>
+                <constraint firstItem="MG2-hs-ypY" firstAttribute="leading" secondItem="jTW-S2-8Vs" secondAttribute="trailing" id="vdS-zh-ff7"/>
+                <constraint firstAttribute="bottom" secondItem="jTW-S2-8Vs" secondAttribute="bottom" id="wfm-sM-kJj"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <connections>
+                <outlet property="deleteBtn" destination="ApE-Mb-VCy" id="m4k-nv-Fjb"/>
+                <outlet property="downloadBtn" destination="I2n-17-aLg" id="2e9-4a-a6k"/>
+                <outlet property="moveBtn" destination="wzo-5l-Pzi" id="RE7-wf-P9a"/>
+            </connections>
+            <point key="canvasLocation" x="431" y="439.5"/>
+        </view>
+    </objects>
+</document>

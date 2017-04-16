@@ -1,0 +1,95 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++E7FA40D",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++D74144A" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++312+++E3C9EB8" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++A61DE88" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D896A8E" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++45D4BDD" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D27F0A6" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++E7FA40D" : {
+
+    },
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++DC384A7" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++D74144A" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++312+++E3C9EB8" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++A61DE88" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D896A8E" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++45D4BDD" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D27F0A6" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++E7FA40D" : 0,
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++DC384A7" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "F3FDC2F2-EE00-45C7-B568-321CD204C136",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++D74144A" : "M-Cut-alpha-Develop\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++312+++E3C9EB8" : "M-Cut-alpha-Develop2\/UIInterface\/NGMoviePlayer\/NGVolumeControl\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++A61DE88" : "M-Cut-alpha-Develop\/UIInterface\/NGMoviePlayer\/PSPushPopPressView\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D896A8E" : "M-Cut-alpha-Editing\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++45D4BDD" : "M-Cut-alpha-Develop2\/UIInterface\/NGMoviePlayer\/PSPushPopPressView\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D27F0A6" : "M-Cut-alpha-Develop\/UIInterface\/NGMoviePlayer\/PSPushPopPressView\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++E7FA40D" : "M-Cut-alpha-Editing\/UIInterface\/NGMoviePlayer\/PSPushPopPressView\/",
+    "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++DC384A7" : "M-Cut-alpha-Develop2\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "M-Cut",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "M-Cut.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++312+++E3C9EB8"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++45D4BDD"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++D74144A"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++DC384A7"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++3587+++E7FA40D"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++A61DE88"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D27F0A6"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/115.28.154.117\/svn\/M-Cut",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "eb9bb12a-4b99-b44c-be4d-16f17b48e5c7++50+++D896A8E"
+    }
+  ]
+}

@@ -1,0 +1,468 @@
+//
+//  SubtitleViewC.m
+//  M-Cut
+//
+//  Created by Crab00 on 15/8/17.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "SubtitleViewC.h"
+#import "APPUserPrefs.h"
+#import "CaptionEditeCollecterViewController.h"
+#import "MC_OrderAndMaterialCtrl.h"
+#import "ClipsViewC.h"
+#import "MovierDCInterfaceSvc.h"
+#import "UserEntity.h"
+/**  字幕修改页面*/
+#import "CaptionEditeNewViewController.h"
+#import <AVKit/AVKit.h>
+#import <AVFoundation/AVFoundation.h>
+
+@interface SubtitleViewC () <EditSubtitleDeleget, LQGCaptionEditeViewControllerDelegate, TextFieldChangeDelegate>
+/**  存放字幕的数组 */
+@property (strong, nonatomic)  NSMutableArray *subTitles;
+/**  选中的字幕模型 */
+@property (strong, nonatomic) MovierDCInterfaceSvc_vpVDCSubtitleC *selectTitle;
+/**  记录选中的哪一行 */
+@property (strong, nonatomic) NSIndexPath *indexPath;
+
+@property (strong, nonatomic) SubtitleCell *selectedCell;
+/**  记录编辑按钮点击的位置*/
+@property (nonatomic, assign) NSInteger editIndex;
+/**  传回影片概览页面的字母对象*/
+@property (nonatomic, strong) MovierDCInterfaceSvc_vpVDCSubtitleC * passSubtitle;
+/**  保存用户选中的状态*/
+@property (nonatomic, assign) BOOL isSelectSubtitle;
+@property (nonatomic, strong) AVPlayerViewController * subtitlePreviewPlayer;
+/**  保存下载次数*/
+@property (nonatomic, assign) int downloadTimes;
+@end
+
+@implementation SubtitleViewC
+
+- (NSMutableArray *)subTitles {
+    if (!_subTitles) {
+        self.subTitles = [NSMutableArray array];
+    }
+    return _subTitles;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    //默认没有选中任何字幕
+    self.isSelectSubtitle = NO;
+    
+    // Do any additional setup after loading the view from its nib.
+    nibsRegistered = NO;
+    selectedCell = 0;
+//    [_player.view.controlsView setHidden:TRUE];
+////    self.SubtitleShow.backgroundColor = [UIColor redColor];//测试使用arbin
+    [self SetTitleStyle];
+    [self initSubtitleView];
+    
+    [self setupNav];
+}
+
+// 设置导航左侧按钮
+- (void)setupNav {
+    // 左侧按钮
+    UIButton *leftBarButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [leftBarButton setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    leftBarButton.frame = CGRectMake(0, 0, 20, 20);
+    [leftBarButton addTarget:self action:@selector(leftBarButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    // 标题
+    UILabel *label = [[UILabel alloc] init];
+    label.text = @"选择字幕";
+    label.font = ISFont_17;
+    CGSize labelSize = [label.text sizeWithWidth:MAXFLOAT font:ISFont_17];
+    label.textColor = ISRGBColor(255, 255, 255);
+    label.frame = CGRectMake(0, 0, labelSize.width, labelSize.height);
+    self.navigationItem.titleView = label;
+    
+    //开启手势返回
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+- (void)leftBarButtonClick:(UIButton *)button {
+    if (self.subTitle) {
+        self.subTitle(self.passSubtitle);
+    }
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+-(void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    [self StopPlay];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    self.downloadTimes = 0;
+}
+
+//初始化的时候执行一次
+-(void)initSubtitleView
+{
+    MovierDCInterfaceSvc_vpQueryCond *QueryCond = [[MovierDCInterfaceSvc_vpQueryCond alloc] init];
+    QueryCond.nStyleID = 0;
+    QueryCond.nFilterID = 0;
+    QueryCond.nMusicID = 0;
+    QueryCond.nSubtitleID = 0;
+    
+    NewNSOrderDetail *noworder = [MC_OrderAndMaterialCtrl GetFreshOrder:[[UserEntity sharedSingleton].customerId intValue]];
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetSubtitleList:QueryCond Start:@(0) Count:@(50) Success:^(MovierDCInterfaceSvc_vpVDCSubtitleArray *SList) {
+        _SubtitleArray = [[NSMutableArray alloc]initWithCapacity:1];
+        for (int i = 0 ; i < [SList.item count]; i++){
+            MovierDCInterfaceSvc_vpVDCSubtitleC *Subtitleinfo = [SList.item objectAtIndex:i];
+            NSString *Name = (Subtitleinfo.szName==nil)?@"":Subtitleinfo.szName;
+            NSString *Thumbnail = (Subtitleinfo.szThumbnail==nil)?@"":Subtitleinfo.szThumbnail;
+            NSString *URL = (Subtitleinfo.szUrl==nil)?@"":Subtitleinfo.szUrl;
+            NSString *Model = (Subtitleinfo.szModel==nil)?@"":Subtitleinfo.szModel;
+            NSString *Recommond = (Subtitleinfo.szRecommend==nil)?@"":Subtitleinfo.szRecommend;
+//            NSLog(@"Subtitleinfo.szRecommend--------------------%@", Subtitleinfo.szRecommend);
+            NSString *Id = [NSString  stringWithFormat:@"%@",Subtitleinfo.nID ];
+            if ([Id isEqualToString:[NSString stringWithFormat:@"%d",noworder.nSubtitleID]]&&![noworder.szCustomerSubtitle isEqualToString:@""]) {
+                Recommond = noworder.szCustomerSubtitle;
+            }
+            NSString *Reference = (Subtitleinfo.szReference==nil)?@"":Subtitleinfo.szReference;
+            //字典表  name   URL    id    PlayURL   Discribe   Class
+            NSDictionary *Item = [NSDictionary dictionaryWithObjectsAndKeys:Name,@"name",
+                                  Thumbnail,@"URL",Id,@"id",URL,@"PlayURL",
+                                  Model,@"Model",Recommond,@"Recommond",Reference,@"ReferenceURL",nil];
+            if ([Subtitleinfo.nLength isEqualToNumber:@(90)]==YES)//
+            {
+                [self.subTitles addObject:Subtitleinfo];
+                [_SubtitleArray addObject:Item];
+            }
+
+        };
+        dispatch_async(dispatch_get_main_queue(),^(void){
+            [self.SubtitleList reloadData];
+        });
+    } Fail:^(NSError *error) {
+        if (weakSelf.downloadTimes > 6) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [UIWindow showMessage:@"网络好像有问题，请重试！" withTime:1.0];
+            });
+            return;
+        }
+        weakSelf.downloadTimes++;
+        [weakSelf initSubtitleView];
+    }];
+
+    
+    return;
+    
+//    App_vpQueryCond *app_vpQueryCond;
+//    app_vpQueryCond = [[App_vpQueryCond alloc] init];
+//    [app_vpQueryCond setCond:0 filter:0 music:0 sub:0];//查询条件
+//    
+//    dispatch_async(dispatch_get_global_queue(0, 0),^(void){
+//        
+//        NSMutableArray *Arrays = [[APPUserPrefs Singleton] APP_vpgetsubtitle:app_vpQueryCond Noffset:0 Ncount:120];
+//        while ([Arrays count]==0) {
+//            Arrays = [[APPUserPrefs Singleton] APP_vpgetsubtitle:app_vpQueryCond Noffset:0 Ncount:120];
+//            sleep(1);
+//        }
+//        _SubtitleArray = [[NSMutableArray alloc]initWithCapacity:1];
+//        
+//        NewNSOrderDetail *newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+//        
+//        for (int i = 0 ; i < Arrays.count; i++) {
+//            App_vpVDCSubtitle_C *Subtitleinfo = [Arrays objectAtIndex:i];
+//            NSString *Name = Subtitleinfo.szName;
+//            NSString *Thumbnail = Subtitleinfo.szThumbnail;
+//            NSString *URL = Subtitleinfo.szUrl;
+//            NSString *Model = Subtitleinfo.szModel;
+//            NSString *Recommond = Subtitleinfo.szRecommend;
+//            NSString *Id = [NSString  stringWithFormat:@"%d",Subtitleinfo.nID ];
+//            NSString *Reference = Subtitleinfo.szReference;
+//            //字典表  name   URL    id    PlayURL   Discribe   Class
+//            NSDictionary *Item = [NSDictionary dictionaryWithObjectsAndKeys:Name,@"name",
+//                                       Thumbnail,@"URL",Id,@"id",URL,@"PlayURL",
+//                                       Model,@"Model",Recommond,@"Recommond",Reference,@"ReferenceURL",nil];
+//            if (90 == Subtitleinfo.nLength)//
+//            {
+//                [_SubtitleArray addObject:Item];
+//            }
+//        }
+//    });
+}
+
+-(void)SetTitleStyle
+{
+    _newfilmName.layer.cornerRadius=8.0f;
+    _newfilmName.layer.masksToBounds=YES;
+    _newfilmName.layer.borderColor=[[UIColor colorWithRed:(CGFloat)44.0/256 green:(CGFloat)168/256 blue:(CGFloat)151/256 alpha:0.7]CGColor];
+    _newfilmName.layer.borderWidth= 1.0f;
+}
+
+-(void)viewDidLayoutSubviews
+{
+    //image
+    CGRect frame = self.SubtitleShow.frame;
+    frame.size.height = frame.size.width*408/720;
+    [self.SubtitleShow setFrame:frame];    
+    
+}
+
+-(void)changeOrderInfo:(int)subtitleId
+{
+//    NewNSOrderDetail *newNSOrderDetail = nil;
+//    if ([[NewUserOrderList Singleton].newcutlist count]) {
+//        newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+//    }else{
+//        NSLog(@"NewUserOrderList error!");
+//        return;
+//    }
+//    newNSOrderDetail.nSubtitleID = subtitleId;
+//    [[NewUserOrderList Singleton].newcutlist replaceObjectAtIndex:0 withObject:newNSOrderDetail];
+//    [[APPUserPrefs Singleton] APP_OrderDetailCacheInformationDBChange:newNSOrderDetail];
+    
+    NewNSOrderDetail *noworder = [MC_OrderAndMaterialCtrl GetFreshOrder:[[UserEntity sharedSingleton].customerId intValue]];
+    noworder.nSubtitleID = subtitleId;
+    [MC_OrderAndMaterialCtrl UpdateFresh:noworder];
+    
+}
+
+#pragma mark - 修改视频播放器
+-(void)playinit:(NSString*)url Name:(NSString*)videoname{
+    
+//    if (self.player == nil) {
+//        self.player = [[NGMoviePlayer alloc] init];
+//        [self.player addToSuperview:self.SubtitleShow withFrame:self.SubtitleShow.frame];
+//    }
+//    self.player.delegate = self;
+////    [self.player.view setHidden:TRUE];
+////    _player.view.controlsView.scrubbingTimeDisplay = NGMoviePlayerControlScrubbingTimeDisplayNone;
+//    [self.player setURL:[NSURL URLWithString:url] title:videoname];
+    self.subtitlePreviewPlayer = [[AVPlayerViewController alloc] init];
+    self.subtitlePreviewPlayer.player = [AVPlayer playerWithURL:[NSURL URLWithString:url]];
+    self.subtitlePreviewPlayer.view.frame = self.SubtitleShow.frame;
+    [self.view addSubview:self.subtitlePreviewPlayer.view];
+    self.subtitlePreviewPlayer.showsPlaybackControls = NO;
+    [self.subtitlePreviewPlayer.player play];
+}
+- (IBAction)textFieldDoneEditing:(id)sender {
+    [sender resignFirstResponder];
+    [self SetOrderTitle];
+    
+}
+
+-(IBAction)backgroundTap:(id)sender {
+    [_newfilmName resignFirstResponder];
+    [self SetOrderTitle];
+}
+
+-(void)StopPlay
+{
+    [self.player setURL:nil];
+    [self.player.view setHidden:true];
+}
+-(void)SetOrderTitle
+{
+//    NewNSOrderDetail *newNSOrderDetail = [[NewNSOrderDetail alloc] init];
+//    NewNSOrderDetail *newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+//    newNSOrderDetail.szVideoName = _newfilmName.text;
+//    [[NewUserOrderList Singleton].newcutlist replaceObjectAtIndex:0 withObject:newNSOrderDetail];
+//    [[APPUserPrefs Singleton] APP_OrderDetailCacheInformationDBChange:newNSOrderDetail];
+    
+        //arbin 2015-11-09  修改到新数据库内
+    NewNSOrderDetail *noworder = [MC_OrderAndMaterialCtrl GetFreshOrder:[[UserEntity sharedSingleton].customerId intValue]];
+    noworder.szVideoName = _newfilmName.text;
+    [MC_OrderAndMaterialCtrl UpdateFresh:noworder];
+    return;
+}
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    if (_SubtitleArray==nil) {
+        return 0;
+    }else
+        
+        return [_SubtitleArray count];
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 80;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"SubtitleCell";
+    NSDictionary *cellData = [_SubtitleArray objectAtIndex:[indexPath section]];
+    if (!nibsRegistered) {
+        UINib *nib = [UINib nibWithNibName:@"SubtitleCell" bundle:nil];
+        [tableView registerNib:nib forCellReuseIdentifier:CellIdentifier];
+        nibsRegistered = YES;
+    }
+    SubtitleCell *cell = [tableView dequeueReusableCellWithIdentifier:
+                       CellIdentifier];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"SubtitleCell" owner:nil options:nil] lastObject];
+    }
+//    NSString *musicname = [cellData objectForKey:@"name"];
+    NSString *content = [cellData objectForKey:@"Recommond"];
+    [cell setContent:content];
+//    cell.delegate = self.parentviewC;
+    cell.delegate = self;
+    cell.tag = indexPath.section;
+    cell.FirstT.tag = 100 + indexPath.section;
+//    NSLog(@"row = %d, section = %d",indexPath.row,indexPath.section);
+
+//        captionCell.bacgroundview.layer.borderWidth = 2;
+//        captionCell.bacgroundview.layer.borderColor = [UIColor colorWithRed:44.0/225.0 green:168.0/225.0 blue:151.0/225.0 alpha:1].CGColor;
+
+//    captionCell.labelView.text = [cellData objectForKey:@"Model"];
+    return cell;
+}
+
+#pragma mark --- TextFieldChangeDelegate
+-(void)changeText:(NSString *)text {
+    if (self.passSubtitle) {
+        //设置修改后的字母对象的相关属性
+        self.passSubtitle.szRecommend = text;
+         [self updateOrderSubtext:text];
+    }
+    // 设置修改后的文字
+    [self SetCellText:text];
+}
+
+#pragma mark ---- 编辑字幕 EditSubtitleDeleget
+- (void)Editbuttonttouched:(NSString*)context Index:(NSInteger)selectindex {
+    //-----------------跳转到字幕修改页面--------------
+    self.editIndex = selectindex;
+    CaptionEditeNewViewController * captionEdit = [[CaptionEditeNewViewController alloc] init];
+    captionEdit.stringText = context;
+    captionEdit.delegate = self;
+    [self.navigationController pushViewController:captionEdit animated:YES];
+}
+
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    SubtitleCell *cell = (SubtitleCell*)[tableView cellForRowAtIndexPath:indexPath];
+    NSString *content = cell.FirstT.text;
+    if (self.selectedCell == cell) {
+        self.selectedCell.seleImageView.hidden = !self.selectedCell.seleImageView.hidden;
+       self.passSubtitle = nil;
+    }else
+    {
+        self.passSubtitle = [self.subTitles objectAtIndex:indexPath.section];
+        self.passSubtitle.szRecommend = content;
+        
+        self.selectedCell.seleImageView.hidden = YES;
+        cell.seleImageView.hidden = NO;
+        self.selectedCell = cell;
+//        [self SetSelectTableCell:indexPath.item];
+    }
+    
+    NSDictionary *subtitle = [_SubtitleArray objectAtIndex:indexPath.section];
+    NSString *id = [subtitle objectForKey:@"id"];
+    NSString *thumbnailURL = [subtitle objectForKey:@"URL"];
+    NSString *playURL = [subtitle objectForKey:@"ReferenceURL"];
+    
+    [self.SubtitleShow setImageWithURL:[NSURL URLWithString:thumbnailURL]
+                      placeholderImage:[UIImage imageNamed:@"Default"]];
+    if (playURL!=nil) {
+        [self playinit:playURL Name:@""];
+    }
+    
+    
+
+    if (self.selectedCell.seleImageView.hidden == YES) {
+        [self updateOrderSubtext:@""];
+        self.selectTitle = nil;
+        self.indexPath = nil;
+        [self changeOrderInfo:-1];
+    }else{
+    self.selectTitle = self.subTitles[indexPath.section];
+    self.indexPath = indexPath;
+        [self updateOrderSubtext:content];
+            [self changeOrderInfo:[id intValue]];
+    }
+    
+}
+
+- (void)getSubTitle:(void (^)(MovierDCInterfaceSvc_vpVDCSubtitleC *))subTitle
+{
+    self.subTitle = subTitle;
+}
+
+-(void)updateOrderSubtext:(NSString*)newtext{
+//    NewNSOrderDetail *newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+//    if ([[NewUserOrderList Singleton].newcutlist count]) {
+//        newNSOrderDetail = [[NewUserOrderList Singleton].newcutlist objectAtIndex:0];
+//    }else{
+//        NSLog(@"NewUserOrderList error!");
+//        return;
+//    }
+//    newNSOrderDetail.szCustomerSubtitle = newtext;
+//    [[NewUserOrderList Singleton].newcutlist replaceObjectAtIndex:0 withObject:newNSOrderDetail];
+//    [[APPUserPrefs Singleton] APP_OrderDetailCacheInformationDBChange:newNSOrderDetail];
+    
+    //arbin 2015-11-09  修改到新数据库内
+    
+    NewNSOrderDetail *noworder = [MC_OrderAndMaterialCtrl GetFreshOrder:[[UserEntity sharedSingleton].customerId intValue]];
+    noworder.szCustomerSubtitle = newtext;
+//    noworder.nSubtitleID = ;
+    [MC_OrderAndMaterialCtrl UpdateFresh:noworder];
+}
+
+-(void)SetSelectTableCell:(NSInteger)index
+{
+    selectedCell = index;
+    NSIndexPath *indexpath = [NSIndexPath indexPathForRow:0 inSection:index];
+    [self.SubtitleList selectRowAtIndexPath:indexpath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+
+    return;
+}
+//设置cell内容
+-(void)SetCellText:(NSString*)newtext
+{
+    SubtitleCell *cell = self.selectedCell;
+    cell.FirstT.text = newtext;
+    UILabel * label = (id)[self.view viewWithTag:100 + self.editIndex];
+    label.text = newtext;
+   
+    return;
+}
+
+#pragma mark - NGMovierPlayDataSorceDeleget
+- (void)moviePlayer:(NGMoviePlayer *)moviePlayer didStartPlaybackOfURL:(NSURL *)URL{
+    [self.player.view setHidden:false];
+}
+
+- (void)moviePlayer:(NGMoviePlayer *)moviePlayer didFinishPlaybackOfURL:(NSURL *)URL {
+    [self.player.view setHidden:true];
+    [self.player pause];
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

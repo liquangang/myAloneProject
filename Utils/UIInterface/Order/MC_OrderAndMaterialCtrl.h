@@ -1,0 +1,90 @@
+//
+//  MC_OrderAndMaterialCtrl.h
+//  M-Cut
+//
+//  Created by Crab00 on 15/11/3.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "VideoDBOperation.h"
+
+typedef enum : NSUInteger {
+    USEASSERTS = 0,
+    USELOCALPATH = 1,
+} SEARCHTYPE;
+@interface MC_OrderAndMaterialCtrl : NSObject
+@property(nonatomic,retain)NSMutableArray *Order;//NewNSOrderDetail 数组
+//订单操作
+//-(void)AddOrderWithNoLogin;
+-(void)AddOrderWithLogin:(NewNSOrderDetail*)in;
+/**
+ @brief:修改订单状态  @param: 用户ID；
+ */
++(void)ChangeOrderStatus:(int)orderid Status:(ORDERSTATUS)setStatus;
+-(void)ChangeOSSOrderStatus:(int)orderid Status:(int)setStatus;
+//-(void)GetOrderfromVDC;
+-(void)GetLastUncommitOrder;
++(NSArray*)GetCommitOrder:(int)Userid;
++(NSArray*)GetReadyOrder:(int)Userid;
+/**
+ @brief:获取草稿订单  @param: 用户ID；
+ */
+-(NSArray*)GetUncommitOrder:(int)Userid;
++(NewNSOrderDetail*)GetTranferOrder:(int)Userid;
+/**
+*@brief:获取需要长传的订单s
+ */
++(NSArray*)GetTranferOrders:(int)Userid;
+-(void)UpdateOssId:(int)Userid Orderid:(int)orderid OSSId:(int)ossid;
+/**
+ *@brief:获取我的订单（上传中、待上传、等待制作审核）
+ */
++(NSArray*)QueryAllMyOrder:(int)Userid;
+
+/**
+ *@brief:将Fresh订单转换成草稿状态（Uncommit状态）
+ *@param: 用户ID；
+ */
++(void)Fresh2Uncommit:(int)Userid;
++(void)AddFreshOrder:(int)Userid;
+/**
+ @brief:获取最旧的草稿订单  @param: 用户ID；
+ */
++(NewNSOrderDetail*)GetFreshOrder:(int)Userid;
++(NewNSOrderDetail*)GetDraftOrder:(int)Userid Index:(int)index;
++(void)UpdateFresh:(NewNSOrderDetail*)in;
++(void)CommitOrder:(int)Userid;
++(void)DeleteDraftOrder:(int)Userid Order:(int)orderid;
++(void)DeleteOrder:(int)orderid;
+
+
+//素材操作
+//-(void)AddMaterialWithNoLogin;
+//-(void)AddMaterialWithLogin;
+-(void)MaterialHasUpload:(NSString*)localpath OSSPath:(NSString*)osspath AddressType:(SEARCHTYPE)addresstype Owner:(int)ownerid;
+
++(void)MC_AddMaterial:(int)Userid Material:(NewOrderVideoMaterial*)in Orderid:(int)orderid;
++(NSMutableArray*)GetMaterial:(int)Userid Orderid:(int)orderid;
++(NSMutableArray*)GetWSMaterial:(int)Userid Orderid:(int)orderid;
++(BOOL)FindMaterial:(int)Userid Orderid:(int)orderid URL:(NSString*)localpath URLType:(SEARCHTYPE)addresstype;
+/**
+ *@brief:删除该订单下素材
+ *@param: 用户ID；@param: 订单ID @param: 第几个
+ */
++(float)DeleteMaterialInOrder:(int)Userid Orderid:(int)orderid Index:(int)index;//返回删除素材的时长
+/**
+ *@brief:删除该订单下素材
+ *@param: 用户ID；@param: 订单ID @param: 第几个
+ */
++(BOOL)DeleteMaterialsInOrder:(int)Userid Orderid:(int)orderid;//返回删除素材的时长
+
+/** 更新素材映射表, 在草稿箱保存草稿时使用--(将上个订单的订单素材映射到下一个订单中) */
++(void)updateMaterial:(NSMutableArray *)materials orderId:(int)orderId;
+
+/**
+ *  更新订单的照做信息
+ */
++ (void)updateFollowVideoIdWithOrder:(NewNSOrderDetail *)orderDetail;
+
+@end

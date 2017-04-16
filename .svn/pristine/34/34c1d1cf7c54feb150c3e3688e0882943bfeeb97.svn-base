@@ -1,0 +1,75 @@
+//
+//  MWICloudUploadingCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//
+
+#import "MWICloudEditDownloadingOtherCell.h"
+#import "MWICloudModel.h"
+
+@interface MWICloudEditDownloadingOtherCell ()
+
+/**  右边操作按钮, 控制文件上传和暂停 */
+@property (weak, nonatomic) IBOutlet MWButton *operationButton;
+/**  右边操作按钮点击事件 */
+- (IBAction)operation:(UIButton *)sender;
+
+/**  文件缩略图 */
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+/**  进度 label --- 上传时显示进度 */
+@property (weak, nonatomic) IBOutlet UILabel *percentLabel;
+/**  文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+
+/**  左侧选择按钮点击 */
+@property (weak, nonatomic) IBOutlet UIButton *chooseButton;
+- (IBAction)chooseClick:(UIButton *)sender;
+
+@end
+
+@implementation MWICloudEditDownloadingOtherCell
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"otherEditDownloading";
+    MWICloudEditDownloadingOtherCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWICloudEditDownloadingOtherCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+    self.operationButton.selectedImageName = @"download_button";
+    self.operationButton.progress = 0;
+    self.operationButton.selected = NO;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+//    self.iconView.image = model.image;
+    self.nameLabel.text = model.file_name;
+    self.operationButton.selected = model.isDownloading;
+    self.chooseButton.selected = model.isSelected;
+}
+
+
+/**  cell 右侧操作按钮点击 */
+- (IBAction)operation:(UIButton *)sender {
+    
+    if ([self.delegate respondsToSelector:@selector(iCloudEditDownloadingOtherCell:didClickButton:)]) {
+        [self.delegate iCloudEditDownloadingOtherCell:self didClickButton:sender];
+    }
+    
+    sender.selected = !sender.selected;
+}
+
+/**  左侧选择按钮点击 */
+- (IBAction)chooseClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if ([self.delegate respondsToSelector:@selector(iCloudEditDownloadingOtherCell:didClickChooseButton:)]) {
+        [self.delegate iCloudEditDownloadingOtherCell:self didClickChooseButton:sender];
+    }
+}
+@end

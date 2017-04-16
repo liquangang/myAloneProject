@@ -1,0 +1,21 @@
+//
+//  MWChooseAlbumViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MWChooseAlbumViewController : UIViewController
+/**
+ *  选择文件的类型
+ */
+@property (copy, nonatomic) NSString *type;
+
+/**
+ *  相册的名称
+ */
+@property (copy, nonatomic) NSString *albumName;
+@end

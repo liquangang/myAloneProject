@@ -1,0 +1,41 @@
+//
+//  MyFavourateViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/22.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "UIViewExt.h"
+#import "MoviePlayerViewController.h"
+#import "CollectpageVideoOrder.h"
+#import "APPUserPrefs.h"
+//#import "HomeCollectionViewCell.h"
+#import "MJRefresh.h"
+
+@interface MyFavourateViewController : UIViewController<UICollectionViewDelegateFlowLayout>
+{
+    IBOutlet UITableView *tabV;
+}
+@property (strong,nonatomic) NSMutableArray *imageLibraryArra;
+@property (nonatomic) NSInteger numberOfArra;
+@property (strong,nonatomic) NSMutableArray *videoID;
+@property (strong,nonatomic) NSMutableArray *videoName;
+@property (strong,nonatomic) NSMutableArray *ownerID;
+@property (strong,nonatomic) NSMutableArray *ownerName;
+@property (strong,nonatomic) NSMutableArray *ownerAcatar;
+@property (strong,nonatomic) NSMutableArray *videoLabelName;
+@property (strong,nonatomic) NSMutableArray *videoCreateTime;
+@property (strong,nonatomic) NSMutableArray *videoThumbnailUrl;
+@property (strong,nonatomic) NSMutableArray *videoReferenceUrl;
+@property (strong,nonatomic) NSMutableArray *videoNumberOfPraise;
+@property (strong,nonatomic) NSMutableArray *videoNumberOfShare;
+@property (strong,nonatomic) NSMutableArray *videoNumberOfFavorite;
+@property (strong,nonatomic) NSMutableArray *videoNumberOfComment;
+@property (strong,nonatomic) NSMutableArray *videoCollectStatus;
+@property (nonatomic,strong) NSMutableArray *szImage;
+@property (nonatomic,strong) NSMutableArray *ownerAcatarArr;
+@property (retain,nonatomic) UIWindow *window;
+
+@end

@@ -1,0 +1,470 @@
+//
+//  XMNPhotoCollectionController.m
+//  XMNPhotoPickerFrameworkExample
+//
+//  Created by XMFraker on 16/1/29.
+//  Copyright © 2016年 XMFraker. All rights reserved.
+//
+
+#import "XMNPhotoCollectionController.h"
+#import "XMNPhotoPickerController.h"
+#import "XMNPhotoPreviewController.h"
+#import "XMNVideoPreviewController.h"
+
+#import "XMNAssetModel.h"
+#import "XMNPhotoManager.h"
+
+#import "XMNAssetCell.h"
+#import "XMNBottomBar.h"
+
+#import "UIViewController+XMNPhotoHUD.h"
+
+#import "CustomeClass.h"
+
+@interface XMNPhotoCollectionController ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
+
+/** 底部状态栏 */
+@property (nonatomic, weak)   XMNBottomBar *bottomBar;
+
+/** 相册内所有的资源 */
+@property (nonatomic, copy)   NSArray<XMNAssetModel *> *assets;
+/** 选择的所有资源 */
+@property (nonatomic, strong) NSMutableArray *selectedAssets;
+
+/** 第一次进入时,自动滚动到底部 */
+@property (nonatomic, assign) BOOL autoScrollToBottom;
+
+@property (nonatomic, strong) UIImagePickerController * imagePickerVc;
+
+/** 当前的文件夹一共可以选择的素材数量*/
+@property (nonatomic, assign) NSInteger canSelectCount;
+
+/** 除本页面之外所有选中的xmnassmodel数组*/
+@property (nonatomic, strong) NSArray * otherVcSelectXMNAssModelArray;
+
+@end
+
+@implementation XMNPhotoCollectionController
+
+
+- (NSArray *)otherVcSelectXMNAssModelArray{
+    if (!_otherVcSelectXMNAssModelArray) {
+        _otherVcSelectXMNAssModelArray = [NSArray new];
+    }
+    return _otherVcSelectXMNAssModelArray;
+}
+
+static NSString * const kXMNAssetCellIdentifier = @"XMNAssetCell";
+
+- (UIImagePickerController *)imagePickerVc {
+    if (_imagePickerVc == nil) {
+        _imagePickerVc = [[UIImagePickerController alloc] init];
+        _imagePickerVc.delegate = self;
+        // set appearance / 改变相册选择页的导航栏外观
+        _imagePickerVc.navigationBar.barTintColor = self.navigationController.navigationBar.barTintColor;
+        _imagePickerVc.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+        UIBarButtonItem *tzBarItem, *BarItem;
+        if (iOS9Later) {
+            //            tzBarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[TZImagePickerController class]]];
+            BarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[UIImagePickerController class]]];
+        } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            //            tzBarItem = [UIBarButtonItem appearanceWhenContainedIn:[TZImagePickerController class], nil];
+            BarItem = [UIBarButtonItem appearanceWhenContainedIn:[UIImagePickerController class], nil];
+#pragma clang diagnostic pop
+        }
+        NSDictionary *titleTextAttributes = [tzBarItem titleTextAttributesForState:UIControlStateNormal];
+        [BarItem setTitleTextAttributes:titleTextAttributes forState:UIControlStateNormal];
+    }
+    return _imagePickerVc;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // Uncomment the following line to preserve selection between presentations
+    
+    
+    self.navigationItem.title = self.album.name;
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(_handleCancelAction)];
+    
+    self.autoScrollToBottom = YES;
+    self.selectedAssets = [NSMutableArray array];
+    
+    // 初始化collectionView的一些属性
+    [self _setupCollectionView];
+    [self _setupConstraints];
+    
+    //    //从相册中获取所有的资源model
+    //    __weak typeof(*&self) wSelf = self;
+    //    [[XMNPhotoManager sharedManager] getAssetsFromResult:self.album.fetchResult pickingVideoEnable:[(XMNPhotoPickerController *)self.navigationController pickingVideoEnable] completionBlock:^(NSArray<XMNAssetModel *> *assets) {
+    //        __weak typeof(*&self) self = wSelf;
+    //        self.assets = [NSArray arrayWithArray:assets];
+    //        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    //            __weak typeof(*&self) self = wSelf;
+    //           [self.assets enumerateObjectsUsingBlock:^(XMNAssetModel * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    //               [obj thumbnail];
+    //           }];
+    //        });
+    //        [self.collectionView reloadData];
+    //    }];
+    
+    [self downloadDataWithStatus:0];
+    
+    
+    if ([self.album.name isEqualToString:@"最近添加"] || [self.album.name isEqualToString:@"相机胶卷"]) {
+        [self.bottomBar setTakePhotoButtonHidden:NO];
+    }else{
+        [self.bottomBar setTakePhotoButtonHidden:YES];
+    }
+    
+    //注册超过180s的通知
+    REGISTEREDNOTI(whenTimeMore:, TIMEMORENOTI);
+}
+
+/** 当素材超过180s*/
+- (void)whenTimeMore:(NSNotification *)noti{
+    //移除选中数组的最后一个元素
+    //修改数据源中选中数组的最后一个元素为未选中
+    //刷新collectionview
+    XMNAssetModel * removeAssModel = self.selectedAssets[self.selectedAssets.count - 1];
+    NSMutableArray * tempMuArray = [NSMutableArray new];
+    for (XMNAssetModel * assModel in self.assets) {
+        if ([assModel.imageUrl isEqualToString:removeAssModel.imageUrl]) {
+            assModel.selected = NO;
+        }
+        [tempMuArray addObject:assModel];
+    }
+    
+    [self.selectedAssets removeObjectAtIndex:self.selectedAssets.count - 1];
+    self.assets = [tempMuArray copy];
+    MAINQUEUEUPDATEUI({
+        [self.collectionView reloadData];
+        [self.bottomBar updateBottomBarWithAssets:self.selectedAssets];
+    })
+    
+    [CustomeClass showMessage:@"您选择的素材时长超过180s了" ShowTime:1.5];
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    POSTNOTI(UPDATESELECTIMAGEARRAY, @{UPDATESELECTARRAYKEY:self.selectedAssets});
+}
+
+/** status ： 状态为0时为默认状态，从相册中第一次加载，如果为1则是从拍照界面返回的加载情况*/
+- (void)downloadDataWithStatus:(NSInteger)status{
+    [CustomeClass hudShowWithView:self.view Tag:123];
+    //从相册中获取所有的资源model
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        __weak typeof(*&self) wSelf = self;
+        [[XMNPhotoManager sharedManager] getAssetsFromResult:self.album.fetchResult pickingVideoEnable:[(XMNPhotoPickerController *)self.navigationController pickingVideoEnable] completionBlock:^(NSArray<XMNAssetModel *> *assets) {
+            __weak typeof(*&self) self = wSelf;
+            
+            //设置选中图片对象的selected属性为yes
+            NSMutableArray * tempMuArray = [NSMutableArray new];
+            if (status == 0) {
+                //默认加载方式
+                for (XMNAssetModel * assModel in assets) {
+                    BOOL isHave = NO;
+                    for (NSString * assUrl in self.selectCellImageNameArray) {
+                        if ([assUrl isEqualToString:assModel.imageUrl]) {
+                            assModel.selected = YES;
+                            isHave = YES;
+                        }
+                    }
+                    if (isHave) {
+                        [self.selectedAssets addObject:assModel];
+                    }
+                    [tempMuArray addObject:assModel];
+                }
+                
+                self.canSelectCount = 20 - (self.selectCellImageNameArray.count - self.selectedAssets.count);
+            }
+            
+            if (status == 1) {
+                XMNAssetModel * assModel = assets[assets.count - 1];
+                assModel.selected = YES;
+                [self.selectedAssets addObject:assModel];
+                for (XMNAssetModel * assModel in assets) {
+                    for (XMNAssetModel * subAssModel in self.selectedAssets) {
+                        if ([[assModel.fileAssUrl absoluteString] isEqualToString:[subAssModel.fileAssUrl absoluteString]]) {
+                            assModel.selected = YES;
+                        }
+                    }
+                    [tempMuArray addObject:assModel];
+                }
+            }
+            
+            MAINQUEUEUPDATEUI({
+                [self.bottomBar updateBottomBarWithAssets:self.selectedAssets];
+            })
+            
+            self.assets = [NSArray arrayWithArray:[tempMuArray copy]];
+            
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                __weak typeof(*&self) self = wSelf;
+                [self.assets enumerateObjectsUsingBlock:^(XMNAssetModel * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    [obj thumbnail];
+                }];
+            });
+            MAINQUEUEUPDATEUI({
+                [self.collectionView reloadData];
+                [CustomeClass hudHiddenWithView:self.view Tag:123];
+            })
+            
+        }];
+    }, {})
+
+    
+}
+
+- (void)reloadPhoto{
+    //重新加载该页面来获得刚才拍照的素材，目前采用这种方法，不合适，但未找到其他方法
+    //从相册中获取所有的资源model
+    __weak typeof(*&self) wSelf = self;
+    [[XMNPhotoManager sharedManager] getAlbumsPickingVideoEnable:[(XMNPhotoPickerController *)self.navigationController pickingVideoEnable] completionBlock:^(NSArray<XMNAlbumModel *> *albums) {
+        __strong typeof(*&wSelf) self = wSelf;
+        self.album = albums[self.collectionViewIndexPath.row];
+        [self downloadDataWithStatus:1];
+    }];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.autoScrollToBottom ?  [self.collectionView setContentOffset:CGPointMake(0, (self.assets.count / 4) * kXMNThumbnailWidth)] : nil;
+    self.autoScrollToBottom = NO;
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)dealloc {
+    NSLog(@"photo collection dealloc ");
+}
+
+#pragma mark - Methods
+
+- (void)_setupCollectionView {
+    self.collectionView.backgroundColor = [UIColor whiteColor];
+    self.collectionView.alwaysBounceHorizontal = NO;
+    self.collectionView.contentInset = UIEdgeInsetsMake(4, 4, 54, 4);
+    self.collectionView.scrollIndicatorInsets = self.collectionView.contentInset;
+    self.collectionView.contentSize = CGSizeMake(self.view.frame.size.width, ((self.assets.count + 3) / 4) * self.view.frame.size.width);
+    [self.collectionView registerNib:[UINib nibWithNibName:kXMNAssetCellIdentifier bundle:nil] forCellWithReuseIdentifier:kXMNAssetCellIdentifier];
+    
+    XMNBottomBar *bottomBar = [[XMNBottomBar alloc] initWithBarType:XMNCollectionBottomBar];
+    bottomBar.translatesAutoresizingMaskIntoConstraints = NO;
+    bottomBar.currentOrderId = self.currentOrderId;
+    
+    __weak typeof(*&self) wSelf = self;
+    [bottomBar setConfirmBlock:^{
+        __weak typeof(*&self) self = wSelf;
+        NSMutableArray * tempArray = [NSMutableArray new];
+        [tempArray addObjectsFromArray:[self.selectedAssets copy]];
+        [tempArray addObjectsFromArray:[self.allSelectMaterialMuArray copy]];
+        [(XMNPhotoPickerController *)self.navigationController didFinishPickingPhoto:tempArray];
+    }];
+    
+    WEAKSELF(weakSelf);
+    [bottomBar setTakePhotoBlock:^{
+        [weakSelf takePhoto];
+    }];
+    [self.view addSubview:self.bottomBar = bottomBar];
+}
+
+- (void)takePhoto {
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+    if ((authStatus == AVAuthorizationStatusRestricted || authStatus ==AVAuthorizationStatusDenied) && iOS8Later) {
+        [self showMessage];
+    } else { // 调用相机
+        UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+        if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera]) {
+            self.imagePickerVc.sourceType = sourceType;
+            if(iOS8Later) {
+                _imagePickerVc.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+            }
+            [self presentViewController:_imagePickerVc animated:YES completion:nil];
+        } else {
+            NSLog(@"模拟器中无法打开照相机,请在真机中使用");
+        }
+    }
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
+    if ([type isEqualToString:@"public.image"]) {
+        UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
+        [[XMNPhotoManager sharedManager] savePhotoWithImage:image completion:^{
+            //重新加载数据
+            [self reloadPhoto];
+            /*
+             
+             *  根据asset,type获取XMNAssetModel实例
+             *
+             *  @param asset 具体的Asset类型 PHAsset or ALAsset
+             *  @param type  asset类型
+             *
+             *  @return XMNAssetModel实例
+             //             */
+            //            + ( XMNAssetModel  * _Nonnull )modelWithAsset:(_Nonnull id)asset type:(XMNAssetType)type {
+            //                return [self modelWithAsset:asset type:type timeLength:@""];
+            //            }
+            
+            /**
+             *  根据asset,type,timeLength获取XMNAssetModel实例
+             *
+             *  @param asset      asset 非空
+             *  @param type       asset 类型
+             *  @param timeLength video时长
+             *
+             *  @return XMNAssetModel实例
+             */
+            //            + ( XMNAssetModel * _Nonnull )modelWithAsset:(_Nonnull id)asset type:(XMNAssetType)type timeLength:(NSString * _Nullable )timeLength {
+            //                XMNAssetModel *model = [[XMNAssetModel alloc] init];
+            //                model.asset = asset;
+            //                model.type = type;
+            //                model.timeLength = timeLength;
+            //                return model;
+            //            }
+            
+            //            XMNAssetModel * asset = []
+            //            [self.selectedAssets containsObject:asset] ? nil : [self.selectedAssets addObject:asset];
+            //            asset.selected = YES;
+            
+            
+        }];
+    }
+}
+
+/** 未允许使用相机权限*/
+- (void)showMessage{
+    UIAlertController * alert = [UIAlertController alertControllerWithTitle:nil message:@"请在iphone的“设置-隐私-相机”选项中，允许映像访问你的相机" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction * alertAction = [UIAlertAction actionWithTitle:@"ok" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        [alert removeFromParentViewController];
+    }];
+    [alert addAction:alertAction];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)_setupConstraints {
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.bottomBar attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1.0f constant:0.0f]];
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.bottomBar attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeRight multiplier:1.0f constant:0.0f]];
+    
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.bottomBar attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeBottom multiplier:1.0f constant:0.0f]];
+    
+    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.bottomBar attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0f constant:50.0f]];
+}
+
+- (void)_handleCancelAction {
+    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    XMNPhotoPickerController *photoPickerVC = (XMNPhotoPickerController *)self.navigationController;
+    [photoPickerVC didCancelPickingPhoto];
+}
+
+#pragma mark <UICollectionViewDataSource>
+
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
+    return 1;
+}
+
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    return self.assets.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    XMNAssetCell *assetCell = [collectionView dequeueReusableCellWithReuseIdentifier:kXMNAssetCellIdentifier forIndexPath:indexPath];
+    [assetCell configCellWithItem:self.assets[indexPath.row]];
+    __weak typeof(*&self) wSelf = self;
+    
+    // 设置assetCell willChangeBlock
+    [assetCell setWillChangeSelectedStateBlock:^BOOL(XMNAssetModel *asset) {
+        __weak typeof(*&self) self = wSelf;
+        if (!asset.selected) {
+            if (self.selectedAssets.count >= self.canSelectCount) {
+                [self showAlertWithMessage:[NSString stringWithFormat:@"最多只能选择%ld个素材",(unsigned long)self.canSelectCount]];
+                return NO;
+            }
+            return YES;
+        }else {
+            return NO;
+        }
+    }];
+    
+    // 设置assetCell didChangeBlock
+    [assetCell setDidChangeSelectedStateBlock:^(BOOL selected, XMNAssetModel *asset) {
+        __weak typeof(*&self) self = wSelf;
+        if (selected) {
+            [self.selectedAssets containsObject:asset] ? nil : [self.selectedAssets addObject:asset];
+            asset.selected = YES;
+        }else {
+            [self.selectedAssets containsObject:asset] ? [self.selectedAssets removeObject:asset] : nil;
+            asset.selected = NO;
+        }
+        [self.bottomBar updateBottomBarWithAssets:self.selectedAssets];
+    }];
+    
+    return assetCell;
+}
+
+#pragma mark <UICollectionViewDelegate>
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    //    XMNAssetModel *assetModel = self.assets[indexPath.row];
+    //    if (assetModel.type == XMNAssetTypeVideo) {
+    //        XMNVideoPreviewController *videoPreviewC = [[XMNVideoPreviewController alloc] init];
+    //        videoPreviewC.selectedVideoEnable = self.selectedAssets.count == 0;
+    //        videoPreviewC.asset = assetModel;
+    //        __weak typeof(*&self) wSelf = self;
+    //        [videoPreviewC setDidFinishPickingVideo:^(UIImage *coverImage, XMNAssetModel *asset) {
+    //            __weak typeof(*&self) self = wSelf;
+    //            [(XMNPhotoPickerController *)self.navigationController didFinishPickingVideo:asset];
+    //        }];
+    //        [self.navigationController pushViewController:videoPreviewC animated:YES];
+    //    }else {
+    XMNPhotoPreviewController *previewC = [[XMNPhotoPreviewController alloc] initWithCollectionViewLayout:[XMNPhotoPreviewController photoPreviewViewLayoutWithSize:[UIScreen mainScreen].bounds.size]];
+    previewC.assets = self.assets;
+    previewC.selectedAssets = self.selectedAssets;
+    previewC.currentIndex = indexPath.row;
+    previewC.maxCount = self.canSelectCount;
+    previewC.isShowSelectButton = YES;
+    __weak typeof(*&self) wSelf = self;
+    [previewC setDidFinishPreviewBlock:^(NSArray<XMNAssetModel *> *selectedAssets) {
+        __weak typeof(*&self) self = wSelf;
+        
+        [self.bottomBar updateBottomBarWithAssets:self.selectedAssets];
+        [self.collectionView reloadData];
+    }];
+    
+    [previewC setDidFinishPickingBlock:^(NSArray<UIImage *> *images, NSArray<XMNAssetModel *> *selectedAssets) {
+        __weak typeof(*&self) self = wSelf;
+        [(XMNPhotoPickerController *)self.navigationController didFinishPickingPhoto:selectedAssets];
+    }];
+    
+    [self.navigationController pushViewController:previewC animated:YES];
+    //    }
+    
+    [collectionView deselectItemAtIndexPath:indexPath animated:YES];
+}
+
+#pragma mark - Getters
+
++ (UICollectionViewLayout *)photoCollectionViewLayoutWithWidth:(CGFloat)width {
+    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+    CGFloat margin = kXMNMargin;
+    layout.itemSize = kXMNThumbnailSize;
+    layout.minimumInteritemSpacing = margin;
+    layout.minimumLineSpacing = margin;
+    return layout;
+}
+
+@end

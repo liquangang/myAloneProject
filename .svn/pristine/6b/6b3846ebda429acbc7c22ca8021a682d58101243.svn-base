@@ -1,0 +1,48 @@
+//
+//  MWICloudMoveFooterView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/5.
+//
+//
+
+#import "MWICloudMoveFooterView.h"
+
+@interface MWICloudMoveFooterView ()
+- (IBAction)newFolder:(UIButton *)sender;
+- (IBAction)move:(UIButton *)sender;
+@property (weak, nonatomic) IBOutlet UIButton *moveButton;
+
+@end
+
+@implementation MWICloudMoveFooterView
+
++ (instancetype)moveFooterView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWICloudMoveFooterView" owner:nil options:nil] lastObject];
+}
+
+//- (void)awakeFromNib {
+//    [self.moveButton setTitle:@"移动" forState:UIControlStateNormal];
+//}
+
+- (IBAction)newFolder:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(iCloudMoveFooterView:buttonType:)]) {
+        [self.delegate iCloudMoveFooterView:self buttonType:MWICloudMoveFooterViewButtonTypeNewFolder];
+    }
+}
+
+- (IBAction)move:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(iCloudMoveFooterView:buttonType:)]) {
+        [self.delegate iCloudMoveFooterView:self buttonType:MWICloudMoveFooterViewButtonTypeMove];
+    }
+}
+
+- (void)setTitle:(NSInteger)count {
+    if (count == 0) {
+        [self.moveButton setTitle:@"移动" forState:UIControlStateNormal];
+    } else {
+        NSString *title = [NSString stringWithFormat:@"移动(%ld)", count];
+        [self.moveButton setTitle:title forState:UIControlStateNormal];
+    }
+}
+@end

@@ -1,0 +1,77 @@
+//
+//  MWBadgeView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/22.
+//
+//
+
+#import "MWBadgeView.h"
+
+@implementation MWBadgeView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self setupWithFrame:frame];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        [self setupWithFrame:self.frame];
+    }
+    return self;
+}
+
+- (void)setupWithFrame:(CGRect)frame {
+    self.backgroundColor = [UIColor redColor];
+    CGFloat radius = MIN(frame.size.width * 0.5, frame.size.height * 0.5);
+    self.layer.cornerRadius = radius;
+    self.clipsToBounds = YES;
+}
+
+- (void)setFrame:(CGRect)frame {
+    [super setFrame:frame];
+    [self setupWithFrame:frame];
+    [self setNeedsDisplay];
+}
+
+- (void)setBadgeValue:(NSInteger)badgeValue {
+    _badgeValue = badgeValue;
+    [self setNeedsDisplay];
+}
+
+- (void)drawRect:(CGRect)rect {
+    if (self.badgeValue == 0) {
+        self.hidden = YES;
+    } else {
+        self.hidden = NO;
+        NSString *badge;
+        if (self.badgeValue > 99) {
+            badge = [NSString stringWithFormat:@"99+"];
+        } else {
+            badge = [NSString stringWithFormat:@"%ld", self.badgeValue];
+        }
+        
+        CGFloat x = rect.size.width * 0.5;
+        CGFloat y = rect.size.height * 0.5;
+        NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
+        if (self.badgeValue > 99) {     
+            attrs[NSFontAttributeName] = [UIFont boldSystemFontOfSize:9];
+        } else {
+            attrs[NSFontAttributeName] = [UIFont boldSystemFontOfSize:12];
+        }
+        attrs[NSForegroundColorAttributeName] = [UIColor whiteColor];
+        
+        CGSize size = [badge boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:attrs context:nil].size;
+        
+        CGPoint point = CGPointMake(x - size.width * 0.5, y - size.height * 0.5);
+        [badge drawAtPoint:point withAttributes:attrs];
+    }
+}
+
+- (void)dealloc {
+    NSLog(@"----MWBadgeView----dealloc");
+}
+@end

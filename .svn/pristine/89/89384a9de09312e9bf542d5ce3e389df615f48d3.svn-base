@@ -1,0 +1,134 @@
+//
+//  TelNumLoginViewController.m
+//  M-Cut
+//
+//  Created by liquangang on 16/9/27.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "TelNumLoginViewController.h"
+#import "TelephoneViewController.h"
+#import "ReinstallPasswordViewController.h"
+#import "SoapOperation.h"
+
+@interface TelNumLoginViewController ()
+@property (weak, nonatomic) IBOutlet UITextField *telTextField;
+@property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
+
+@end
+
+@implementation TelNumLoginViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    UILabel *label = [[UILabel alloc] init];
+    label.text = @"手机登录";
+    label.font = ISFont_17;
+    label.textColor = [UIColor whiteColor];
+    CGSize labelSize = [label.text sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:17], NSFontAttributeName, nil]];
+    label.frame = CGRectMake(0, 0, labelSize.width, labelSize.height);
+    self.navigationItem.titleView = label;
+    
+    
+}
+
+- (IBAction)registerButtonAction:(id)sender {
+    UIStoryboard *mainStroyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    TelephoneViewController *telephoneVC =[mainStroyBoard instantiateViewControllerWithIdentifier:@"telephone"] ;
+    [self.navigationController pushViewController:telephoneVC animated:YES];
+}
+
+- (IBAction)forgetPasswordButtonAction:(id)sender {
+    UIStoryboard *mainStroyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    ReinstallPasswordViewController *reinstallVC =[mainStroyBoard instantiateViewControllerWithIdentifier:@"reinstall"] ;
+    [self.navigationController pushViewController:reinstallVC animated:YES];
+}
+
+- (IBAction)loginButtonAction:(id)sender {
+//    [[SoapOperation Singleton] loginByAccountWithAccount:self.telTextField.text Password:self.passwordTextField.text AccountType:0 Success:^(NSMutableDictionary *serverDataDic) {
+//        
+//    } Fail:^(NSError *error) {
+//        
+//    }];
+    [self userLogin];
+}
+
+#pragma mark - 接口
+/** 初始化用户信息单例*/
+- (void)initUserIfoWithSession:(MovierDCInterfaceSvc_VDCSession *)ws_session{
+    WEAKSELF2
+    //初始化userentity
+    [[UserEntity sharedSingleton] Applogin:self.telTextField.text appPwd:self.passwordTextField.text LoginType:LoginTypePhone];
+    [UserEntity sharedSingleton].sessionId = [[NSString alloc] initWithFormat:@"%@",ws_session.nSessionID];
+    [UserEntity sharedSingleton].customerId = [NSString stringWithFormat:@"%@",ws_session.nCustomerID];
+    [UserEntity sharedSingleton].ossDir = ws_session.szRootDir;
+    [UserEntity sharedSingleton].ossKey = ws_session.szKey;
+    [[SoapOperation Singleton] WS_GetossConfig:ws_session Success:^(MovierDCInterfaceSvc_VDCOSSConfig *ossconfig) {
+        [UserEntity sharedSingleton].ossBucket = ossconfig.szBucket;
+        [UserEntity sharedSingleton].ossID = ossconfig.szID;
+        [UserEntity sharedSingleton].ossKey = ossconfig.szKey;
+        [UserEntity sharedSingleton].ossEndpoint = ossconfig.szEndpoint;
+        [[APPUserPrefs Singleton] StartOrderT];
+        //向后台发送cid和deviceToken
+        [weakSelf sendDeviceTokenAndCid];
+    } Fail:^(NSError *error) {
+        NSLog(@"get oss config error!");
+        NSLog(@"%@",[error localizedDescription]);
+    }];
+
+}
+
+/** 退出键盘*/
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    [self.view endEditing:YES];
+}
+
+/** 上传cid和devicetoken*/
+- (void)sendDeviceTokenAndCid{
+    //向后台发送cid和deviceToken
+    WEAKSELF2
+    [[SoapOperation Singleton] WS_operatedevicelistWithOperationType:1 Success:^(NSNumber *num) {
+        NSLog(@"向后台注册cid和deviceToken成功");
+    } Fail:^(NSError *error) {
+        RELOADSERVERDATA([weakSelf sendDeviceTokenAndCid];);
+    }];
+}
+
+/** 退出登录模块*/
+- (void)loginSuccess{
+    POSTNOTI(HIDDENLOGINANDREGISTERWINDOW, nil);
+}
+
+/** 登录*/
+- (void)userLogin{
+    WEAKSELF2
+    NSString* ver = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    [[SoapOperation Singleton] WS_Login:self.telTextField.text Password:self.passwordTextField.text withVersion:ver Encrypt:false Success:^(MovierDCInterfaceSvc_VDCSession *ws_session) {
+        [weakSelf initUserIfoWithSession:ws_session];
+        [weakSelf loginSuccess];
+    } Fail:^(NSNumber *loginstatus,NSError *error) {
+        [weakSelf userLoginErrorWithLoginStatus:loginstatus Error:error];
+    }];
+}
+
+/** 登录失败方法*/
+- (void)userLoginErrorWithLoginStatus:(NSNumber *)loginstatus Error:(NSError *)error{
+    NSLog(@"soap login error! ret = %@",loginstatus);
+    NSLog(@"%@",[error localizedDescription]);
+    if ([loginstatus isEqualToNumber:[NSNumber numberWithInt:MOVIERDC_SERVER_INVALIDUSERORPWD]]) {
+        NSString *message = [[NSString alloc] initWithFormat:@"登录失败，用户名或密码错误!"];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示!" message:message delegate:nil cancelButtonTitle:@"OK"otherButtonTitles:nil];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [alert show];
+        });
+        
+    }else{
+        NSString *message = [[NSString alloc] initWithFormat:@"登陆失败，请重新登陆!(%@)",loginstatus];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示!" message:message delegate:nil cancelButtonTitle:@"OK"otherButtonTitles:nil];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [alert show];
+        });
+    }
+}
+@end

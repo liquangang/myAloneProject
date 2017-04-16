@@ -1,0 +1,29 @@
+//
+//  MWMoveViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/6.
+//  移动文件夹的选择界面, 该界面只能显示文件夹
+//
+
+#import <UIKit/UIKit.h>
+@class MWMoveViewController;
+
+@protocol MWMoveViewControllerDelegate <NSObject>
+
+@optional
+- (void)moveViewControllerDidFinishMoveFolder;
+@end
+
+@interface MWMoveViewController : UIViewController
+
+@property (weak, nonatomic) id<MWMoveViewControllerDelegate> delegate;
+
+/**
+ *  数据源, 接收上个界面传递的数据
+ */
+@property (strong, nonatomic) NSMutableArray *files;
+
+/**  记录是否是从 相册选择控制器  跳转的 */
+@property (assign, nonatomic) BOOL isTransFromAlbum;
+@end

@@ -1,0 +1,18 @@
+//
+//  PersonalInfoRightTableViewCell.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/3/4.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@class PersonalInformationSet;
+
+@interface PersonalInfoRightTableViewCell : UITableViewCell
+
+@property (retain, nonatomic) IBOutlet UILabel *rightLabel;
+
+@property (retain, nonatomic) IBOutlet UILabel *nickNameLabel;
+//@property(nonatomic,retain)PersonalInformationSet *personalInformationSet;
+@end

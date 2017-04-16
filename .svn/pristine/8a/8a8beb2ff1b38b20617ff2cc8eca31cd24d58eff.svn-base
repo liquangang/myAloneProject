@@ -1,0 +1,41 @@
+//
+//  MWICloudHeaderView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/24.
+//  云空间顶部的操作视图
+//
+
+#import <UIKit/UIKit.h>
+
+typedef enum {
+    /**  添加 */
+    MWICloudHeaderViewButtonTypeAdd,
+    /**  排序 */
+    MWICloudHeaderViewButtonTypeSort,
+    /**  上传 */
+    MWICloudHeaderViewButtonTypeUpload,
+    /**  搜索 */
+    MWICloudHeaderViewButtonTypeSearch,
+    /**  上传下载排序 */
+    MWICloudHeaderViewButtonTypeList
+}MWICloudHeaderViewButtonType;
+
+@class MWICloudHeaderView;
+@protocol MWICloudHeaderViewDelegate <NSObject>
+@optional
+- (void)iCludeHeaderView:(MWICloudHeaderView *)icloudHeaderView buttonType:(MWICloudHeaderViewButtonType)buttonType;
+@end
+
+@interface MWICloudHeaderView : UIView
+@property (weak, nonatomic) IBOutlet UIButton *add;
+@property (weak, nonatomic) IBOutlet UIButton *sort;
+
+
+/**
+ *  @return 初始化头部视图
+ */
++ (instancetype)icloudHeaderView;
+
+@property (weak, nonatomic) id<MWICloudHeaderViewDelegate> delegate;
+@end

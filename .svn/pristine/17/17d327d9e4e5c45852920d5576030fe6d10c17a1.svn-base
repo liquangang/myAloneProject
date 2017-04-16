@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="3ZG-Hk-A6d" customClass="MWICloudMoveFooterView">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="49"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ol-Uv-94h" userLabel="新建文件夹">
+                    <rect key="frame" x="0.0" y="0.0" width="300" height="49"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vws-8D-RpA">
+                            <rect key="frame" x="100" y="11" width="100" height="27"/>
+                            <color key="backgroundColor" red="0.70980392156862748" green="0.70980392156862748" blue="0.71372549019607845" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="27" id="XDk-ZP-lYc"/>
+                                <constraint firstAttribute="width" constant="100" id="daP-gh-9eN"/>
+                            </constraints>
+                            <state key="normal" title="新建文件夹">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="newFolder:" destination="3ZG-Hk-A6d" eventType="touchUpInside" id="lvL-KV-iVW"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerX" secondItem="Vws-8D-RpA" secondAttribute="centerX" id="8zU-Bj-4fg"/>
+                        <constraint firstAttribute="centerY" secondItem="Vws-8D-RpA" secondAttribute="centerY" id="oxe-Q0-VF2"/>
+                    </constraints>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rG7-yG-nug" userLabel="移动">
+                    <rect key="frame" x="300" y="0.0" width="300" height="49"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ftY-pR-b88">
+                            <rect key="frame" x="100" y="11" width="100" height="27"/>
+                            <color key="backgroundColor" red="0.32490607262641896" green="0.75026555646929827" blue="0.58962495565660478" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="100" id="EAv-kC-X9c"/>
+                                <constraint firstAttribute="height" constant="27" id="oVo-3d-PrB"/>
+                            </constraints>
+                            <state key="normal" title="移动">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="move:" destination="3ZG-Hk-A6d" eventType="touchUpInside" id="TTo-XL-bW3"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerX" secondItem="ftY-pR-b88" secondAttribute="centerX" id="J00-aR-Gtw"/>
+                        <constraint firstAttribute="centerY" secondItem="ftY-pR-b88" secondAttribute="centerY" id="dXo-eR-9j4"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" red="0.55686274509803924" green="0.55686274509803924" blue="0.55686274509803924" alpha="1" colorSpace="calibratedRGB"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="rG7-yG-nug" secondAttribute="bottom" id="42u-yi-3Ma"/>
+                <constraint firstAttribute="trailing" secondItem="rG7-yG-nug" secondAttribute="trailing" id="6BL-dP-rQC"/>
+                <constraint firstItem="rG7-yG-nug" firstAttribute="leading" secondItem="2ol-Uv-94h" secondAttribute="trailing" id="EcL-Na-oDs"/>
+                <constraint firstItem="2ol-Uv-94h" firstAttribute="leading" secondItem="3ZG-Hk-A6d" secondAttribute="leading" id="KLo-xK-cEF"/>
+                <constraint firstItem="2ol-Uv-94h" firstAttribute="top" secondItem="3ZG-Hk-A6d" secondAttribute="top" id="Kni-Xx-CMu"/>
+                <constraint firstAttribute="bottom" secondItem="2ol-Uv-94h" secondAttribute="bottom" id="Lxa-c8-a6R"/>
+                <constraint firstItem="2ol-Uv-94h" firstAttribute="width" secondItem="rG7-yG-nug" secondAttribute="width" id="duS-nD-K1b"/>
+                <constraint firstItem="rG7-yG-nug" firstAttribute="top" secondItem="3ZG-Hk-A6d" secondAttribute="top" id="kzb-vf-lin"/>
+                <constraint firstItem="rG7-yG-nug" firstAttribute="leading" secondItem="2ol-Uv-94h" secondAttribute="trailing" id="pxC-Yg-G4D"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <connections>
+                <outlet property="moveButton" destination="ftY-pR-b88" id="Cg0-PQ-go9"/>
+            </connections>
+            <point key="canvasLocation" x="675" y="340.5"/>
+        </view>
+    </objects>
+</document>

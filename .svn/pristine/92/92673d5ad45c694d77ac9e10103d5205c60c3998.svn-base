@@ -1,0 +1,355 @@
+//
+//  HomepageSecondViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/8/9.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "HomepageViewController.h"
+#import "VideoDBOperation.h"
+#import "MyFourSearchCell2.h"
+#import "SoapOperation.h"
+#import "MySearchCell.h"
+#import "MySearchUserCell.h"
+#import <UIImageView+WebCache.h>
+#import "SearchUserVC.h"
+#import "Video.h"
+#import "HomeVideoDetailViewController.h"
+#import "MyVideoViewController.h"
+#import "CustomeClass.h"
+#import "MBProgressHUD.h"
+#import "OssFileDown.h"
+#import <AVFoundation/AVFoundation.h>
+#import <AVKit/AVKit.h>
+#import "ISStylePlayerCell.h"
+#import "ActivityViewController.h"
+#import "VideoLabelDetailViewController.h"
+#import "SearchVideoTableViewCell.h"
+#import "VideoShowViewController.h"
+#import "AppDelegate.h"
+#import "HomeSearchViewController.h"
+#import "PlayerView.h"
+#import "HomePageBelowCollectionViewCell.h"
+#import "ZFDownloadManager.h"
+
+@interface HomepageViewController ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
+/** 界面数据源*/
+@property (nonatomic, strong) NSMutableArray * belowLabelMuArray;
+@property (nonatomic, strong) NSMutableArray * aboveLabelMuArray;
+@property (nonatomic, strong) UICollectionView * homeCollectionView;
+/** 播放器*/
+@property (nonatomic, strong) AVPlayerViewController * videoPlayerVc;
+/** 影集上面的部分*/
+@property (nonatomic, strong) PlayerView * myPlayView;
+/** 播放状态*/
+@property (nonatomic, assign) BOOL isPlay;
+/** 下载状态*/
+@property (nonatomic, assign) BOOL isDownload;
+/** 本地url*/
+@property (nonatomic, copy) NSString * localHomePageVideoUrl;
+@end
+
+@implementation HomepageViewController
+
+#pragma mark - 属性懒加载
+- (NSMutableArray *)belowLabelMuArray{
+    if (!_belowLabelMuArray) {
+        _belowLabelMuArray = [NSMutableArray new];
+    }
+    return _belowLabelMuArray;
+}
+
+- (NSMutableArray *)aboveLabelMuArray{
+    if (!_aboveLabelMuArray) {
+        _aboveLabelMuArray = [NSMutableArray new];
+    }
+    return  _aboveLabelMuArray;
+}
+
+- (PlayerView *)myPlayView{
+    if (!_myPlayView) {
+        _myPlayView = [[PlayerView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, ISScreen_Width / 3 * 2 + 114)];
+        //设置背景图片或者视频内容
+        [self downloadHomePageVideo];
+        [self.view addSubview:_myPlayView];
+    }
+    return _myPlayView;
+}
+
+- (UICollectionView *)homeCollectionView{
+    if (!_homeCollectionView) {
+        //初始化collectionView
+        UICollectionViewFlowLayout * homeCollectionViewFlowLayout = [UICollectionViewFlowLayout new];
+        homeCollectionViewFlowLayout.itemSize = CGSizeMake(ISScreen_Width / 2 - 1, ISScreen_Width / 2 - 1);
+        homeCollectionViewFlowLayout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0);
+        homeCollectionViewFlowLayout.scrollDirection = UICollectionViewScrollDirectionVertical;
+        homeCollectionViewFlowLayout.minimumLineSpacing = 2;
+        homeCollectionViewFlowLayout.minimumInteritemSpacing = 2;
+        
+        self.automaticallyAdjustsScrollViewInsets = NO;
+        _homeCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, ISScreen_Width, ISScreen_Height - 49)
+                                                 collectionViewLayout:homeCollectionViewFlowLayout];
+        _homeCollectionView.dataSource = self;
+        _homeCollectionView.delegate = self;
+        _homeCollectionView.showsVerticalScrollIndicator = NO;
+        _homeCollectionView.backgroundColor = [UIColor whiteColor];
+        [_homeCollectionView registerClass:[HomePageBelowCollectionViewCell class] forCellWithReuseIdentifier:@"belowResuableStr"];
+        [_homeCollectionView registerClass:[UICollectionReusableView class]
+                forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"headerResuableStr"];
+        
+        [self.view addSubview:_homeCollectionView];
+    }
+    return _homeCollectionView;
+}
+
+#pragma mark - 视图生命周期
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        [[VideoDBOperation Singleton] setBadgeNum];
+    }, )
+    
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    
+    //注册app进入前台
+    REGISTEREDNOTI(playVideo:, APPFOREGROUND);
+    //注册app进入后台
+    REGISTEREDNOTI(pauseVideo:, APPBACKGROUND);
+    
+    REGISTEREDNOTI(pushToVideoLabelDetailVc:, PUSHTOVIDEOLABELDETAILVC);
+    
+    REGISTEREDNOTI(pushToSearchVc:, PUSHTOSEARCHVC);
+    
+    [self downloadDataWithOffset:0];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [self.tabBarController.tabBar setHidden:NO];
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    //打开侧滑手势
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+    [self playVideoWhenPause];
+    
+    //禁止侧滑手势
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    [self pauseVideoWhenPlay];
+}
+
+#pragma mark - 数据请求
+- (void)downloadDataWithOffset:(NSInteger)offset{
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        WEAKSELF(weakSelf);
+        [[SoapOperation Singleton] WS_getvideolabelsexWithVideoLabelLocation:2 Offset:offset Count:666
+                                                                     Success:^(NSMutableArray *serverDataArray) {
+            //如果传入的起始位置是0，认为是从头开始，所以移除所有元素
+            if (offset == 0) {
+                [weakSelf.belowLabelMuArray removeAllObjects];
+            }
+            
+            [weakSelf.belowLabelMuArray addObjectsFromArray:[serverDataArray copy]];
+            
+            MAINQUEUEUPDATEUI({
+                [weakSelf.homeCollectionView reloadSections:[[NSIndexSet alloc] initWithIndex:0]];
+                if (serverDataArray.count == 0) {
+                    [CustomeClass showMessage:@"没有更多分类了！" ShowTime:1.5];
+                }
+            })
+        } Fail:^(NSError *error) {
+            if (error.code == 6) {
+                MAINQUEUEUPDATEUI({
+                    [CustomeClass showMessage:@"没有更多分类了！" ShowTime:1.5];
+                })
+            }else {
+                RELOADSERVERDATA([weakSelf downloadDataWithOffset:offset];)
+            }
+        }];
+    }, {})
+}
+
+//首页视频下载
+- (void)downloadHomePageVideo{
+    WEAKSELF2
+    [[SoapOperation Singleton] WS_gethomepagebackgroundSuccess:^(NSString *serverString) {
+        [weakSelf downloadManagerDownloadWithServerStr:serverString];
+    } Fail:^(NSError *error) {
+        RELOADSERVERDATA([weakSelf downloadHomePageVideo];)
+    }];
+}
+
+- (void)downloadManagerDownloadWithServerStr:(NSString *)serverStr{
+    WEAKSELF2
+    [[ZFDownloadManager sharedDownloadManager] downFileUrl:serverStr filename:[serverStr lastPathComponent] fileimage:nil
+                                               ReturnBlock:^(BOOL isDownload, NSString *filePath) {
+        weakSelf.isDownload = isDownload;
+        [weakSelf setVideoPlayerWithPath:filePath];
+    }];
+}
+
+
+#pragma mark - 播放器部分
+- (void)setVideoPlayerWithPath:(NSString *)videoPath{
+    
+    MAINQUEUEUPDATEUI({
+        NSURL * videoUrl;
+        if ([videoPath containsString:@"http"]) {
+            NSLog(@"播放网络文件");
+            videoUrl = [NSURL URLWithString:videoPath];
+        }else{
+            self.localHomePageVideoUrl = videoPath;
+            NSLog(@"播放本地文件");
+            videoUrl = [NSURL fileURLWithPath:videoPath];
+        }
+        self.videoPlayerVc = nil;
+        self.videoPlayerVc = [AVPlayerViewController new];
+        self.videoPlayerVc.player = [AVPlayer playerWithPlayerItem:[[AVPlayerItem alloc] initWithURL:videoUrl]];
+        CGFloat playerViewH = ISScreen_Width / 3 * 2;
+        CGFloat playerViewW = playerViewH / 9 * 16;
+        self.videoPlayerVc.view.frame = CGRectMake( - (playerViewW - ISScreen_Width) / 2 , 0, playerViewW, playerViewH);
+        [self.myPlayView insertSubview:self.videoPlayerVc.view belowSubview:self.myPlayView.mySearchView];
+        self.videoPlayerVc.player.volume = 0;
+        self.videoPlayerVc.showsPlaybackControls = NO;
+        [self.videoPlayerVc.player play];
+        self.isPlay = YES;
+        REGISTEREDNOTI(videoPlayFinished:, AVPlayerItemDidPlayToEndTimeNotification);
+    })
+}
+
+//视频播放完成的通知方法
+- (void)videoPlayFinished:(NSNotification *)noti{
+    if (self.isDownload && self.localHomePageVideoUrl.length > 0) {
+        NSLog(@"播放本地文件");
+        self.videoPlayerVc.player = nil;
+        self.videoPlayerVc.player = [AVPlayer playerWithPlayerItem:[[AVPlayerItem alloc]
+                                                                    initWithURL:[NSURL fileURLWithPath:self.localHomePageVideoUrl]]];
+        self.videoPlayerVc.player.volume = 0;
+        [self.videoPlayerVc.player play];
+        self.isPlay = YES;
+    }else{
+        [self downloadHomePageVideo];
+    }
+}
+
+- (void)playVideoWhenPause{
+    if (!self.isPlay) {
+        [self.videoPlayerVc.player play];
+        self.isPlay = YES;
+    }
+}
+
+- (void)pauseVideoWhenPlay{
+    if (self.isPlay) {
+        [self.videoPlayerVc.player pause];
+        self.isPlay = NO;
+    }
+}
+
+- (void)playVideo:(NSNotification *)noti{
+    [self playVideoWhenPause];
+}
+
+- (void)pauseVideo:(NSNotification *)noti{
+    [self pauseVideoWhenPlay];
+}
+
+#pragma mark - CollectionViewDelegate
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section{
+    return CGSizeMake(ISScreen_Width, ISScreen_Width / 3 * 2 + 114);
+}
+
+- (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath{
+    UICollectionReusableView * headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader
+                                                                               withReuseIdentifier:@"headerResuableStr" forIndexPath:indexPath];
+    [headerView addSubview:self.myPlayView];
+    return headerView;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
+    return self.belowLabelMuArray.count;
+}
+
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView{
+    return 1;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    return [HomePageBelowCollectionViewCell
+            getHomePageBelowCollectionViewCellWithCollectionView:collectionView
+            CellInfo:self.belowLabelMuArray[indexPath.item]
+            CellIndex:indexPath ResuableStr:@"belowResuableStr"];
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+    MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo = self.belowLabelMuArray[indexPath.row];
+    if ([videoLabelInfo.szLabelName isEqualToString:@"活动"] || [videoLabelInfo.szLabelName isEqualToString:@"热门活动"]) {
+        ActivityViewController * activityVC = [ActivityViewController new];
+        activityVC.activityLabelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        activityVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:activityVC animated:YES];
+    }else{
+        VideoLabelDetailViewController * videoLabelDetailVc = [VideoLabelDetailViewController new];
+        videoLabelDetailVc.labelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        videoLabelDetailVc.labelName = videoLabelInfo.szLabelName;
+        videoLabelDetailVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:videoLabelDetailVc animated:YES];
+    }
+}
+
+#pragma mark - 上面搜索部分和标签部分的跳转
+- (void)pushToVideoLabelDetailVc:(NSNotification *)noti{
+    MovierDCInterfaceSvc_VDCVideoLabelEx2 * videoLabelInfo = noti.userInfo[@"videoLabelInfo"];
+    NSString * labelText = noti.userInfo[@"videoLabelTitle"];
+    //根据数组中的位置进行跳转
+    if ([labelText isEqualToString:@"活动"] || [labelText isEqualToString:@"热门活动"]) {
+        ActivityViewController * activityVC = [ActivityViewController new];
+        activityVC.activityLabelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        activityVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:activityVC animated:YES];
+    }else{
+        VideoLabelDetailViewController * videoLabelDetailVc = [VideoLabelDetailViewController new];
+        videoLabelDetailVc.labelId = [NSString stringWithFormat:@"%@", videoLabelInfo.nLabelID];
+        videoLabelDetailVc.labelName = videoLabelInfo.szLabelName;
+        videoLabelDetailVc.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:videoLabelDetailVc animated:YES];
+    }
+}
+
+- (void)pushToSearchVc:(NSNotification *)noti{
+    HomeSearchViewController * homeSearchVc = [HomeSearchViewController new];
+    homeSearchVc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:homeSearchVc animated:YES];
+}
+
+#pragma mark - scrollDelegate
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if (scrollView == self.homeCollectionView) {
+        DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+            if (scrollView.contentOffset.y > ISScreen_Width / 3 * 2) {
+                [self pauseVideoWhenPlay];
+            }else{
+                [self playVideoWhenPause];
+            }
+        }, {})
+    }
+}
+@end

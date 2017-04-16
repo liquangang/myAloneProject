@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="VideoLabelDetailViewController">
+            <connections>
+                <outlet property="joinButton" destination="jYY-ks-e2z" id="Ihi-RF-NlR"/>
+                <outlet property="videoTable" destination="Ber-Qu-h5H" id="ArX-zK-tS4"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Ber-Qu-h5H">
+                    <frame key="frameInset" width="600" height="600"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <connections>
+                        <outlet property="dataSource" destination="-1" id="Xzw-y6-DiM"/>
+                        <outlet property="delegate" destination="-1" id="MNi-Gd-4JK"/>
+                    </connections>
+                </tableView>
+                <button hidden="YES" opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jYY-ks-e2z">
+                    <frame key="frameInset" minX="270" minY="522" width="60" height="60"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="60" id="aiS-CG-SnZ"/>
+                        <constraint firstAttribute="width" constant="60" id="zw5-4m-5R1"/>
+                    </constraints>
+                    <state key="normal" image="joinImage"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="30"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="joinButtonAction:" destination="-1" eventType="touchUpInside" id="uIR-Ob-Ddh"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="Ber-Qu-h5H" secondAttribute="trailing" id="6Wf-88-ykP"/>
+                <constraint firstAttribute="bottom" secondItem="jYY-ks-e2z" secondAttribute="bottom" constant="18" id="TDw-1g-KwG"/>
+                <constraint firstItem="jYY-ks-e2z" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="hYr-q7-y1M"/>
+                <constraint firstAttribute="bottom" secondItem="Ber-Qu-h5H" secondAttribute="bottom" id="pNC-Nd-8W1"/>
+                <constraint firstItem="Ber-Qu-h5H" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="wEK-5S-aGO"/>
+                <constraint firstItem="Ber-Qu-h5H" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="xdO-vA-G1r"/>
+            </constraints>
+        </view>
+    </objects>
+    <resources>
+        <image name="joinImage" width="60" height="60"/>
+    </resources>
+</document>

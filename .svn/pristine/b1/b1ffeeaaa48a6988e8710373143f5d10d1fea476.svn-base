@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<array>
+		<dict>
+			<key>头像</key>
+			<string></string>
+		</dict>
+	</array>
+	<array>
+		<dict>
+			<key>昵称</key>
+			<string>蓝妹妹</string>
+		</dict>
+		<dict>
+			<key>我的账号</key>
+			<string>13718063650</string>
+		</dict>
+		<dict>
+			<key>性别</key>
+			<string>男</string>
+		</dict>
+	</array>
+	<array>
+		<dict>
+			<key>个人签名</key>
+			<string>请输入50字以内的个性签名</string>
+		</dict>
+	</array>
+	<array>
+		<dict>
+			<key>生日</key>
+			<string>19850101</string>
+		</dict>
+		<dict>
+			<key>地区</key>
+			<string>北京</string>
+		</dict>
+		<dict>
+			<key>邮箱</key>
+			<string>test@163.com</string>
+		</dict>
+		<dict>
+			<key>手机</key>
+			<string>13718063650</string>
+		</dict>
+	</array>
+</array>
+</plist>

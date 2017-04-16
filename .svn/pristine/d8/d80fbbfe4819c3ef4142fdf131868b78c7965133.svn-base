@@ -1,0 +1,100 @@
+//
+//  ISHomeVideoCell.m
+//  INSHOW
+//
+//  Created by 李亚飞 on 15/11/13.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+
+#import "ISHomeVideoCell.h"
+#import "VideoInformationObject.h"
+#import "UIImageView+WebCache.h"
+#import "Video.h"
+
+@interface ISHomeVideoCell ()
+/**  背景图片 */
+@property (weak, nonatomic) IBOutlet UIImageView *bgImageView;
+/**  视频名称  */
+@property (weak, nonatomic) IBOutlet UILabel *videoNameLabel;
+/**  视频拥有者名称 */
+@property (weak, nonatomic) IBOutlet UILabel *ownerNameLabel;
+/**  视频  播放次数 */
+@property (weak, nonatomic) IBOutlet UILabel *playNumLabel;
+/**  视频  播放次数  的宽度约束 */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *playNumLabelWidth;
+
+/**   视频底部背景图片 */
+@property (weak, nonatomic) IBOutlet UIImageView *bottomImageView;
+
+/**  视频  收藏次数 */
+@property (weak, nonatomic) IBOutlet UILabel *collectNumLabel;
+/**  视频  收藏次数  的宽度约束 */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *collectNumLabelWidth;
+
+
+@end
+
+@implementation ISHomeVideoCell
+static NSString *home_cell = @"home_cell";
+
+- (void)awakeFromNib {
+    self.contentView.backgroundColor = [UIColor groupTableViewBackgroundColor];
+    self.bgImageView.layer.cornerRadius = 5;
+    self.bgImageView.clipsToBounds = YES;
+}
+
+- (void)setVideo:(VideoInformationObject *)video {
+    _video = video;
+    
+    // 图片
+    [self.bgImageView sd_setImageWithURL:[NSURL URLWithString:video.videoThumbnailUrl] placeholderImage:[UIImage imageNamed:@"overlayBG-shadow"] options:SDWebImageRetryFailed | SDWebImageRefreshCached];
+    //  底部背景图片
+    self.bottomImageView.image = [UIImage imageNamed:@"overlayBG_shadow"];
+    
+    // 视频名
+    if (video.videoName) {
+        self.videoNameLabel.text = video.videoName;
+    }
+    
+    // 视频拥有者
+    self.ownerNameLabel.text = video.ownerName;
+    
+    // 播放次数
+    NSString *videoPlayCount = video.videoPlayCount;
+    int playCount = [videoPlayCount intValue];
+    if (playCount > 10000) {
+        videoPlayCount = [NSString stringWithFormat:@"%.1f万", (float)playCount / 10000];
+    }
+    self.playNumLabel.text = videoPlayCount;
+    CGSize playNumLabelSize = [videoPlayCount sizeWithWidth:MAXFLOAT font:ISFont_10];
+    self.playNumLabelWidth.constant = playNumLabelSize.width + 2;
+    // 点赞次数
+    NSString *collectCount = video.videoNumberOfPraise;
+    self.collectNumLabel.text = collectCount;
+    if (collectCount.length > 3) {
+        self.collectNumLabel.text = @"...";
+    }
+    CGSize collectSize = [collectCount sizeWithWidth:MAXFLOAT font:ISFont_10];
+    self.collectNumLabelWidth.constant = collectSize.width + 2;
+}
+
+- (void)updateWithVideo:(Video *)video {
+    // 播放次数
+    NSString *videoPlayCount = video.videoPlayCount;
+    int playCount = [videoPlayCount intValue];
+    if (playCount > 10000) {
+        videoPlayCount = [NSString stringWithFormat:@"%f万", (float)playCount / 10000];
+    }
+    self.playNumLabel.text = videoPlayCount;
+    
+    // 点赞次数
+    NSString *collectCount = video.videoNumberOfPraise;
+    self.collectNumLabel.text = collectCount;
+    if (collectCount.length > 3) {
+        self.collectNumLabel.text = @"...";
+    }
+    CGSize collectSize = [collectCount sizeWithWidth:MAXFLOAT font:ISFont_10];
+    self.collectNumLabelWidth.constant = collectSize.width + 2;
+}
+
+@end

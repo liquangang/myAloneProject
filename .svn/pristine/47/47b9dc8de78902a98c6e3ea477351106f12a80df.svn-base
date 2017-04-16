@@ -1,0 +1,33 @@
+//
+//  SuttitleCell.h
+//  M-Cut
+//
+//  Created by Crab00 on 15/8/19.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@protocol EditSubtitleDeleget<NSObject>
+@optional
+
+/**
+ *  When cell button Item had touched inside Call Back
+ *
+ *  @param context - item's text
+ */
+- (void)Editbuttonttouched:(NSString*)context Index:(NSInteger)selectindex;
+@end
+
+
+@interface SubtitleCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UILabel *FirstT;
+@property (weak, nonatomic) IBOutlet UIButton *Editor;
+@property (weak, nonatomic) id ParentTC;
+@property (weak, nonatomic) id<EditSubtitleDeleget>delegate;
+@property (nonatomic)NSInteger tag;
+@property (weak, nonatomic) IBOutlet UIImageView *seleImageView;
+
+
+-(void)setContent:(NSString*)content;
+
+@end

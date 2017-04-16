@@ -1,0 +1,34 @@
+//
+//  MyFriendsViewController.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/11.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MyFriendsViewController : UIViewController{
+
+
+}
+
+@property (retain, nonatomic) IBOutlet UIButton *friendsListButton;
+
+@property (retain, nonatomic) IBOutlet UIButton *GroupButton;
+@property (strong, nonatomic) NSArray *listData;
+
+@property (retain, nonatomic) IBOutlet UITableView *myFriendsTabView;
+
+@property(retain,nonatomic)NSDictionary *dic;
+@property(retain,nonatomic)NSArray *keys;
+@property(assign,nonatomic)BOOL hasNewFfriends;
+@property(assign,nonatomic)BOOL isMyFriendsTabView;
+
+
+@property (retain, nonatomic) IBOutlet UITableView *GroupTabView;
+
+
+@property(retain,nonatomic)UIImageView  *selectedButtonImgView;
+@property(retain,nonatomic)UIImage *selecteImage;
+@end

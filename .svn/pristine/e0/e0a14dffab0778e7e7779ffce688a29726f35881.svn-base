@@ -1,0 +1,76 @@
+//
+//  MWICloudConfirmPayViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudConfirmPayViewController.h"
+
+@interface MWICloudConfirmPayViewController ()
+/**
+ *  映像支付订单
+ */
+@property (weak, nonatomic) IBOutlet UILabel *orderLabel;
+
+/**
+ *  支付金额
+ */
+@property (weak, nonatomic) IBOutlet UILabel *moneyLabel;
+
+/**
+ *  微信支付
+ */
+- (IBAction)weChatPay:(UIButton *)sender;
+
+@end
+
+@implementation MWICloudConfirmPayViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // 设置导航条
+    [self setupNavigation];
+    
+#warning 此处需要 拼接映像服务器返回的订单号
+    self.orderLabel.text = [NSString stringWithFormat:@"映像订单号: "];
+    self.moneyLabel.text = [NSString stringWithFormat:@"%d元", self.money];
+}
+
+/**
+ *  设置导航条
+ */
+- (void)setupNavigation {
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClick) image:@"backbutton" title:@"取消"];
+    // 尺寸随便写的
+    leftBarButton.frame = CGRectMake(0, 0, 60, 30);
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    [self setupTitleView:@"确认支付"];
+}
+
+- (void)leftBarButtonClick {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+/**
+ *  调用微信支付
+ */
+- (IBAction)weChatPay:(UIButton *)sender {
+    NSLog(@"正在进行微信支付");
+}
+@end

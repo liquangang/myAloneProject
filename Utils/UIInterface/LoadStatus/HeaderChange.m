@@ -1,0 +1,116 @@
+//
+//  HeaderChange.m
+//  M-Cut
+//
+//  Created by Crab00 on 15/12/5.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import "HeaderChange.h"
+#import "UserEntity.h"
+#import "CustomeClass.h"
+#import "SoapOperation.h"
+
+@implementation HeaderChange
+
++ (HeaderChange *)Singleton
+{
+    static HeaderChange *Singleton;
+    
+    @synchronized(self)
+    {
+        if (!Singleton)
+        {
+            Singleton = [[HeaderChange alloc] init];
+            NSString* accessKey = [UserEntity sharedSingleton].ossID;
+            NSString* secretKey = [UserEntity sharedSingleton].ossKey;
+            NSString* yourHostId = [NSString stringWithFormat:@"http://%@",[UserEntity sharedSingleton].ossEndpoint];
+            // 明文设置secret的方式建议只在测试时使用，更多鉴权模式请参考后面的`访问控制`章节
+            id<OSSCredentialProvider> credential = [[OSSPlainTextAKSKPairCredentialProvider alloc] initWithPlainTextAccessKey:accessKey secretKey:secretKey];
+            
+            Singleton.client = [[OSSClient alloc] initWithEndpoint:yourHostId credentialProvider:credential];
+        }
+        return Singleton;
+    }
+}
+
+-(NSString*)UploadUserHeader:(NSString*)filename EXt:(NSString*)ext Yourdata:(NSData*)data{
+
+    OSSPutObjectRequest * put = [OSSPutObjectRequest new];
+    // 必填字段
+    put.bucketName = [UserEntity sharedSingleton].ossBucket;
+    put.objectKey = [NSString stringWithFormat:@"movier/sysres/%@.%@",filename,ext];
+    
+//    put.uploadingFileURL = [NSURL fileURLWithPath:@"<filepath>"];
+     put.uploadingData = data; // 直接上传NSData
+//     put.objectMeta = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"value1", @"x-oss-meta-name1", nil]; // 可以在上传时设置元信息或者其他HTTP头部
+    OSSTask * putTask = [_client putObject:put];
+    [putTask continueWithBlock:^id(OSSTask *task) {
+        if (!task.error) {
+            NSLog(@"upload object success!");
+        } else {
+            DEBUGLOG(task.error)
+        }
+        return nil;
+    }];
+    
+    [putTask waitUntilFinished];
+    return [NSString stringWithFormat:@"http://%@.%@/movier/sysres/%@.%@", [UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint, filename, ext];
+}
+
+- (NSString *)UploadBackgroundImageWithFilename:(NSString *)fileName Ext:(NSString *)ext Data:(NSData *)imageData{
+    
+    OSSPutObjectRequest * put = [OSSPutObjectRequest new];
+    // 必填字段
+    put.bucketName = [UserEntity sharedSingleton].ossBucket;
+    put.objectKey = [NSString stringWithFormat:@"movier/background/%@.%@",fileName,ext];
+    
+    //    put.uploadingFileURL = [NSURL fileURLWithPath:@"<filepath>"];
+    put.uploadingData = imageData;
+    //     put.objectMeta = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"value1", @"x-oss-meta-name1", nil]; // 可以在上传时设置元信息或者其他HTTP头部
+    OSSTask * putTask = [_client putObject:put];
+    [putTask continueWithBlock:^id(OSSTask *task) {
+        if (!task.error) {
+            DEBUGSUCCESSLOG(@"upload BackgroundImage success!")
+        } else {
+            DEBUGLOG(task.error)
+        }
+        return nil;
+    }];
+    
+    [putTask waitUntilFinished];
+    return [NSString stringWithFormat:@"http://%@.%@/movier/background/%@.%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,fileName,ext];
+}
+
+/**
+ *  上传图文分享的图片
+ */
+- (NSString *)UploadTuwenImageWithFilename:(NSString *)fileName
+                                       Ext:(NSString *)ext
+                                      Data:(NSData *)imageData
+                                  Complete:(void(^)())completeBlock{
+    
+    OSSPutObjectRequest * put = [OSSPutObjectRequest new];
+    // 必填字段
+    put.bucketName = [UserEntity sharedSingleton].ossBucket;
+    put.objectKey = [NSString stringWithFormat:@"movier/share/%@.%@",fileName,ext];
+    
+    //    put.uploadingFileURL = [NSURL fileURLWithPath:@"<filepath>"];
+    put.uploadingData = imageData;
+    //     put.objectMeta = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"value1", @"x-oss-meta-name1", nil]; // 可以在上传时设置元信息或者其他HTTP头部
+    OSSTask * putTask = [_client putObject:put];
+    [putTask continueWithBlock:^id(OSSTask *task) {
+        if (!task.error) {
+            DEBUGSUCCESSLOG(@"upload BackgroundImage success!")
+            completeBlock();
+        } else {
+            DEBUGLOG(task.error)
+        }
+        return nil;
+    }];
+    
+    [putTask waitUntilFinished];
+    return [NSString stringWithFormat:@"http://%@.%@/movier/share/%@.%@",[UserEntity sharedSingleton].ossBucket,[UserEntity sharedSingleton].ossEndpoint,fileName,ext];
+}
+
+@end

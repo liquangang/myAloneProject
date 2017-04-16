@@ -1,0 +1,26 @@
+//
+//  MWCoverView.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//
+//  点击头部视图的搜索按钮, 出现的全屏遮罩
+
+#import <UIKit/UIKit.h>
+
+@protocol MWCoverViewDelegate <NSObject>
+
+@optional
+- (void)coverViewDismiss;
+- (void)coverViewDidshow;
+@end
+
+@interface MWCoverView : UIView
+
+@property (weak, nonatomic) id<MWCoverViewDelegate> delegate;
+
++ (instancetype)coverView;
+
+- (void)show;
+- (void)dismiss;
+@end

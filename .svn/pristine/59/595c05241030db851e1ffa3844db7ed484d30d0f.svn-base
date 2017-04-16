@@ -1,0 +1,24 @@
+//
+//  MWICloudOrderListModel.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/19.
+//
+//
+
+#import "MWICloudOrderListModel.h"
+
+@implementation MWICloudOrderListModel
++ (instancetype)modelWithDict:(NSDictionary *)dict {
+    MWICloudOrderListModel *model = [[self alloc] init];
+    
+    model.orderNum = dict[@"orderNum"];
+    model.capacity = [dict[@"capacity"] intValue];
+    model.effectTime = dict[@"effectTime"];
+    model.money = [dict[@"money"] intValue];
+    model.state = dict[@"state"];
+    
+    return model;
+}
+
+@end

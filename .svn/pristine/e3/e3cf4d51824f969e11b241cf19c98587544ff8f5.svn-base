@@ -1,0 +1,41 @@
+//
+//  MWAlbumCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/12.
+//
+//
+
+#import "MWAlbumCell.h"
+#import "MWICloudModel.h"
+
+@interface MWAlbumCell ()
+@property (weak, nonatomic) IBOutlet UIImageView *iconView;
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+@property (weak, nonatomic) IBOutlet UILabel *totalLabel;
+
+@end
+
+@implementation MWAlbumCell
+
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"photo";
+    MWAlbumCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"MWAlbumCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)awakeFromNib {
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    self.iconView.image = model.image;
+    self.nameLabel.text = model.albumName;
+    self.totalLabel.text = [NSString stringWithFormat:@"%ld", model.photosCount];
+}
+
+@end

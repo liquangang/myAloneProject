@@ -1,0 +1,51 @@
+//
+//  MyFourSearchCell2.h
+//  M-Cut
+//
+//  Created by Admin on 16/3/20.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MyFourSearchCell2 : UITableViewCell
+@property (nonatomic, strong) UIButton * backImage1;
+@property (nonatomic, strong) UIImageView * buttonImage1;
+@property (nonatomic, strong) UILabel * videoNameLabel1;
+@property (nonatomic, strong) UILabel * videoAuthorLabel1;
+@property (nonatomic, strong) UIImageView * lookImage1;
+@property (nonatomic, strong) UILabel * lookTimesLabel1;
+@property (nonatomic, strong) UIImageView * likeImage1;
+@property (nonatomic, strong) UILabel * likeTimesLabel1;
+@property (nonatomic, strong) UIImageView * videoOwerImage1;
+
+@property (nonatomic, strong) UIButton * backImage2;
+@property (nonatomic, strong) UIImageView * buttonImage2;
+@property (nonatomic, strong) UILabel * videoNameLabel2;
+@property (nonatomic, strong) UILabel * videoAuthorLabel2;
+@property (nonatomic, strong) UIImageView * lookImage2;
+@property (nonatomic, strong) UILabel * lookTimesLabel2;
+@property (nonatomic, strong) UIImageView * likeImage2;
+@property (nonatomic, strong) UILabel * likeTimesLabel2;
+@property (nonatomic, strong) UIImageView * videoOwerImage2;
+
+@property (nonatomic, strong) UIButton * backImage3;
+@property (nonatomic, strong) UIImageView * buttonImage3;
+@property (nonatomic, strong) UILabel * videoNameLabel3;
+@property (nonatomic, strong) UILabel * videoAuthorLabel3;
+@property (nonatomic, strong) UIImageView * lookImage3;
+@property (nonatomic, strong) UILabel * lookTimesLabel3;
+@property (nonatomic, strong) UIImageView * likeImage3;
+@property (nonatomic, strong) UILabel * likeTimesLabel3;
+@property (nonatomic, strong) UIImageView * videoOwerImage3;
+
+@property (nonatomic, strong) UIButton * backImage4;
+@property (nonatomic, strong) UIImageView * buttonImage4;
+@property (nonatomic, strong) UILabel * videoNameLabel4;
+@property (nonatomic, strong) UILabel * videoAuthorLabel4;
+@property (nonatomic, strong) UIImageView * lookImage4;
+@property (nonatomic, strong) UILabel * lookTimesLabel4;
+@property (nonatomic, strong) UIImageView * likeImage4;
+@property (nonatomic, strong) UILabel * likeTimesLabel4;
+@property (nonatomic, strong) UIImageView * videoOwerImage4;
+@end

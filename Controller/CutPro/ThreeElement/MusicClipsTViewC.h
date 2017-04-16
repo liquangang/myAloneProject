@@ -1,0 +1,24 @@
+//
+//  MusicClipsTViewC.h
+//  M-Cut
+//
+//  Created by Crab00 on 15/8/17.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@class MovierDCInterfaceSvc_vpVDCMusicC;
+
+@interface MusicClipsTViewC : UITableViewController<NGMoviePlayerDelegate>
+
+@property (strong,nonatomic) NSMutableArray *MusicList;
+@property (retain,nonatomic)IBOutlet NGMoviePlayer* player;
+@property (strong,nonatomic) MovierDCInterfaceSvc_vpVDCMusicC *recommadMusic;
+@property (nonatomic,strong) NSIndexPath *selIndex;
+@property (nonatomic,strong) NSIndexPath *tempSelIndex;
+/**  给影片预览界面传递数据 */
+@property (copy, nonatomic) void(^music)(MovierDCInterfaceSvc_vpVDCMusicC *music,NSIndexPath *seleteIndex);
+- (void)getMusic:(void(^)(MovierDCInterfaceSvc_vpVDCMusicC *music,NSIndexPath *seleteIndex))music;
+-(void)StopPlay;
+@end

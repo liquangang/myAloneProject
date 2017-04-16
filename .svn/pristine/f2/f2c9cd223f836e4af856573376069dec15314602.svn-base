@@ -1,0 +1,41 @@
+//
+//  HomeShowViewC.h
+//  M-Cut
+//
+//  Created by Crab00 on 15/10/8.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "HomeCollectionView.h"
+#import "HomeCollectionViewCell.h"
+
+@protocol SelectedVideo <NSObject>
+
+@optional
+
+/**
+ *  When cell button Item had touched inside Call Back
+ *
+ */
+- (void)ShowDetailView;
+
+@end
+
+@interface HomeShowViewC : UIViewController<UICollectionViewDelegateFlowLayout>
+{
+    CGFloat cellWidth;
+    CGFloat cellHeight;
+    CGFloat cellmargin;
+}
+@property (strong,nonatomic) NSMutableArray *imageArray;
+@property (nonatomic) int integers;
+@property(nonatomic) int VideoLabel;
+
+//@property (weak, nonatomic) IBOutlet HomeCollectionView *mainCollection;
+@property (nonatomic, copy) void (^fillcontentCallback)();
+//@property (nonatomic, strong) NSArray *dataArray;
+@property (nonatomic) NSInteger numberOfArra;
+@property (weak, nonatomic) id<SelectedVideo>delegate;
+-(void)FillContent:(int)labeltag;
+@end

@@ -1,0 +1,958 @@
+//
+//  MWICloudListViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/5.
+//  云空间下载, 上传列表
+//
+
+#import "MWICloudListViewController.h"
+// 正在上传的 cell  (普通状态和选择状态)
+#import "MWICloudUploadingCell.h"
+#import "MWICloudUploadingOtherCell.h"
+#import "MWICloudEditUploadingCell.h"
+#import "MWICloudEditUploadingOtherCell.h"
+// 正在下载的 cell  (普通状态和选择状态)
+#import "MWICloudDownloadingCell.h"
+#import "MWICloudDownloadingOtherCell.h"
+#import "MWICloudEditDownloadingCell.h"
+#import "MWICloudEditDownloadingOtherCell.h"
+// 上传成功和下载成功的 cell  (普通状态和选择状态)
+#import "MWICloudListCell.h"
+#import "MWICloudEditListCell.h"
+// 文件模型
+#import "MWICloudModel.h"
+// 底部删除视图
+#import "MWICloudListFooterView.h"
+
+
+@interface MWICloudListViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MWICloudListFooterViewDelegate,
+    MWICloudUploadingCellDelegate, MWICloudDownloadingCellDelegate,
+    MWICloudEditUploadingCellDelegate, MWICloudEditDownloadingCellDelegate,
+    MWICloudUploadingOtherCellDelegate, MWICloudDownloadingOtherCellDelegate,
+    MWICloudEditUploadingOtherCellDelegate, MWICloudEditDownloadingOtherCellDelegate, MWICloudEditListCellDelegate>
+
+/*
+ 编辑 —  正在下载 cell
+ MWICloudEditDownloadingCellDelegate            选择状态    第一个正在下载 cell
+ MWICloudEditDownloadingOtherCellDelegate       选择状态    其他正在下载 cell
+ 
+ 编辑 — 下载完成 \ 上传完成 cell
+ MWICloudEditListCellDelegate                   选择状态    下载完成 \ 上传完成 cell
+ 
+ 编辑 —  正在上传 cell
+ MWICloudEditUploadingCellDelegate              选择状态    第一个正在上传cell
+ MWICloudEditUploadingOtherCellDelegate         选择状态    其他正在上传 cell
+ 
+ 正在下载  cell
+ MWICloudDownloadingCellDelegate                普通状态    第一个正在下载 cell
+ MWICloudDownloadingOtherCellDelegate           普通状态    其他正在下载 cell
+ 
+ 正在上传  cell
+ MWICloudUploadingCellDelegate                  普通状态    第一个正在上传 cell
+ MWICloudUploadingOtherCellDelegate             普通状态    其他正在上传 cell
+ */
+@property (weak, nonatomic) UITableView *tableView;
+/**  导航条右侧的按钮 */
+@property (weak, nonatomic) UIButton *rightBarButton;
+/**  导航条左侧的按钮 */
+@property (weak, nonatomic) UIButton *leftBarButton;
+/**  顶部选择按钮 segment  */
+@property (weak, nonatomic) UISegmentedControl *segment;
+
+/**  正在上传文件 */
+@property (strong, nonatomic) NSMutableArray *uploading;
+/**  正在下载文件 */
+@property (strong, nonatomic) NSMutableArray *downloading;
+/**  上传完成文件 */
+@property (strong, nonatomic) NSMutableArray *uploaded;
+/**  下载完成文件 */
+@property (strong, nonatomic) NSMutableArray *downloaded;
+
+/**  记录选择的文件 */
+@property (strong, nonatomic) NSMutableArray *chooses;
+
+/**  记录是否正在选择 : (导航右边按钮, 选中状态 == YES | 普通状态 == NO ) */
+@property (assign, nonatomic) BOOL isChoosing;
+/**  选择状态下底部的删除视图 */
+@property (weak, nonatomic) MWICloudListFooterView *footerView;
+
+#pragma mark --- 删除按钮的 actionsheet 视图
+/**  有正在上传的文件 */
+@property (weak, nonatomic) UIActionSheet *asWithUploading;
+/**  没有正在上传的文件 */
+@property (weak, nonatomic) UIActionSheet *asWithOutUploading;
+/**  有正在下载的文件 */
+@property (weak, nonatomic) UIActionSheet *asWithDownloading;
+/**  没有正在下载的文件 */
+@property (weak, nonatomic) UIActionSheet *asWithOutDownloading;
+
+@end
+
+@implementation MWICloudListViewController
+
+/**  上传完成列表 */
+- (NSMutableArray *)uploaded {
+    if (!_uploaded) {
+        // 读取plist文件
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"upload.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        NSMutableArray *f = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudModel *model = [MWICloudModel modelWithDict:dict];
+            [f addObject:model];
+        }
+        _uploaded = f;
+        // 测试数据为空
+//        self.uploaded = [NSMutableArray array];
+    }
+    return _uploaded;
+}
+
+/**  正在上传列表: 目前正在上传的内容  + 单例中的上传列表中文件 */
+- (NSMutableArray *)uploading {
+    if (!_uploading) {
+        // 读取plist文件
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"upload.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        NSMutableArray *f = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudModel *model = [MWICloudModel modelWithDict:dict];
+            model.isUploading = YES;
+            [f addObject:model];
+        }
+        _uploading = f;
+//        self.uploading = [NSMutableArray array];
+    }
+    return _uploading;
+}
+
+/**  下载完成列表 */
+- (NSMutableArray *)downloaded {
+    if (!_downloaded) {
+        // 读取plist文件
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"download.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        NSMutableArray *f = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudModel *model = [MWICloudModel modelWithDict:dict];
+            [f addObject:model];
+        }
+        _downloaded = f;
+        // 测试数据为空
+//        self.downloaded = [NSMutableArray array];
+    }
+    return _downloaded;
+}
+
+/**  正在下载列表: 目前正在下载的内容  + 单例中的下载列表中文件 */
+- (NSMutableArray *)downloading {
+    if (!_downloading) {
+        // 读取plist文件
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"download.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        NSMutableArray *f = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudModel *model = [MWICloudModel modelWithDict:dict];
+            model.isDownloading = YES;
+            [f addObject:model];
+        }
+        _downloading = f;
+//        self.downloading = [NSMutableArray array];
+    }
+    return _downloading;
+}
+
+- (NSMutableArray *)chooses {
+    if (!_chooses) {
+        self.chooses = [NSMutableArray array];
+    }
+    return _chooses;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = MWICloudColor(199, 199, 199);
+    
+    // 设置导航条 样式
+    [self setupNavigation];
+    
+    [self setupSegmentControl];
+    
+    [self setupTableView];
+    
+//    [self loadData];
+}
+
+/**  获取上传下载列表的数据 */
+- (void)loadData {
+    // 正在上传文件列表
+    self.uploading = [self dataArray:self.uploading withArray:[MWICloudFolderTool sharedMWICloudFolderTool].uploadList];
+    // 正在下载文件列表
+    self.downloading = [self dataArray:self.downloading withArray:[MWICloudFolderTool sharedMWICloudFolderTool].downloadList];
+}
+
+/**  获取数组中的文件模型, 将 array 中的数据模型添加到 old 中 */
+- (NSMutableArray *)dataArray:(NSMutableArray *)old withArray:(NSMutableArray *)array {
+    for (MWICloudModel *model in array) {
+        [old addObject:model];
+    }
+    return old;
+}
+
+/**  设置导航条 样式  初始状态 */
+- (void)setupNavigation {
+    // 设置navigation的背景图片
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation_bg"] forBarMetrics:UIBarMetricsDefault];
+    
+    // 设置navigation的 titleView
+    [self setupTitleView:@"传输列表"];
+    
+    // 导航栏右侧按钮
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(rightBarButtonClick:) title:@"多选" selectTitle:@"取消" color:MWICloudColor(255, 255, 255) font:15];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+    self.rightBarButton = rightBarButton;
+    
+    // 左侧导航按钮初始为
+    UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClick:) image:@"backbutton" selectImage:nil];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    self.leftBarButton = leftBarButton;
+}
+
+- (void)setupSegmentControl {
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, MWScreenWidth, 50)];
+    headerView.backgroundColor = [UIColor whiteColor];
+    
+    UISegmentedControl *segment = [[UISegmentedControl alloc] initWithItems:@[@"上传列表", @"下载列表"]];
+    segment.frame = CGRectMake(30, 5, MWScreenWidth - 60, 35);
+    [segment addTarget:self action:@selector(segmentClick:) forControlEvents:UIControlEventValueChanged];
+    [headerView addSubview:segment];
+    
+    if (self.selectedIndex == 0 || self.selectedIndex == 1) {
+        segment.selectedSegmentIndex = self.selectedIndex;
+    }
+    
+    // 默认选中第一个 : 上传
+    segment.selectedSegmentIndex = 0;
+    [self.view addSubview:headerView];
+    self.segment = segment;
+}
+
+- (void)segmentClick:(UISegmentedControl *)segment {
+    // 1. 每次点击 segment, 会将上次选择的数据清空
+    if (segment.selectedSegmentIndex == 0) {
+        [self allFiles:self.downloading chooseState:NO];
+        [self allFiles:self.downloaded chooseState:NO];
+    } else {
+        [self allFiles:self.uploading chooseState:NO];
+        [self allFiles:self.uploaded chooseState:NO];
+    }
+    // 2. 设置底部删除按钮的标题
+    if (self.chooses.count > 0) {
+        [self.chooses removeAllObjects];
+    }
+    
+    [self.footerView setTitle:self.chooses.count];
+    // 3. 将左侧的按钮设置为 普通状态
+    self.leftBarButton.selected = NO;
+    
+    [self.tableView reloadData];
+}
+
+/**   tableView视图  */
+- (void)setupTableView {
+    UITableView *tableView = [[UITableView alloc] init];
+    CGFloat tableViewX = 0;
+    CGFloat tableViewY = 55;
+    CGFloat tableViewH = MWScreenHeight - MWICloudNavigationHeight - MWICloudHeaderViewHeight - MWICloudTabBarHeight;
+    
+    tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+    tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    [self.view addSubview:tableView];
+    self.tableView = tableView;
+}
+
+/**   底部删除视图  */
+- (void)setupFooterView {
+    if (self.footerView) return;
+    MWICloudListFooterView *footerView = [MWICloudListFooterView footerView];
+    CGFloat footerViewY = MWScreenHeight - MWICloudFooterViewHeight;
+    footerView.frame = CGRectMake(0, footerViewY, MWScreenWidth, MWICloudFooterViewHeight);
+    footerView.delegate = self;
+    [self.view.window addSubview:footerView];
+    self.footerView = footerView;
+}
+
+/**  创建titleView */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+/**  导航条右侧按钮点击 */
+- (void)rightBarButtonClick:(UIButton *)rightBarButton {        // tableView 高度变化
+    if (rightBarButton.selected == NO) {    // 普通状态, 点击后变为选中状态, 布局改变,
+        // 1. 改变按钮状态, 设置导航条
+        self.rightBarButton.selected = YES;
+        
+        // 2. 更换导航条左侧按钮
+        UIButton *leftBarButton = [UIButton buttonWithTarget:self action:@selector(leftBarButtonClickWhenChoose:) title:@"全选" selectTitle:@"全不选" color:MWICloudColor(255, 255, 255) font:15];
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+        self.leftBarButton = leftBarButton;
+        
+        // 3. 设置是否正在选择的状态
+        self.isChoosing = YES;
+        [self setupFooterView];
+        
+        // 4. 设置 tableView 的高度
+        CGFloat tableViewX = 0;
+        CGFloat tableViewY = 55;
+        CGFloat tableViewH = MWScreenHeight - MWICloudNavigationHeight - MWICloudHeaderViewHeight - MWICloudTabBarHeight;
+        self.tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+        
+    } else {     // 选中状态, 点击后变为普通状态, 布局改变
+        // 1. 改变按钮状态, 设置导航条
+        self.rightBarButton.selected = NO;
+        
+        // 2. 重新设置导航条
+        [self setupNavigation];
+        
+        // 3. 设置是否正在选择的状态
+        self.isChoosing = NO;
+        [self.footerView removeFromSuperview];
+        self.footerView = nil;
+        
+        // 4. 设置 tableView 的高度
+        CGFloat tableViewX = 0;
+        CGFloat tableViewY = 55;
+        CGFloat tableViewH = MWScreenHeight - MWICloudNavigationHeight - MWICloudHeaderViewHeight - MWICloudTabBarHeight;
+        self.tableView.frame = CGRectMake(tableViewX, tableViewY, MWScreenWidth, tableViewH);
+        
+        // 5. 清空 self.chooses 数组, 并将选中的 cell 取消
+        // 5.1 上传列表
+        // 5.2 下载列表
+        [self deselectedCell];
+        // 5. 刷新表格
+        [self.chooses removeAllObjects];
+        [self.footerView setTitle:self.chooses.count];
+    }
+    
+    [self.tableView reloadData];
+}
+
+- (void)deselectedCell {
+    if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+        //  取消 self.uploading 中选中的 cell
+        for (MWICloudModel *chooseModel in self.chooses) {
+            for (MWICloudModel *model in self.uploading) {
+                if (chooseModel == model) {
+                    chooseModel.isSelected = NO;
+                }
+            }
+        }
+        //  取消 self.uploaded 中选中的 cell
+        for (MWICloudModel *chooseModel in self.chooses) {
+            for (MWICloudModel *model in self.uploaded) {
+                if (chooseModel == model) {
+                    chooseModel.isSelected = NO;
+                }
+            }
+        }
+    } else {    // 下载列表
+        //  取消 self.downloading 中选中的 cell
+        for (MWICloudModel *chooseModel in self.chooses) {
+            for (MWICloudModel *model in self.downloading) {
+                if (chooseModel == model) {
+                    chooseModel.isSelected = NO;
+                }
+            }
+        }
+        //  取消 self.downloaded 中选中的 cell
+        for (MWICloudModel *chooseModel in self.chooses) {
+            for (MWICloudModel *model in self.downloaded) {
+                if (chooseModel == model) {
+                    chooseModel.isSelected = NO;
+                }
+            }
+        }
+    }
+}
+
+/**
+ *  导航条左侧按钮点击  右侧按钮普通状态, 此时返回上界面
+ */
+- (void)leftBarButtonClick:(UIButton *)leftBarButton {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  导航条左侧按钮点击  右侧按钮选中状态, 此时取消全选
+ */
+- (void)leftBarButtonClickWhenChoose:(UIButton *)leftBarButton {
+    if (self.chooses.count > 0) {
+        [self.chooses removeAllObjects];
+    }
+    // 点击   全选 | 取消全选  界面 cell;   leftBarButton.selected == NO 全选  |  YES 取消全选
+    if (self.segment.selectedSegmentIndex == 0) {
+        [self allFiles:self.uploading chooseState:!leftBarButton.selected];
+        [self allFiles:self.uploaded chooseState:!leftBarButton.selected];
+    } else {
+        [self allFiles:self.downloading chooseState:!leftBarButton.selected];
+        [self allFiles:self.downloaded chooseState:!leftBarButton.selected];
+    }
+    
+    
+    [self.footerView setTitle:self.chooses.count];
+    [self.tableView reloadData];
+    leftBarButton.selected = !leftBarButton.selected;
+}
+
+#pragma mark -- UITableViewDataSource
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+        return [self sectionsWithDataSource:self.uploading and:self.uploaded];
+    } else {    // 下载列表
+        return [self sectionsWithDataSource:self.downloading and:self.downloaded];
+    }
+}
+/** 返回 section 方法抽取 */
+- (NSInteger)sectionsWithDataSource:(NSMutableArray *)transfering and:(NSMutableArray *)transfered {
+    if (transfering.count == 0 && transfered.count != 0) {    // 正在下载=0, 下载完成>0
+        return 1;
+    } else if (transfering.count != 0 && transfered.count == 0) {   // 正在下载>0, 下载完成=0
+        return 1;
+    } else if (transfering.count != 0 && transfered.count != 0) {     // 正在下载>0, 下载完成>0
+        return 2;
+    } else {    // 正在下载=0, 下载完成=0
+        return 0;
+    }
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+        return [self rowsAtSection:section withDataSource:self.uploading and:self.uploaded];
+    } else {    // 下载列表
+        return [self rowsAtSection:section withDataSource:self.downloading and:self.downloaded];
+    }
+}
+/** 返回 row 方法抽取 */
+- (NSInteger)rowsAtSection:(NSInteger)section withDataSource:(NSMutableArray *)transfering and:(NSMutableArray *)transfered {
+    if (transfering.count == 0 && transfered.count != 0) {    // 正在上传=0, 上传完成>0
+        return transfered.count;
+    } else if (transfering.count != 0 && transfered.count == 0) {   // 正在上传>0, 上传完成=0
+        return transfering.count;
+    } else if (transfering.count != 0 && transfered.count != 0) {     // 正在上传>0, 上传完成>0
+        if (section == 0) {
+            return transfering.count;
+        } else {
+            return transfered.count;
+        }
+    } else {    // 正在上传=0, 上传完成=0
+        return 0;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.isChoosing == NO) {    // 导航右侧按钮 普通状态
+        if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+            if (self.uploading.count == 0 && self.uploaded.count != 0) {
+                return [self listCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.uploaded];
+            } else if (self.uploading.count != 0 && self.uploaded.count == 0) {   // 正在上传>0, 上传完成=0
+                if (indexPath.row == 0) {
+                    return [self uploadingCellForTableView:tableView atIndexPath:indexPath];
+                } else {
+                    return [self otherUploadingCellForTableView:tableView atIndexPath:indexPath];
+                }
+            } else {     // 正在上传>0, 上传完成>0
+                if (indexPath.section == 0) {
+                    if (indexPath.row == 0) {
+                        return [self uploadingCellForTableView:tableView atIndexPath:indexPath];
+                    } else {
+                        return [self otherUploadingCellForTableView:tableView atIndexPath:indexPath];
+                    }
+                } else {
+                    return [self listCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.uploaded];
+                }
+            }
+        } else {    // 下载列表
+            if (self.downloading.count == 0 && self.downloaded.count != 0) {    // 正在下载=0, 下载完成>0
+                return [self listCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.downloaded];
+            } else if (self.downloading.count != 0 && self.downloaded.count == 0) {   // 正在下载>0, 下载完成=0
+                if (indexPath.row == 0) {
+                    return [self downloadingCellForTableView:tableView atIndexPath:indexPath];
+                } else {
+                    return [self otherDownloadingCellForTableView:tableView atIndexPath:indexPath];
+                }
+            } else {     // 正在下载>0, 下载完成>0
+                if (indexPath.section == 0) {   // 正在下载
+                    if (indexPath.row == 0) {
+                        return [self downloadingCellForTableView:tableView atIndexPath:indexPath];
+                    } else {
+                        return [self otherDownloadingCellForTableView:tableView atIndexPath:indexPath];
+                    }
+                } else {
+                    return [self listCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.downloaded];
+                }
+            }
+        }
+    } else {    // 导航右侧按钮   cell 可以进行选择状态
+        if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+            if (self.uploading.count == 0 && self.uploaded.count != 0) {
+                return [self editListCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.uploaded];
+            } else if (self.uploading.count != 0 && self.uploaded.count == 0) {   // 正在上传>0, 上传完成=0
+                if (indexPath.row == 0) {
+                    return [self editUploadingCellWithTableView:tableView atIndexPath:indexPath];
+                } else {
+                    return [self otherEditUploadingCellWithTableView:tableView atIndexPath:indexPath];
+                }
+            } else {     // 正在上传>0, 上传完成>0
+                if (indexPath.section == 0) {
+                    if (indexPath.row == 0) {
+                        return [self editUploadingCellWithTableView:tableView atIndexPath:indexPath];
+                    } else {
+                        return [self otherEditUploadingCellWithTableView:tableView atIndexPath:indexPath];
+                    }
+                } else {
+                    return [self editListCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.uploaded];
+                }
+            }
+        } else {    // 下载列表
+            if (self.downloading.count == 0 && self.downloaded.count != 0) {    // 正在下载=0, 下载完成>0
+                return [self editListCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.downloaded];
+            } else if (self.downloading.count != 0 && self.downloaded.count == 0) {   // 正在下载>0, 下载完成=0
+                if (indexPath.row == 0) {
+                    return [self editDownloadingCellWithTableView:tableView atIndexPath:indexPath];
+                } else {
+                    return [self otherEditDownloadingCellWithTableView:tableView atIndexPath:indexPath];
+                }
+            } else {     // 正在下载>0, 下载完成>0
+                if (indexPath.section == 0) {
+                    if (indexPath.row == 0) {
+                        return [self editDownloadingCellWithTableView:tableView atIndexPath:indexPath];
+                    } else {
+                        return [self otherEditDownloadingCellWithTableView:tableView atIndexPath:indexPath];
+                    }
+                } else {
+                    return [self editListCellWithTableView:tableView atIndexPath:indexPath withDataSource:self.downloaded];
+                }
+            }
+        }
+    }
+}
+
+#pragma mark -- 普通状态下的 cell
+/** 返回  普通状态  下  上传\下载  完成 cell */
+- (MWICloudListCell *)listCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withDataSource:(NSMutableArray *)transfer{
+    MWICloudListCell *cell = [MWICloudListCell cellWithTableView:tableView];
+    cell.model = transfer[indexPath.row];
+    return cell;
+}
+/** 返回  普通状态  下  正在上传  第一个 cell */
+- (MWICloudUploadingCell *)uploadingCellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudUploadingCell *cell = [MWICloudUploadingCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.uploading[indexPath.row];
+    return cell;
+}
+/** 返回  普通状态  下  正在上传  其他 cell */
+- (MWICloudUploadingOtherCell *)otherUploadingCellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudUploadingOtherCell *cell = [MWICloudUploadingOtherCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.uploading[indexPath.row];
+    return cell;
+}
+/** 返回  普通状态  下  正在下载  其他行的  cell  */
+- ( MWICloudDownloadingOtherCell *)otherDownloadingCellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudDownloadingOtherCell *cell = [MWICloudDownloadingOtherCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.downloading[indexPath.row];
+    return cell;
+}
+/** 返回  普通状态  下  正在下载  第一行的  cell  */
+- (MWICloudDownloadingCell *)downloadingCellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudDownloadingCell *cell = [MWICloudDownloadingCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.downloading[indexPath.row];
+    return cell;
+}
+#pragma mark --  编辑状态下的 cell
+/** 返回  选择状态  下上传\下载完成 cell */
+- (MWICloudEditListCell *)editListCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withDataSource:(NSMutableArray *)transfer{
+    MWICloudEditListCell *cell = [MWICloudEditListCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = transfer[indexPath.row];
+    return cell;
+}
+/** 返回  选择状态  下  正在上传  第一个 cell */
+- (MWICloudEditUploadingCell *)editUploadingCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudEditUploadingCell *cell = [MWICloudEditUploadingCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.uploading[indexPath.row];
+    return cell;
+}
+/** 返回  选择状态  下  正在上传   其他 cell */
+- (MWICloudEditUploadingOtherCell *)otherEditUploadingCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudEditUploadingOtherCell *cell = [MWICloudEditUploadingOtherCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.uploading[indexPath.row];
+    return cell;
+}
+/** 返回  选择状态  下  正在下载 其他 cell */
+- ( MWICloudEditDownloadingOtherCell *)otherEditDownloadingCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudEditDownloadingOtherCell *cell = [MWICloudEditDownloadingOtherCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.downloading[indexPath.row];
+    return cell;
+}
+/** 返回  选择状态  下  正在下载 cell */
+- (MWICloudEditDownloadingCell *)editDownloadingCellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath {
+    MWICloudEditDownloadingCell *cell = [MWICloudEditDownloadingCell cellWithTableView:tableView];
+    cell.delegate = self;
+    cell.model = self.downloading[indexPath.row];
+    return cell;
+}
+
+
+#pragma mark -- UITableViewDelegate
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+        return [self title:@"上传" forSection:section withDataSource:self.uploading and:self.uploaded];
+    } else {    // 下载列表
+        return [self title:@"下载" forSection:section withDataSource:self.downloading and:self.downloaded];
+    }
+}
+/** 返回 section 标题方法抽取 */
+- (NSString *)title:(NSString *)title forSection:(NSInteger)section withDataSource:(NSMutableArray *)transfering and:(NSMutableArray *)transfered {
+    if (transfering.count == 0 && transfered.count != 0) {    // 正在下载=0, 下载完成>0
+        return [NSString stringWithFormat:@"%@完成(%ld)", title, transfered.count];
+    } else if (transfering.count != 0 && transfered.count == 0) {   // 正在下载>0, 下载完成=0
+        return [NSString stringWithFormat:@"正在%@(%ld)", title, transfering.count];
+    } else if (transfering.count != 0 && transfered.count != 0) {     // 正在下载>0, 下载完成>0
+        if (section == 0) {
+            return [NSString stringWithFormat:@"正在%@(%ld)", title, transfering.count];
+        } else {
+            return [NSString stringWithFormat:@"%@完成(%ld)", title, transfered.count];
+        }
+    } else {
+        return nil;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {    // cell 的高度固定
+    if (self.segment.selectedSegmentIndex == 0) {   // 上传列表
+        return [self heightAtIndexPath:indexPath withDataSource:self.uploading and:self.uploaded];
+    } else {    // 下载列表
+        return [self heightAtIndexPath:indexPath withDataSource:self.downloading and:self.downloaded];
+    }
+}
+/** 返回 cell height 方法抽取 */
+- (CGFloat)heightAtIndexPath:(NSIndexPath *)indexPath withDataSource:(NSMutableArray *)transfering and:(NSMutableArray *)transfered {
+    if (transfering.count == 0 && transfered.count != 0) {    // 正在下载=0, 下载完成>0 || // 正在上传=0, 上传完成>0
+        return 44;
+    } else if (transfering.count != 0 && transfered.count == 0) {   // 正在下载>0, 下载完成=0 || // 正在上传>0, 上传完成=0
+        if (indexPath.row == 0) {   // 显示 "全部恢复下载按钮" || // 显示 "全部暂停下载按钮"  高度固定为90
+            return 90;
+        } else {    // 不显示 "全部恢复下载按钮" || // 不显示 "全部暂停下载按钮"  高度固定为44
+            return 44;
+        }
+    } else if (transfering.count != 0 && transfered.count != 0) {     // 正在下载>0, 下载完成>0 || // 正在上传>0, 上传完成>0
+        if (indexPath.section == 0) {
+            if (indexPath.row == 0) {   // 显示 "全部恢复下载按钮" || // 显示 "全部暂停下载按钮"  高度固定为90
+                return 90;
+            } else {    // 不显示 "全部恢复下载按钮" || // 不显示 "全部暂停下载按钮"  高度固定为44
+                return 44;
+            }
+        } else {
+            return 44;
+        }
+    } else {
+        return 44;
+    }
+}
+
+#pragma mark --- MWICloudUploadingCellDelegate 正在上传 (第一个) cell 的代理方法
+/**  顶部操作按钮点击 */
+- (void)uploadingAllButtonClick:(UIButton *)button {
+    // button.selected == NO 上传状态 --> 暂停状态; button.selected == YES  暂停状态 --> 上传状态
+    // 按钮 button 状态在 cell 内部改变
+    [self allFiles:self.uploading uploadState:button.selected];
+    
+#warning 通知后台 暂停 | 开始 上传
+    [self.tableView reloadData];
+}
+/**  点击第一行的 cell 右侧按钮 */
+- (void)iCloudUploadingCell:(MWICloudUploadingCell *)iCloudUploadingCell didClickButton:(UIButton *)button {
+    if (button.selected == NO) {    // 上传状态, 点击后 变为停止状态
+#warning 通知后台停止上传
+    } else {    // 暂停状态, 点击之后变为上传状态
+#warning 通知后台继续上传
+    }
+}
+
+#pragma mark --- MWICloudUploadingOtherCellDelegate 正在上传 (其他) cell 的代理方法
+/**  点击其他行  正在上传 的 cell 右侧按钮 */
+- (void)iCloudUploadingOtherCell:(MWICloudUploadingOtherCell *)uploadingOtherCell didClickButton:(UIButton *)button {
+#warning 暂停或继续下载
+}
+
+#pragma mark --- MWICloudDownloadingCellDelegate 正在下载  第一个 cell 的代理方法
+/**  顶部操作按钮点击 */
+- (void)downloadingAllButtonClick:(UIButton *)button {
+    // button.selected == NO 上传状态 --> 暂停状态; button.selected == YES  暂停状态 --> 上传状态
+    // 按钮 button 状态在 cell 内部改变
+    [self allFiles:self.downloading downloadState:button.selected];
+    
+#warning 通知后台 暂停 | 开始 下载
+    [self.tableView reloadData];
+}
+
+/**  点击每一行的 cell 右侧按钮 */
+- (void)iCloudDownloadingCell:(MWICloudDownloadingCell *)iCloudDownloadingCell didClickButton:(UIButton *)button {
+    if (button.selected == NO) {    // 下载状态, 点击后 全部 变为停止状态
+#warning 通知后台停止下载
+    } else {    // 暂停状态, 点击之后变为暂停下载状态
+#warning 通知后台开始下载
+    }
+}
+
+#pragma mark --- MWICloudDownloadingOtherCellDelegate 正在下载 (其他) cell 的代理方法
+/**  点击其他行  正在下载 的 cell 右侧按钮 */
+- (void)iCloudDownloadingOtherCell:(MWICloudDownloadingOtherCell *)downloadingOtherCell didClickButton:(UIButton *)button {
+#warning 暂停或继续下载
+}
+
+#pragma mark -- 对所有文件数据的操作
+/**  上传操作 ---> YES : 恢复上传  NO : 暂停上传 */
+- (void)allFiles:(NSMutableArray *)array uploadState:(BOOL)uploadState {
+    for (MWICloudModel *model in array) {   // 需要对上传列表中的文件进行操作, 需要全部保存
+        model.isUploading = uploadState;
+        [self.chooses addObject:model];
+    }
+}
+
+/**  下载操作 ---> YES : 恢复下载  NO : 暂停下载 */
+- (void)allFiles:(NSMutableArray *)array downloadState:(BOOL)downloadState {
+    for (MWICloudModel *model in array) {   // 需要对下载列表中的文件进行操作, 需要全部保存
+        model.isDownloading = downloadState;
+        [self.chooses addObject:model];
+    }
+}
+
+/**   全选操作 ---> YES : 恢复下载  NO : 暂停下载 */
+- (void)allFiles:(NSMutableArray *)array chooseState:(BOOL)chooseState {
+    for (MWICloudModel *model in array) {
+        if (chooseState == NO) { // 取消全选
+            model.isSelected = NO;
+            [self.chooses removeObject:model];
+        } else {  // 全选
+            model.isSelected = YES;
+            [self.chooses addObject:model];
+        }
+    }
+}
+
+#pragma mark --- MWICloudEditListCellDelegate, 编辑状态完成 上传\下载 cell 的代理
+- (void)iCloudEditListCell:(MWICloudEditListCell *)editListCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == NO) {
+        editListCell.model.isSelected = NO;
+        [self.chooses removeObject:editListCell.model];
+    } else {
+        editListCell.model.isSelected = YES;
+        [self.chooses addObject:editListCell.model];
+    }
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark --- MWICloudEditUploadingCellDelegate,  编辑状态完成 正在上传 cell 的代理
+/**  顶部操作按钮点击, 全选 正在上传 和 上传完成 的所有文件 */
+- (void)editUploadingAllButtonClick:(UIButton *)button {
+    // 选中 | 取消选中所有文件
+    [self allFiles:self.uploading uploadState:button.selected];
+    
+    [self.tableView reloadData];
+}
+
+/**  点击第一行  正在上传(编辑)  的 cell 右侧的操作按钮 */
+- (void)iCloudEditUploadingCell:(MWICloudEditUploadingCell *)iCloudUploadingCell didClickButton:(UIButton *)button {
+//    if (button.selected == NO) {    // 上传状态, 点击后 全部 变为停止状态
+//        
+//    } else {    // 暂停状态, 点击之后变为暂停上传状态
+//        
+//    }
+#warning 通知后台停止上传 | 继续上传
+}
+
+/**  点击第一行   正在上传(编辑)  cell 左侧的选择按钮 */
+- (void)iCloudEditUploadingCell:(MWICloudEditUploadingCell *)iCloudUploadingCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == NO) {
+        iCloudUploadingCell.model.isSelected = NO;
+        [self.chooses removeObject:iCloudUploadingCell.model];
+    } else {
+        iCloudUploadingCell.model.isSelected = YES;
+        [self.chooses addObject:iCloudUploadingCell.model];
+    }
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark -- MWICloudEditUploadingOtherCellDelegate  正在上传(编辑)cell 代理方法
+/**  点击其他行  正在上传(编辑)  的 cell 右侧的操作按钮 */
+- (void)iCloudEditUploadingOtherCell:(MWICloudEditUploadingOtherCell *)uploadingOtherCell didClickButton:(UIButton *)button {
+#warning 通知后台停止上传 | 继续上传
+}
+/**  点击 其他  正在上传(编辑)  行 cell 左侧的选择按钮 */
+- (void)iCloudEditUploadingOtherCell:(MWICloudEditUploadingOtherCell *)uploadingOtherCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == NO) {
+        uploadingOtherCell.model.isSelected = NO;
+        [self.chooses removeObject:uploadingOtherCell.model];
+    } else {
+        uploadingOtherCell.model.isSelected = YES;
+        [self.chooses addObject:uploadingOtherCell.model];
+    }
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark --- MWICloudEditDownloadingCellDelegate   编辑状态完成 正在下载(第一个) cell 的代理
+/**  顶部操作按钮点击, 全选 正在下载 和 下载完成 的所有文件 */
+- (void)editDownloadingAllButtonClick:(UIButton *)button {
+    // 选中 | 取消选中所有文件
+    [self allFiles:self.downloading downloadState:button.selected];
+    
+    [self.tableView reloadData];
+}
+
+/**  点击第一行的  正在下载(编辑) cell 右侧的操作按钮 */
+- (void)iCloudEditDownloadingCell:(MWICloudEditDownloadingCell *)iCloudDownloadingCell didClickButton:(UIButton *)button {
+#warning 通知后台停止下载 | 继续下载
+}
+/**  点击第一行 正在下载(编辑) cell 左侧的选择按钮 */
+- (void)iCloudEditDownloadingCell:(MWICloudEditDownloadingCell *)iCloudDownloadingCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == NO) {
+        iCloudDownloadingCell.model.isSelected = NO;
+        [self.chooses removeObject:iCloudDownloadingCell.model];
+    } else {
+        iCloudDownloadingCell.model.isSelected = YES;
+        [self.chooses addObject:iCloudDownloadingCell.model];
+    }
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark --- MWICloudEditDownloadingOtherCellDelegate   编辑状态完成 正在下载(其他) cell 的代理
+- (void)iCloudEditDownloadingOtherCell:(MWICloudEditDownloadingOtherCell *)downloadingOtherCell didClickButton:(UIButton *)button {
+#warning 通知后台停止下载 | 继续下载
+}
+
+- (void)iCloudEditDownloadingOtherCell:(MWICloudEditDownloadingOtherCell *)downloadingOtherCell didClickChooseButton:(UIButton *)button {
+    if (button.selected == NO) {
+        downloadingOtherCell.model.isSelected = NO;
+        [self.chooses removeObject:downloadingOtherCell.model];
+    } else {
+        downloadingOtherCell.model.isSelected = YES;
+        [self.chooses addObject:downloadingOtherCell.model];
+    }
+    [self.footerView setTitle:self.chooses.count];
+}
+
+#pragma mark -- MWICloudListFooterViewDelegate  底部删除视图的代理方法
+- (void)iCloudListFooterView:(MWICloudListFooterView *)iCloudListFooterView didClickDeleteButton:(UIButton *)button {
+    // 删除正在上传的文件，则同时删除文件及列表展示信息         删除已完成的上传文件，只删除列表展示信息，不删除文件。
+    if (self.chooses.count == 0) {
+        [UIAlertView alertViewShowForEmptyChoose];
+        return;
+    }
+    
+    // 1. 查询 self.chooses 中是否有正在上传\ 下载的文件
+    if (self.segment.selectedSegmentIndex == 0) {
+        if ([self hasTransfingFile:self.uploading]) {  // 有正在上传的文件
+            self.asWithUploading = [self actionSheetWithTitle:@"有正在上传的文件"];
+        } else {
+            self.asWithOutUploading = [self actionSheetWithTitle:nil];
+        }
+    } else {
+        if ([self hasTransfingFile:self.downloading]) {  // 有未下载的文件
+            self.asWithDownloading = [self actionSheetWithTitle:@"有未下载的文件"];
+        } else {
+            self.asWithOutDownloading = [self actionSheetWithTitle:nil];
+        }
+    }
+}
+
+- (UIActionSheet *)actionSheetWithTitle:(NSString *)title {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:title delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"确定删除" otherButtonTitles:nil, nil];
+    [actionSheet showInView:self.view.window];
+    return actionSheet;
+}
+
+/**  查询 self.chooses 中是否有正在 上传\ 下载 的文件 ?? 根据上传下载的标记 */
+- (BOOL)hasTransfingFile:(NSMutableArray *)array {
+    BOOL hasTransfingFile = NO;
+    for (MWICloudModel *model in self.chooses) {
+        if (model.isDownloading == YES || model.isUploading == YES) {
+            hasTransfingFile = YES;
+            break;
+        }
+    }
+    return hasTransfingFile;
+}
+
+#pragma mark --- UIActionSheetDelegate 
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (actionSheet == self.asWithUploading) {              // 有正在上传的文件
+        if (buttonIndex == 0) {     // 确定删除操作
+            [self deleteUploadFiles];
+        }
+    } else if (actionSheet == self.asWithOutUploading) {    // 没有正在上传的文件
+        if (buttonIndex == 0) {
+            [self deleteUploadFiles];
+        }
+    } else if (actionSheet == self.asWithDownloading) {     // 有正在下载的文件
+        if (buttonIndex == 0) {
+            [self deleteDownloadFiles];
+        }
+    } else if (actionSheet == self.asWithOutDownloading) {  // 没有正在下载的文件
+        if (buttonIndex == 0) {
+            [self deleteDownloadFiles];
+        }
+    }
+    // 清空数组, 设置底部视图按钮标题
+    [self.chooses removeAllObjects];
+    [self.footerView setTitle:self.chooses.count];
+    // 刷新表格
+    [self.tableView reloadData];
+}
+
+/**  删除选中文件 ---- Upload */
+- (void)deleteUploadFiles {
+    for (MWICloudModel *model in self.chooses) {
+        if (model.isUploading == YES) {                     //  正在上传的文件需要通知服务器删除上传操作
+            [self.uploading removeObject:model];
+#warning 通知服务器删除该上传操作
+            
+        } else {
+            [self.uploaded removeObject:model];
+        }
+    }
+}
+
+/**  删除选中文件 ---- Download */
+- (void)deleteDownloadFiles {
+    for (MWICloudModel *model in self.chooses) {
+        if (model.isDownloading == YES) {                   //  正在下载的文件需要通知服务器删除下载操作
+            [self.downloading removeObject:model];
+#warning 通知服务器删除该下载操作
+            
+        } else {
+            [self.downloaded removeObject:model];
+        }
+    }
+}
+@end

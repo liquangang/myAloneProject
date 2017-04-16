@@ -1,0 +1,531 @@
+//
+//  ISHomeContentViewController.m
+//  INSHOW
+//
+//  Created by 李亚飞 on 15/11/12.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+
+#import "ISHomeContentViewController.h"
+// collection 布局属性
+#import "ISWaterflowLayout.h"
+// 广告条 cell
+#import "ISHomeBannerCell.h"
+#import "ScrollViewLoop.h"
+// 视频 cell
+#import "ISHomeVideoCell.h"
+
+// 定制 cell
+#import "ISSpecialViewCell.h"
+// 活动cell
+#import "ISActiviteCell.h"
+
+#import "MJRefresh.h"
+#import "MBProgressHUD+MJ.h"
+
+#import "MovierUtils.h"
+#import "APPUserPrefs.h"
+// 视频模型数据
+#import "VideoInformationObject.h"
+// 获取网络状态
+#import "MovierUtils.h"
+#import "ISLabel.h"
+// 点击 banner 跳转到网页
+#import "HomeBannerWebViewController.h"
+
+// 测试静态库
+#import <LIWaterflowLayout/LIWaterflowLayout.h>
+// collectionView  头视图
+#import "ISHomeBannerView.h"
+
+#define ISHomeBannerRatio (372.0 / 740.0)
+#define ISHomeBannerRatioWhenSearchHidden (288.0 / 740.0)
+
+
+@interface ISHomeContentViewController () <UICollectionViewDataSource, UICollectionViewDelegate, ISWaterflowLayoutDelegate, ScrollViewLoopDelegate, LIWaterflowLayoutDelegate>
+@property (weak, nonatomic) UICollectionView *collectionView;
+/**  存储首页banner 信息 */
+@property (strong, nonatomic) NSMutableArray *bannerInfos;
+/**  存储首页banner 的缩略图 url */
+@property (strong, nonatomic) NSMutableArray *bannerUrls;
+/**  标记banner是否已经有图片了 */
+@property (assign, nonatomic) BOOL isBannerHasImage;
+/**  banner 的个数 */
+@property (assign, nonatomic) NSInteger banners;
+@property (strong, nonatomic) ISHomeBannerCell *bannerCell;
+
+#pragma mark ---
+/**  存储首页视频信息 */
+@property (strong,nonatomic) NSMutableArray *videoInfos;
+@property (nonatomic) NSInteger numberOfArra;
+
+/**  记录当前点击的视频 */
+@property (strong, nonatomic) NSIndexPath *indexPath;
+
+/**  记录当前页面的类型 */
+@property (assign, nonatomic) int nType;
+
+/**  下级标签数组, 同时也是数据源 <活动, 定制> */
+@property (strong, nonatomic) NSMutableArray *labels;
+/**  记录活动, 定制界面 labels 标签的个数 */
+@property (assign, nonatomic) NSInteger labelsCount;
+/**  头视图 */
+@property (strong, nonatomic) ISHomeBannerView *headerView;
+
+/**  banner 数量 */
+@property (strong, nonatomic) NSNumber *bannerNum;
+
+/**  保存scroll初始的位置，用来确定滑动的方向*/
+@property (nonatomic, assign) CGFloat initPosition;
+
+/**  首页视频下载次数*/
+@property (nonatomic, assign) int downloadtimes;
+@end
+
+@implementation ISHomeContentViewController
+/**  头视图 重用标示 */
+static NSString *home_banner_view = @"home_banner_view";
+static NSString *home_cell_banner = @"home_cell_banner";
+/**  cell 重用标示 */
+static NSString *home_cell = @"home_cell";
+/**  定制 cell 重用标示 */
+static NSString *special_cell = @"special_cell";
+/**   活动 cell 重用标示 */
+static NSString *activite_cell = @"activite_cell";
+
+//static NSInteger trytime = 2;
+
+- (NSMutableArray *)videoInfos {
+    if (!_videoInfos) {
+        self.videoInfos = [NSMutableArray array];
+    }
+    return _videoInfos;
+}
+
+- (NSMutableArray *)bannerInfos {
+    if (!_bannerInfos) {
+        self.bannerInfos = [NSMutableArray array];
+    }
+    return _bannerInfos;
+}
+
+- (NSMutableArray *)bannerUrls {
+    if (!_bannerUrls) {
+        self.bannerUrls = [NSMutableArray array];
+    }
+    return _bannerUrls;
+}
+
+- (NSMutableArray *)labels {
+    if (!_labels) {
+        self.labels = [NSMutableArray array];
+    }
+    return _labels;
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    //已经滑动
+    if (scrollView.contentOffset.y > self.initPosition) {
+        //向下滑动
+        [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"scrollDown" object:nil userInfo:nil]];
+    }else{
+        //向上滑动
+        [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:@"scrollUp" object:nil userInfo:nil]];
+    }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    //开始滑动
+    self.initPosition = scrollView.contentOffset.y;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    // 点击 cell 返回后刷新数据
+    if (self.indexPath) {
+        ISHomeVideoCell *cell = (ISHomeVideoCell *)[self.collectionView cellForItemAtIndexPath:self.indexPath];
+        [cell updateWithVideo:[Video Singleton]];
+    }
+    // 主动刷新一次, 会造成主界面 HomeViewController 重新刷新, 会造成数据混乱(同时调用2次WS_GetVideoLabel:方法)
+    [self headerRefresh];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.nType = [self.label.nType intValue];
+    // 根据 labelID 请求是否有 banner, 根据 type 判断是否有二级页面
+    [self requestAds];
+}
+
+- (void)requestAds {
+    SoapOperation *soap = [SoapOperation Singleton];
+    __weak typeof(self) vc = self;
+    // 加载 banner 数据
+    [soap WS_GetBannerNum:self.label.nLabelID Success:^(NSNumber *num) {    // num : banner 的个数
+        vc.bannerNum = num;
+        vc.banners = [num integerValue];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 创建 collectionView 视图
+            [self setupCollectionView];
+        });
+        if (vc.banners > 0) {   //  banners 有数据, 需要显示 banner,  label.nType  2:活动  3:定制
+            [self loadBannersStart:@(0) count:num];
+        }
+    } Fail:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 创建 collectionView 视图
+            [self setupCollectionView];
+//            [MBProgressHUD showError:@"请检查网络"];
+        });
+        NSLog(@"-------%s-----WS_GetBannerNum-%@", __func__, error);
+    }];
+}
+
+- (void)loadBannersStart:(NSNumber *)start count:(NSNumber *)count {
+    SoapOperation *soap = [SoapOperation Singleton];
+    [soap WS_GetBanner:self.label.nLabelID Start:start Count:count Success:^(MovierDCInterfaceSvc_VDCBannerInfoArray *bannerInfos) {
+        if (bannerInfos.item.count > 0) {
+            [self.bannerUrls removeAllObjects];
+            [self.bannerInfos removeAllObjects];
+            for (NSInteger i = 0; i < bannerInfos.item.count; i++) {
+                MovierDCInterfaceSvc_VDCBannerInfo *bannerInfo = bannerInfos.item[i];
+                if (bannerInfo.szThumbnail) {
+                    [self.bannerUrls addObject:bannerInfo.szThumbnail];
+                }
+                
+                // 保存数据模型到数组中, 在点击 banner 时使用
+                [self.bannerInfos addObject:bannerInfo];
+            }
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.collectionView reloadData];
+        });
+    } Fail:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            //                    [MBProgressHUD showError:@"请检查网络"];
+        });
+        NSLog(@"-------%s-----WS_GetBanner-%@", __func__, error);
+    }];
+
+}
+
+/**  加载特殊界面 (活动\定制) 数据 */
+- (void)loadSpecialByType:(int)type start:(NSNumber *)start count:(NSNumber *)count{
+    if (type == 2 || type == 3) {    // 2: 活动界面  3: 定制界面
+        SoapOperation *soap = [SoapOperation Singleton];
+        [soap WS_GetVideoLabel:nil Start:start Count:count Parent:self.label.nLabelID Success:^(MovierDCInterfaceSvc_VDCVideoLabelExArray *ws_ret) {
+            if ([start intValue] == 0) {
+                [self.labels removeAllObjects];
+            }
+            for (NSInteger i = 0; i < ws_ret.item.count; i++) {
+                MovierDCInterfaceSvc_VDCVideoLabelEx *labelEx = ws_ret.item[i];
+                ISLabel *label      = [[ISLabel alloc] init];
+                label.nLabelID      = labelEx.nLabelID;
+                label.szLabelName   = labelEx.szLabelName;
+                label.nParentID     = labelEx.nParentID;
+                label.szThumbnail   = labelEx.szThumbnail;
+                label.nType         = labelEx.nType;
+                label.nVideoNum     = labelEx.nVideoNum;
+                label.szDescribe    = labelEx.szDescribe;
+                [self.labels addObject:label];
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.labelsCount = self.labels.count;
+                [self.collectionView reloadData];
+                [self.collectionView headerEndRefreshing];
+                [self.collectionView footerEndRefreshing];
+            });
+        } Fail:^(NSError *error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.collectionView headerEndRefreshing];
+                [self.collectionView footerEndRefreshing];
+//                [MBProgressHUD showError:@"请检查网络"];
+            });
+            NSLog(@"-------%s-----WS_GetVideoLabel-%@", __func__, error);
+        }];
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)setupCollectionView {
+    LIWaterflowLayout *layout = [[LIWaterflowLayout alloc] init];
+    if (self.nType == 2) {
+        layout.columnsCount = 1;
+    } else {
+        layout.columnsCount = ISHomeCellColumn;
+    }
+    layout.addItemByOrder = YES;
+    layout.rowMargin = ISHomeCellMargin;
+    layout.columnMargin = ISHomeCellMargin;
+    layout.itemEdgeInset = UIEdgeInsetsMake(ISHomeCellMargin, ISHomeCellMargin, ISHomeCellMargin, ISHomeCellMargin);
+    layout.delegate = self;
+    
+    CGRect frame = CGRectMake(0, 0,  ISScreen_Width, ISScreen_Height - ISTabBarHeight);
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:frame collectionViewLayout:layout];
+    collectionView.backgroundColor = [UIColor groupTableViewBackgroundColor];
+//    collectionView.backgroundColor = ISTestRandomColor;
+    
+    // 注册banner 使用的头部视图
+    [collectionView registerNib:[UINib nibWithNibName:@"ISHomeBannerView" bundle:nil] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:home_banner_view];
+//    [collectionView registerClass:[ISHomeBannerView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:home_banner_view];
+    
+//    [collectionView registerClass:[ISHomeBannerView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:home_banner_view];
+    
+    if (self.nType == 2) {  // 活动
+        [collectionView registerNib:[UINib nibWithNibName:@"ISActiviteCell" bundle:nil] forCellWithReuseIdentifier:activite_cell];
+    } else if (self.nType == 3) {   // 定制
+        [collectionView registerNib:[UINib nibWithNibName:@"ISSpecialViewCell" bundle:nil] forCellWithReuseIdentifier:special_cell];
+    } else {
+        // 注册 cell
+        [collectionView registerNib:[UINib nibWithNibName:@"ISHomeVideoCell" bundle:nil] forCellWithReuseIdentifier:home_cell];
+    }
+    
+    collectionView.dataSource = self;
+    collectionView.delegate = self;
+    collectionView.alwaysBounceVertical = YES;
+    
+    [self.view addSubview:collectionView];
+    self.collectionView = collectionView;
+    
+    // 下拉刷新
+    [collectionView addHeaderWithTarget:self action:@selector(headerRefresh)];
+    // 上拉加载
+    [collectionView addFooterWithTarget:self action:@selector(footerRefresh)];
+    // 如果 self.nType = 1, 加载视频数据
+    [self headerRefresh];
+}
+
+// 头部视图
+- (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
+    if (self.headerView) {
+        if (self.isBannerHasImage == NO && self.bannerUrls.count > 0) {
+            self.headerView.scrollView.ads = self.bannerUrls;
+            self.headerView.scrollView.delegate = self;
+            self.headerView.scrollView.needsAutoPlay = YES;
+            self.isBannerHasImage = YES;
+        }
+        return self.headerView;
+    } else {
+        ISHomeBannerView *header = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:home_banner_view forIndexPath:indexPath];
+        // 传递数据
+        if (self.banners > 0) {
+            if (self.bannerUrls.count > 0 ) {
+                header.scrollView.ads = self.bannerUrls;
+                header.scrollView.delegate = self;
+                self.isBannerHasImage = YES;
+                header.scrollView.needsAutoPlay = YES;
+            }
+        } else {
+            header.scrollView.needsAutoPlay = NO;
+        }
+        self.headerView = header;
+        return header;
+    }
+}
+
+/**  下拉刷新 */
+- (void)headerRefresh
+{
+    if (self.nType == 2 || self.nType == 3) {
+        [self loadSpecialByType:self.nType start:@(0) count:@(88)];
+        self.isBannerHasImage = NO;
+        [self loadBannersStart:@(0) count:self.bannerNum];
+    } else {
+        [self refreshVideo];
+    }
+}
+
+/**  上拉加载 */
+- (void)footerRefresh {
+    if (self.nType == 2 || self.nType == 3) {
+        [self loadSpecialByType:self.nType start:@(self.labelsCount) count:@(self.labelsCount + 88)];
+    } else {
+        [self loadMoreVideos];
+    }
+}
+
+/**  下拉刷新视频列表 */
+- (void)refreshVideo {     // 根据 label 请求 video 数据
+    // 检查网络情况, 如果是从没网络情况到 WIFI\3G\4G 网络, 通知主界面重新请求数据
+    if ( [self.netState isEqualToString:@"NO"] && [MovierUtils GetCurrntNet] ) {   // 有网络情况
+        if ([self.delegate respondsToSelector:@selector(reloadDataFromServer)]) {
+            [self.delegate reloadDataFromServer];
+        }
+    }
+    if([self.videoInfos count]<10)
+        [self loadData:@(0) count:@(88)];
+    else
+        [self loadData:@(0) count:@([self.videoInfos count])];
+}
+
+- (void)loadData:(NSNumber *)start count:(NSNumber *)count {
+    [[SoapOperation Singleton] WS_GetVideosbyLabel:nil Label:self.label.nLabelID Start:start Count:count Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+        self.downloadtimes = 0;
+        if ([start intValue] == 0) {
+            [self.videoInfos removeAllObjects];
+        }
+        for (NSInteger i = 0; i < array.item.count; i++) {
+            MovierDCInterfaceSvc_VDCVideoInfoEx *videoInfoEx = array.item[i];
+            VideoInformationObject *videoInfo = [[VideoInformationObject alloc] init];
+            videoInfo.videoID = [NSString stringWithFormat:@"%@", videoInfoEx.nVideoID];
+            videoInfo.videoName = videoInfoEx.szVideoName;
+            videoInfo.ownerID = [NSString stringWithFormat:@"%@", videoInfoEx.nOwnerID];
+            videoInfo.ownerName = videoInfoEx.szOwnerName;
+            videoInfo.ownerAcatar = videoInfoEx.szAcatar;
+            videoInfo.videoLabelName = videoInfoEx.szVideoLabel;
+            videoInfo.videoCreateTime = videoInfoEx.szCreateTime;
+            videoInfo.videoThumbnailUrl = [videoInfoEx.szThumbnail stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+            videoInfo.videoReferenceUrl = [videoInfoEx.szReference stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+            videoInfo.videoSignature = videoInfoEx.szSignature;
+            videoInfo.videoNumberOfPraise = [NSString stringWithFormat:@"%@", videoInfoEx.nPraise];
+            videoInfo.videoNumberOfShare = [NSString stringWithFormat:@"%@", videoInfoEx.nShareNum];
+            videoInfo.videoNumberOfFavorite = [NSString stringWithFormat:@"%@", videoInfoEx.nFavoritesNum];
+            videoInfo.videoNumberOfComment = [NSString stringWithFormat:@"%@", videoInfoEx.nCommentsNum];
+            videoInfo.videoCollectStatus = [NSString stringWithFormat:@"%@", videoInfoEx.nVideoStatus];
+            videoInfo.videoShare = [NSString stringWithFormat:@"%@", videoInfoEx.nVideoShare];
+            videoInfo.videoPlayCount = [NSString stringWithFormat:@"%@", videoInfoEx.nVisitCount];
+            //            MovierDCInterfaceSvc_VDCLabelForVideo * stLabels;
+            [self.videoInfos addObject:videoInfo];
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.collectionView reloadData];
+            [self.collectionView footerEndRefreshing];
+            [self.collectionView headerEndRefreshing];
+        });
+    } Fail:^(NSError *error) {
+        self.downloadtimes++;
+        if (self.downloadtimes < 6) {
+            [self loadData:start count:count];
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.collectionView headerEndRefreshing];
+            [self.collectionView footerEndRefreshing];
+            [MBProgressHUD showError:@"请检查网络"];
+        });
+        NSLog(@"------%s-----%@", __func__, error);
+    }];
+}
+
+- (void)loadMoreVideos {
+    NSNumber *start = [NSNumber numberWithInteger:self.videoInfos.count];
+    [self loadData:start count:@(88)];
+}
+
+
+#pragma mark --- UICollectionViewDataSource ---- collectionView 数据源方法
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    if (self.nType == 2 || self.nType == 3) {
+        return self.labels.count;
+    } else {    // 第一个 cell 设置为顶部视图
+        return self.videoInfos.count;
+    }
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.nType == 2) {  // 活动
+        ISActiviteCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:activite_cell forIndexPath:indexPath];
+        cell.label = self.labels[indexPath.item];
+        return cell;
+    } else if (self.nType == 3) {   // 定制
+        ISSpecialViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:special_cell forIndexPath:indexPath];
+        cell.label = self.labels[indexPath.item];
+        return cell;
+    } else {    // 其他
+        ISHomeVideoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:home_cell forIndexPath:indexPath];
+        if (indexPath.item>[self.videoInfos count]) {
+//            NSLog(@"indexPath over array !");
+//            NSLog(@"indexPath.item = %ld",(long)indexPath.item);
+        }else if(indexPath.item < self.videoInfos.count){
+            cell.video = self.videoInfos[indexPath.item];
+        }else{
+//            NSLog(@"indexPath.item = %ld",(long)indexPath.item);
+        }
+        return cell;
+    }
+}
+
+#pragma mark --- UICollectionViewDelegate ---- collectionView 代理方法
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.nType == 2) {  // 活动详情
+        if ([self.delegate respondsToSelector:@selector(homeContentViewController:didClickSpecial:)]) {
+            [self.delegate homeContentViewController:self didClickSpecial:self.labels[indexPath.item]];
+        }
+    } else if (self.nType == 3) {   // 定制详情
+        if ([self.delegate respondsToSelector:@selector(homeContentViewController:didClickSpecial:)]) {
+            [self.delegate homeContentViewController:self didClickSpecial:self.labels[indexPath.item]];
+        }
+    } else {    // 视频详情
+        VideoInformationObject *video = self.videoInfos[indexPath.item];
+        // 给视频单例对象赋值, 避免视频单例对象为空, 在跳转到下级界面时, 获取不到视频对象
+        [[Video Singleton] setContent:video];
+        int videoID = [video.videoID intValue];
+        // 每次播放视频， 数量加1, 在异步线程中执行
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//                int number = [[APPUserPrefs Singleton] APP_setVideoPlayNumByVideoID:videoID];
+//                vc.num = [NSString stringWithFormat:@"%d", number];
+//                [Video Singleton].videoPlayCount = vc.num;
+//                video.videoPlayCount = vc.num;
+//            });
+        [[SoapOperation Singleton] WS_IncreaseVisit:@(videoID) Success:^(NSNumber *num) {
+            video.videoPlayCount = [NSString stringWithFormat:@"%@", num];
+            [[Video Singleton] setContent:video];
+        } Fail:^(NSError *error) {
+            NSLog(@"------%s-----%@", __func__, error);
+        }];
+        self.indexPath = indexPath;
+        // 代理跳转到视频播放界面
+        if ([self.delegate respondsToSelector:@selector(homeContentViewController:didClickVideo:)]) {
+            [self.delegate homeContentViewController:self didClickVideo:videoID];
+        }
+    }
+}
+
+#pragma mark --- LIWaterflowLayoutDelegate ----  瀑布流代理方法, 返回 cell 的尺寸(高度)
+- (CGFloat)waterflowLayout:(LIWaterflowLayout *)waterflowLayout heightForWidth:(CGFloat)width atIndexPath:(NSIndexPath *)indexPath {
+    if (self.nType == 3 || self.nType == 2) {
+        return ISHomeCellWidth * ISHomeCellRatio * 0.5;
+    } else {    // 第一个特殊处理的 cell 在瀑布流 LIWaterflowLayout 内部处理
+        if (indexPath.item % 4 == 0 || indexPath.item % 4 == 3) {
+            return ISHomeCellWidth * ISHomeCellRatio;
+        } else {
+            return ISHomeCellWidth * ISHomeCellRatio * 0.5;
+        }
+    }
+}
+
+- (CGSize)waterflowLayout:(LIWaterflowLayout *)waterflowLayout sectionHeaderAtIndexPath:(NSIndexPath *)indexPath {
+    CGFloat width = ISScreen_Width - ISHomeCellMargin * 2;
+    if (self.banners > 0) {
+        return CGSizeMake(width, ISScreen_Width * ISHomeBannerRatioWhenSearchHidden);
+    } else {
+        return CGSizeMake(0, 0);
+    }
+}
+
+#pragma mark --- ScrollViewLoopDelegate 主页头部  banner 点击 的代理
+- (void)scrollView:(ScrollViewLoop *)scrollView clickAdAtIndex:(NSInteger)index {
+    // 跳转网页
+    MovierDCInterfaceSvc_VDCBannerInfo *bannerInfo = self.bannerInfos[index];
+    if ([self.delegate respondsToSelector:@selector(homeContentViewController:didClickBanner:)]) {
+        [self.delegate homeContentViewController:self didClickBanner:bannerInfo];
+    }
+}
+
+- (void)scrollViewClick:(NSNotification *)noti {
+    NSInteger index = [noti.userInfo[ScrollViewLoopIndex] integerValue];
+    MovierDCInterfaceSvc_VDCBannerInfo *bannerInfo = self.bannerInfos[index];
+    if ([self.delegate respondsToSelector:@selector(homeContentViewController:didClickBanner:)]) {
+        [self.delegate homeContentViewController:self didClickBanner:bannerInfo];
+    }
+}
+
+@end

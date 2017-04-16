@@ -1,0 +1,56 @@
+//
+//  ICloudCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/25.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel, ICloudCell;
+
+typedef enum {
+    /**  系统文件夹下载 */
+    ICloudCellButtonTypeSystemFolderDownload,
+    /**  普通文件夹下载 */
+    ICloudCellButtonTypeNormalFolderDownload,
+    /**  普通文件夹删除 */
+    ICloudCellButtonTypeNormalFolderDelete,
+    /**  普通文件夹更多操作 */
+    ICloudCellButtonTypeNormalFolderMore
+}ICloudCellButtonType;
+
+#pragma mark -- ICloudCell 文件操作按钮代理
+@protocol ICloudCellDelegate <NSObject>
+@optional
+/**  云空间主界面   普通状态 cell 的代理方法 */
+- (void)iCloudCell:(ICloudCell *)icloudCell buttonType:(ICloudCellButtonType)type;
+@end
+
+@interface ICloudCell : UITableViewCell
+/** 下拉按钮 */
+@property (weak, nonatomic) IBOutlet UIButton *dropdownBtn;
+@property (strong, nonatomic) MWICloudModel *model;
+
+/**
+ *  cell 尺寸改变的 block
+ */
+@property (copy, nonatomic) void(^frameChange) (ICloudCell *cell, CGFloat height, BOOL isExpan);
+/** 处理文件操作按钮点击事件 */
+@property (weak, nonatomic) id<ICloudCellDelegate> delegate;
+
+#pragma mark -- ICloudCell 尺寸改变的操作
+/**
+ *  按钮点击之前, cell 的尺寸恢复为44
+ */
+- (void)frameRecovery:(ICloudCell *)cell;
+
+/**
+ *  点击 cell 内部按钮后, cell 的尺寸发生改变
+ */
+- (void)frameChange:(void(^) (ICloudCell *cell, CGFloat height, BOOL isExpan))frameChange;
+
+#pragma mark -- ICloudCell 初始化方法
+/**  创建 cell */
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

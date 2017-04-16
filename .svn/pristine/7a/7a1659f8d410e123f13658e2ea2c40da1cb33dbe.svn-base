@@ -1,0 +1,13 @@
+//
+//  MWAlbumViewController.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/12.
+//  点击上传图片按钮, 进入图片控制器
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MWAlbumViewController : UITableViewController
+@property (copy, nonatomic) NSString *type;
+@end

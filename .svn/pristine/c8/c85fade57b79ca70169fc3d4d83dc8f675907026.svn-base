@@ -1,0 +1,216 @@
+//
+//  AleadyBindingWeChatViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/5/31.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "AleadyBindingWeChatViewController.h"
+#import "WXApi.h"
+#import <UMSocial.h>
+#import "SoapOperation.h"
+#import "UserEntity.h"
+
+@interface AleadyBindingWeChatViewController ()<UMSocialUIDelegate, UIAlertViewDelegate>
+@property (weak, nonatomic) IBOutlet UILabel *bindingWechatlabel;
+@property (weak, nonatomic) IBOutlet UIButton *removeBindingButton;
+@property (weak, nonatomic) IBOutlet UIButton *updateBindingWeChatButton;
+/** 是否绑定手机号*/
+@property (nonatomic, assign) BOOL isBindingTelNum;
+@end
+
+@implementation AleadyBindingWeChatViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    [self initUI];
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    self.title = @"微信绑定";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    //绑定微信label设置
+    self.bindingWechatlabel.text = [NSString stringWithFormat:@"已绑定微信号：%@", [UserEntity sharedSingleton].szNickname];
+    
+    //更换绑定方法
+    [self.updateBindingWeChatButton addTarget:self action:@selector(updateBindingWeChatButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    
+    //解除绑定方法
+    [self.removeBindingButton addTarget:self action:@selector(removeBindingButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    
+    [self isBindingTel];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - 更绑按钮点击方法
+- (void)updateBindingWeChatButtonAction{
+    //跳转微信登录界面
+    [self check];
+}
+
+//检查手机环境确定能否进行微信绑定
+- (void)check {
+    // 1. 判断是手机还是模拟器
+    UIDevice *device =[UIDevice currentDevice];
+    NSLog(@"%@",[device model]);
+    // 如果是模拟器, 提示在真机上运行
+    if (([[device model] isEqualToString:@"iPad Simulator"]||[[device model]isEqualToString:@"iPhone Simulator"])) {
+        // 模拟器环境
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"请在真机上运行" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
+        [alertView show];
+    } else {
+        // 真机环境
+        if( ![WXApi isWXAppInstalled]) {
+            // 如果没有安装微信
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"抱歉，您的设备未安装微信或版本较低，无法绑定" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
+            [alertView show];
+        } else {
+            // 执行登陆操作
+            [self weChatLoginButtonClick];
+        }
+    }
+}
+
+
+ //微信登陆按钮点击, 能执行这个方法, 手机一定安装了微信
+- (void)weChatLoginButtonClick {
+    // 从微信获取数据
+    [UMSocialControllerService defaultControllerService].socialUIDelegate = self;
+    UMSocialSnsPlatform *snsPlatform = [UMSocialSnsPlatformManager getSocialPlatformWithName:UMShareToWechatSession];
+    snsPlatform.loginClickHandler(self,[UMSocialControllerService defaultControllerService],YES,^(UMSocialResponseEntity *response){
+        if (response.responseCode == UMSResponseCodeSuccess) {
+            
+            [[UMSocialDataService defaultDataService] requestSnsInformation:UMShareToWechatSession  completion:^(UMSocialResponseEntity *response){
+                NSLog(@"SnsInformation is %@",response.data);
+                NSLog(@"profile_image_url ---- %@", response.data[@"profile_image_url"]);
+                // 1. 给映像服务器发送请求, 注册账号/或者登陆
+                //绑定微信号
+                [self registerFromServer:response.data];
+            }];
+        } else {
+            NSLog(@"从微信获取信息失败");
+        }
+    });
+}
+
+//拿到微信的数据到服务器注册
+- (void)registerFromServer:(NSDictionary *)data {
+    // openid
+    NSString *openid = [data[@"openid"] length] == 0 ? @"" : data[@"openid"];
+    NSString *access_token = [data[@"access_token"] length] == 0 ? @"" : data[@"access_token"];
+    
+    //https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
+    NSString * URLString = [NSString stringWithFormat:@"https://api.weixin.qq.com/sns/userinfo?access_token=%@&openid=%@",access_token,openid];
+    NSURLRequest *request1 = [[NSURLRequest alloc]initWithURL:[NSURL URLWithString:URLString] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
+    NSData *received = [NSURLConnection sendSynchronousRequest:request1 returningResponse:nil error:nil];
+    
+    NSDictionary *wechatinfo = [NSJSONSerialization JSONObjectWithData:received options:0 error:nil];
+    
+    NSLog(@"%@",wechatinfo);
+    
+    // 用户名
+    NSString *screen_name = [wechatinfo[@"nickname"] length] == 0 ? @"" : wechatinfo[@"nickname"];
+    // 头像
+    NSString *Profile = [wechatinfo[@"headimgurl"] length] == 0 ? @"" : wechatinfo[@"headimgurl"];
+    //此处未使用
+//    NSString *Country = [wechatinfo[@"country"] length] == 0 ? @"" : wechatinfo[@"country"];
+    NSString *City = [wechatinfo[@"city"] length] == 0 ? @"" : wechatinfo[@"city"];
+    NSString *Province = [wechatinfo[@"province"] length] == 0 ? @"" : wechatinfo[@"province"];
+    int gender = [wechatinfo[@"sex"] intValue];
+    if (gender == 0) {
+        gender = 1;
+    } else if (gender == 1) {
+        gender = 2;
+    }
+    NSString *unionid = [wechatinfo[@"unionid"] length] == 0 ? @"" : wechatinfo[@"unionid"];
+    
+    MovierDCInterfaceSvc_VDCThirdPartyAccount *account = [[MovierDCInterfaceSvc_VDCThirdPartyAccount alloc]init];
+    account.szNickName = screen_name;//[screen_name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szAcatar = [Profile stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szAccount = unionid;//[unionid stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szLocationProvince = Province;//[Province stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szLocationCity = City;//[City stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.szSignature = @"";
+    account.szPwd = [access_token stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    account.nGender = [NSNumber numberWithInt:gender];
+    account.nThirdPartyType = [NSNumber numberWithInt:1];//微信定义为1
+    
+    [[SoapOperation Singleton] WS_Updatethirdpartyaccount:account.szAccount ThirdPartyType:1 PszThirdPartyAccountAlias:nil Success:^(NSNumber *num) {
+        [UIWindow showMessage:@"更换成功，您现在可使用新微信直接登陆啦" withTime:3.0];
+    } Fail:^(NSError *error) {
+        NSLog(@"绑定微信号失败");
+    }];
+}
+
+
+#pragma mark - 解除绑定方法
+- (void)removeBindingButtonAction{
+    if (!_isBindingTelNum) {
+        //没绑定手机号
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"您未绑定其他账号，解绑微信将无法登陆，您可以更绑其他微信" delegate:self cancelButtonTitle:@"更绑" otherButtonTitles:@"取消", nil];
+        alert.tag = 100;
+        [alert show];
+        return;
+    }
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"您确定解除绑定吗？" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:@"取消", nil];
+    alert.tag = 1000;
+    [alert show];
+}
+
+- (void)isBindingTel{
+    [[SoapOperation Singleton] WS_gettelandthirdpartybindstatusWithSuccess:^(MovierDCInterfaceSvc_VDCTelAndThirdPartyBindStatusEnv *isBindingInfo) {
+        NSLog(@"下载用户部分信息是否存在的信息成功");
+      self.isBindingTelNum = isBindingInfo.IsBindTel.boolValue;
+    } Fail:^(NSError *error) {
+        NSLog(@"下载用户部分信息是否存在的信息失败-------%@", error);
+    }];
+}
+
+//UIAlertViewDelegate
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 0 && alertView.tag == 1000) {
+        [[SoapOperation Singleton] WS_Updatethirdpartyaccount:@"0" ThirdPartyType:1 PszThirdPartyAccountAlias:nil Success:^(NSNumber *num) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"恭喜您，解绑成功！" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"ok", nil];
+                [alertView show];
+                [self.navigationController popViewControllerAnimated:YES];
+            });
+        } Fail:^(NSError *error) {
+            NSLog(@"解绑微信号失败%@", error);
+        }];
+    }else if(buttonIndex == 0 && alertView.tag == 100){
+        [self updateBindingWeChatButtonAction];
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

@@ -1,0 +1,209 @@
+//
+//  SearchUserViewController.m
+//  M-Cut
+//
+//  Created by Admin on 16/3/17.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "SearchUserVC.h"
+#import "MyUserCell.h"
+#import "SoapOperation.h"
+#import "MBProgressHUD.h"
+#import "OtherPeopleViewController.h"
+#import "MyVideoViewController.h"
+#import "CustomeClass.h"
+#import "FriendCell.h"
+#import "ChatViewController.h"
+
+@interface SearchUserVC ()<UITableViewDataSource, UITableViewDelegate>
+@property (nonatomic, strong) NSMutableArray * dataSource;
+@property (nonatomic, strong) MBProgressHUD * HUD;
+@property (nonatomic, strong) NSMutableArray * userVideoNum;
+@property (nonatomic, assign) NSUInteger videoNum;
+@end
+
+@implementation SearchUserVC
+
+- (void)dealloc{
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+#pragma mark - 数组懒加载
+- (NSMutableArray *)userVideoNum
+{
+    if (_userVideoNum == nil) {
+        _userVideoNum = [[NSMutableArray alloc] init];
+    }
+    return _userVideoNum;
+}
+
+- (NSMutableArray *)dataSource
+{
+    if (_dataSource == nil) {
+        _dataSource = [[NSMutableArray alloc] init];
+    }
+    return _dataSource;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    [self initUI];
+    self.title = @"所有用户";
+    [self setTable];
+    [self downloadDataWithStart:0];
+}
+
+#pragma mark - initUI
+- (void)initUI{
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)setTable
+{
+    self.userTable.delegate = self;
+    self.userTable.dataSource = self;
+    [self.userTable registerNib:[UINib nibWithNibName:@"MyUserCell" bundle:[NSBundle mainBundle]] forCellReuseIdentifier:@"cell"];
+    self.userTable.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [self.userTable addFooterWithTarget:self action:@selector(footerRefresh)];
+}
+
+- (void)footerRefresh{
+    [self downloadDataWithStart:self.dataSource.count];
+}
+
+#pragma mark - 下载数据
+
+- (void)downloadDataWithStart:(NSInteger)startIndex{
+    
+    [CustomeClass hudShowWithView:self.view Tag:10];
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_searchfriendWithSearchContent:self.searchBarText Offset:startIndex Count:36 Success:^(NSMutableArray *serverDataArray) {
+        /*
+         MovierDCInterfaceSvc_VDCFriendInfo
+         @interface MovierDCInterfaceSvc_VDCFriendInfo : NSObject {
+         
+         NSNumber * nFriendFlag;
+         NSNumber * nCustomerID;
+         NSNumber * nVideoAmount;
+         NSNumber * nCollectAmount;
+         NSString * szAvatar;
+         NSString * szNickName;
+         NSString * szSignature;
+         
+         }
+         */
+        if (startIndex == 0) {
+            [weakSelf.dataSource removeAllObjects];
+        }
+        [weakSelf.dataSource addObjectsFromArray:[serverDataArray copy]];
+        MAINQUEUEUPDATEUI({
+            [weakSelf.userTable reloadData];
+            [CustomeClass hudHiddenWithView:weakSelf.view Tag:10];
+            [weakSelf.userTable footerEndRefreshing];
+            if (serverDataArray.count < 36) {
+                [CustomeClass showMessage:@"没有更多结果了" ShowTime:1.5];
+                [weakSelf.userTable removeFooter];
+            }
+        })
+    } Fail:^(NSError *error) {
+        [CustomeClass hudHiddenWithView:weakSelf.view Tag:10];
+        RELOADSERVERDATA([weakSelf downloadDataWithStart:startIndex];);
+    }];
+}
+
+#pragma mark - table代理方法
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 80;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.dataSource.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    MovierDCInterfaceSvc_VDCFriendInfo * friendInfo = self.dataSource[indexPath.row];
+    FriendCell * cell = [FriendCell getFriendCellWithIconUrl:friendInfo.szAvatar NickName:friendInfo.szNickName VideoNam:[friendInfo.nVideoAmount integerValue] CollectNum:[friendInfo.nCollectAmount integerValue] Signature:friendInfo.szSignature FriendType:[friendInfo.nFriendFlag integerValue] Table:tableView FriendInfo:friendInfo Index:indexPath];
+    WEAKSELF(weakSelf);
+    [cell rightAction:^(NSString *actionTypeStr, FriendModel *friendInfo, NSIndexPath *cellIndex) {
+        [weakSelf rightAction:actionTypeStr FriendModel:friendInfo Index:cellIndex];
+    }];
+    return cell;
+}
+
+- (void)rightAction:(NSString *)btnStr FriendModel:(FriendModel *)friendModel Index:(NSIndexPath *)cellIndex{
+    if ([btnStr isEqualToString:@"私信"]) {
+        //进入私信界面
+        //跳转到私信页面
+        ChatViewController * chatVc = [ChatViewController new];
+        chatVc.friendInfo = friendModel;
+        [self.navigationController pushViewController:chatVc animated:YES];
+        
+    }else if ([btnStr isEqualToString:@"+关注"]){
+        //关注
+        [self followSomeone:friendModel Index:cellIndex];
+    }
+}
+
+/** 关注方法*/
+- (void)followSomeone:(FriendModel *)friendModel Index:(NSIndexPath *)cellIndex{
+    WEAKSELF(weakSelf);
+    [[SoapOperation Singleton] WS_followWithCustomID:friendModel.userId Success:^(NSNumber *num) {
+        DEBUGSUCCESSLOG(@"关注成功")
+        MovierDCInterfaceSvc_VDCFriendInfo * friendInfo = weakSelf.dataSource[cellIndex.row];
+        friendInfo.nFriendFlag = @(1);
+        [weakSelf.dataSource replaceObjectAtIndex:cellIndex.row withObject:friendInfo];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf.userTable reloadData];
+            [CustomeClass showMessage:@"关注成功" ShowTime:2];
+        });
+        
+    } Fail:^(NSError *error) {
+        DEBUGLOG(@"关注失败");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [CustomeClass showMessage:@"关注失败" ShowTime:1.5];
+        });
+        NSLog(@"error---%@", error);
+    }];
+}
+
+- (void)customerMakeVideoNumWithId:(NSNumber *)customerId
+{
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetPersonalVideos:nil Customer:customerId Start:0 Count:[NSNumber numberWithInt:30] Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+        weakSelf.videoNum = array.item.count;
+    } Fail:^(NSError *error) {
+        
+    }];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (![UserEntity sharedSingleton].isAppHasLogin) {
+        [CustomeClass showMessage:@"请登录后查看" ShowTime:1.5];
+        return;
+    }
+    MovierDCInterfaceSvc_VDCCustomerBaseInfoEx * customerInfo = self.dataSource[indexPath.row];
+    MyVideoViewController * videoVc = [MyVideoViewController new];
+    videoVc.isShowOtherUserVideo = YES;
+    videoVc.userId = [NSString stringWithFormat:@"%@", customerInfo.nCustomerID];
+    [self.navigationController pushViewController:videoVc animated:YES];
+}
+
+@end

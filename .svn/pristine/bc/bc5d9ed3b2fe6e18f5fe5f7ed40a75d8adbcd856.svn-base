@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>好友类型</key>
+		<string>手机联系人</string>
+		<key>好友图片</key>
+		<string>addPhoneFriendImage</string>
+		<key>好友简介</key>
+		<string>添加通讯录中的好友</string>
+	</dict>
+	<dict>
+		<key>好友类型</key>
+		<string>微信联系人</string>
+		<key>好友图片</key>
+		<string>addWechatFriendImage</string>
+		<key>好友简介</key>
+		<string>添加微信中的好友</string>
+	</dict>
+	<dict>
+		<key>好友类型</key>
+		<string>QQ联系人</string>
+		<key>好友图片</key>
+		<string>addQQFriendImage</string>
+		<key>好友简介</key>
+		<string>添加QQ中的好友</string>
+	</dict>
+</array>
+</plist>

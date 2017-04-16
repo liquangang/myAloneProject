@@ -1,0 +1,55 @@
+//
+//  VideoDetailViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/9/8.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "VideoDetailViewController.h"
+
+#import "VideoPlayerTableViewCell.h"
+
+@interface VideoDetailViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *videoDetailTable;
+
+@end
+
+@implementation VideoDetailViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.title = @"新版影片详情";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return ISScreen_Width;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return [VideoPlayerTableViewCell getVideoPlayerTableViewCellWithTable:tableView];
+}
+
+@end

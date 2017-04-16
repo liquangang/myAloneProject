@@ -1,0 +1,25 @@
+//
+//  Video2.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/4/22.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "Video2.h"
+
+@implementation Video2
+
++ (Video2 *)Singleton;
+{
+    static Video2 *sharedSingleton;
+    
+    @synchronized(self)
+    {
+        if (!sharedSingleton)
+            sharedSingleton = [[Video2 alloc] init];
+        
+        return sharedSingleton;
+    }
+}
+@end

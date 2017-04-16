@@ -1,0 +1,25 @@
+//
+//  MWICloudEditCell.h
+//  ICloudSpace
+//
+//  Created by LI on 15/9/26.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel, MWICloudEditCell;
+
+@protocol MWICloudEditCellDelegate <NSObject>
+
+@optional
+/**  云空间主界面   选择状态 cell 的代理方法 */
+- (void)iCloudEditCell:(MWICloudEditCell *)editCell didClickChooseButton:(UIButton *)button;
+@end
+
+@interface MWICloudEditCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+@property (weak, nonatomic) id<MWICloudEditCellDelegate> delegate;
+
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

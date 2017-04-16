@@ -1,0 +1,125 @@
+//
+//  LKButton.m
+//  Test
+//
+//  Created by 李亚飞 on 15/10/20.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+
+#import "MWButton.h"
+
+@implementation MWButton
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        CGFloat x = frame.size.width * 0.5;
+        CGFloat y = frame.size.height * 0.5;
+        self.layer.cornerRadius = MIN(x, y);
+        self.clipsToBounds = YES;
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        
+        CGFloat x = self.frame.size.width * 0.5;
+        CGFloat y = self.frame.size.height * 0.5;
+        self.layer.cornerRadius = MIN(x, y);
+        self.clipsToBounds = YES;
+    }
+    return self;
+}
+
+- (void)drawRect:(CGRect)rect {
+    if (self.selected == NO) {
+        // 圆心, 半径
+        CGFloat x = rect.size.width * 0.5;
+        CGFloat y = rect.size.height * 0.5;
+        CGFloat radius = MIN(x, y) - 2;
+        
+#pragma mark 1. 画背景圆
+        // 1.1 取得图形上下文
+        CGContextRef ctx = UIGraphicsGetCurrentContext();
+#pragma mark -- 图形上下文入栈
+        CGContextSaveGState(ctx);
+        
+        // 设置填充色 (背景色)
+        if (self.normalBGColor) {
+            [self.normalBGColor set];
+        } else {
+            [[UIColor clearColor] set];
+        }
+        CGContextFillRect(ctx, rect);
+        
+        // 1.2 设置圆心, 半径, 线宽
+        CGContextAddArc(ctx, x, y, radius, - M_PI_2, M_PI * 1.5, 0);
+        CGContextSetLineWidth(ctx, 2);
+        
+//        CGContextSetRGBStrokeColor(ctx, 1, 0, 0, 1.0);
+        if (self.trackTintColor) {
+            [self.trackTintColor set];
+        } else {
+            [[UIColor lightGrayColor] set];
+        }
+        
+        // 1.3 画圆, 绘制路径
+        CGContextStrokePath(ctx);
+#pragma mark -- 图形上下文出栈
+        CGContextRestoreGState(ctx);
+        CGContextSetLineWidth(ctx, 2);
+#pragma mark 2. 画两条竖线
+#pragma mark -- 图形上下文入栈
+        CGContextSaveGState(ctx);
+        
+        if (self.lineColor) {
+            [self.lineColor set];
+        } else {
+            [MWICloudColor(43, 168, 150) set];
+        }
+        
+        // 第一条线起点
+        CGFloat startX1 = x - x * 0.2;
+        CGFloat startY1 = y - y * 0.5;
+        CGFloat endX1 = startX1;
+        CGFloat endY1 = y + y * 0.5;
+        CGContextMoveToPoint(ctx, startX1, startY1);
+        CGContextAddLineToPoint(ctx, endX1, endY1);
+        
+        // 第二条线起点
+        CGFloat startX2 = x + x * 0.2;
+        CGFloat startY2 = y - y * 0.5;
+        CGFloat endX2 = startX2;
+        CGFloat endY2 = y + y * 0.5;
+        CGContextMoveToPoint(ctx, startX2, startY2);
+        CGContextAddLineToPoint(ctx, endX2, endY2);
+        // 绘制路径
+        CGContextStrokePath(ctx);
+
+#pragma mark 3. 画进度圆
+#pragma mark -- 图形上下文出栈
+        CGContextRestoreGState(ctx);
+        // 2. 设置圆心, 半径, 并设置开始位置
+        CGContextAddArc(ctx, x, y, radius, LIStartAngle, M_PI * self.progress * 2 + LIStartAngle, 0);
+        CGContextSetLineWidth(ctx, 2);
+        if (self.progressTintColor) {
+            [self.progressTintColor set];
+        } else {
+            [MWICloudColor(43, 168, 150) set];
+        }
+        // 3. 画圆, 绘制路径
+        CGContextStrokePath(ctx);
+        
+    } else {    // 高亮状态下显示一张图片
+        [[UIImage imageNamed:self.selectedImageName] drawInRect:rect];
+    }
+}
+
+- (void)setProgress:(CGFloat)progress {
+    if (progress >= 1)  return;
+    
+    _progress = progress;
+    [self setNeedsDisplay];
+}
+
+@end

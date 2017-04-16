@@ -1,0 +1,253 @@
+//
+//  MyFourSearchCell2.m
+//  M-Cut
+//
+//  Created by Admin on 16/3/20.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+/**  屏幕宽度 */
+#define ISScreen_Width [UIScreen mainScreen].bounds.size.width
+/**  屏幕高度 */
+#define ISScreen_Height [UIScreen mainScreen].bounds.size.height
+/**  iPhone4  */
+#define iPhone4         CGSizeEqualToSize(CGSizeMake(640, 960), [UIScreen mainScreen].currentMode.size)
+/**  iPhone5_5S_5C  */
+#define iPhone5_5S_5C   CGSizeEqualToSize(CGSizeMake(640, 1136), [UIScreen mainScreen].currentMode.size)
+/**  iPhone6_6S  */
+#define iPhone6_6S      CGSizeEqualToSize(CGSizeMake(750, 1334), [UIScreen mainScreen].currentMode.size)
+/**  iPhone6_6SPlus  */
+#define iPhone6_6SPlus  CGSizeEqualToSize(CGSizeMake(1125, 2001), [UIScreen mainScreen].currentMode.size) || CGSizeEqualToSize(CGSizeMake(1242, 2208), [UIScreen mainScreen].currentMode.size) || CGSizeEqualToSize(CGSizeMake(1080, 1920), [UIScreen mainScreen].currentMode.size)
+#import "MyFourSearchCell2.h"
+
+@implementation MyFourSearchCell2
+
+- (void)awakeFromNib {
+    // Initialization code
+}
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
+{
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        //初始化，设置属性，添加到父视图，设置frame
+        self.buttonImage1 = [[UIImageView alloc] initWithFrame:CGRectMake(4, 4, ISScreen_Width / 2 - 6, ISScreen_Height / 3 - 4)];
+        self.buttonImage1.layer.masksToBounds = YES;
+        self.buttonImage1.layer.cornerRadius = 5.0;
+        self.buttonImage1.userInteractionEnabled = YES;
+        self.buttonImage1.contentMode = UIViewContentModeScaleAspectFill;
+        self.backImage1 = [[UIButton alloc] init];
+        self.backImage1.layer.masksToBounds = YES;
+        self.backImage1.layer.cornerRadius = 5.0;
+        self.backImage1.frame = CGRectMake(0, 0, self.buttonImage1.frame.size.width, self.buttonImage1.frame.size.height);
+        self.backImage1.backgroundColor = [UIColor clearColor];
+        self.videoNameLabel1 = [[UILabel alloc] init];
+        self.videoNameLabel1.frame = CGRectMake(6, ISScreen_Height / 3 - 44, ISScreen_Width / 2 - 12, 21);
+        self.videoNameLabel1.textColor = [UIColor whiteColor];
+        self.videoNameLabel1.font = [UIFont boldSystemFontOfSize:10];
+        self.videoAuthorLabel1 = [[UILabel alloc] init];
+        self.videoAuthorLabel1.frame = CGRectMake(6, ISScreen_Height / 3 - 27, ISScreen_Width / 4, 21);
+        self.videoAuthorLabel1.textColor = [UIColor whiteColor];
+        self.videoAuthorLabel1.font = [UIFont boldSystemFontOfSize:10];
+        self.lookImage1 = [[UIImageView alloc] init];
+        self.lookImage1.frame = CGRectMake(ISScreen_Width / 4, ISScreen_Height / 3 - 24, 15, 15);
+        self.lookImage1.image = [UIImage imageNamed:@"img_eye"];
+        self.lookTimesLabel1 = [[UILabel alloc] init];
+        self.lookTimesLabel1.frame = CGRectMake(ISScreen_Width / 4 + 15 + 2, ISScreen_Height / 3 - 27, ISScreen_Width / 2 / 4 - 8, 21);
+        self.lookTimesLabel1.textColor = [UIColor whiteColor];
+        self.lookTimesLabel1.font = [UIFont boldSystemFontOfSize:10];
+        self.likeImage1 = [[UIImageView alloc] init];
+        self.likeImage1.frame = CGRectMake(ISScreen_Width / 4 + 17 + 25, ISScreen_Height / 3 - 24, 15, 15);
+        self.likeImage1.image = [UIImage imageNamed:@"heart2"];
+        self.likeTimesLabel1 = [[UILabel alloc] init];
+        self.likeTimesLabel1.frame = CGRectMake(ISScreen_Width /  4 + 44 + 15, ISScreen_Height / 3 - 27, ISScreen_Width / 2 / 4 - 6, 21);
+        self.likeTimesLabel1.textColor = [UIColor whiteColor];
+        self.likeTimesLabel1.font = [UIFont boldSystemFontOfSize:10];
+        [self.contentView addSubview:self.buttonImage1];
+        [self.buttonImage1 addSubview:self.backImage1];
+        [self.backImage1 addSubview:self.videoNameLabel1];
+        [self.backImage1 addSubview:self.videoAuthorLabel1];
+        [self.backImage1 addSubview:self.lookImage1];
+        [self.backImage1 addSubview:self.lookTimesLabel1];
+        [self.backImage1 addSubview:self.likeImage1];
+        [self.backImage1 addSubview:self.likeTimesLabel1];
+        
+        
+        
+        self.buttonImage2 = [[UIImageView alloc] initWithFrame:CGRectMake(ISScreen_Width / 2 + 2, 0 + 4, ISScreen_Width / 2 - 6, ISScreen_Height / 6 - 6)];
+        self.buttonImage2.layer.masksToBounds = YES;
+        self.buttonImage2.layer.cornerRadius = 5.0;
+        self.buttonImage2.userInteractionEnabled = YES;
+        self.buttonImage2.contentMode = UIViewContentModeScaleAspectFill;
+        self.backImage2 = [[UIButton alloc] init];
+        self.backImage2.layer.masksToBounds = YES;
+        self.backImage2.layer.cornerRadius = 5.0;
+        self.backImage2.frame = CGRectMake(0, 0, self.buttonImage2.frame.size.width, self.buttonImage2.frame.size.height);
+        self.backImage2.backgroundColor = [UIColor clearColor];
+        self.videoNameLabel2 = [[UILabel alloc] init];
+        self.videoNameLabel2.frame = CGRectMake(6, ISScreen_Height / 6 - 44, ISScreen_Width / 2 - 12, 21);
+        self.videoNameLabel2.textColor = [UIColor whiteColor];
+        self.videoNameLabel2.font = [UIFont boldSystemFontOfSize:10];
+        self.videoAuthorLabel2 = [[UILabel alloc] init];
+        self.videoAuthorLabel2.frame = CGRectMake(6, ISScreen_Height / 6 - 27, ISScreen_Width / 4, 21);
+        self.videoAuthorLabel2.textColor = [UIColor whiteColor];
+        self.videoAuthorLabel2.font = [UIFont boldSystemFontOfSize:10];
+        self.lookImage2 = [[UIImageView alloc] init];
+        self.lookImage2.frame = CGRectMake(ISScreen_Width / 4, ISScreen_Height / 6 - 24, 15, 15);
+        self.lookImage2.image = [UIImage imageNamed:@"img_eye"];
+        self.lookTimesLabel2 = [[UILabel alloc] init];
+        self.lookTimesLabel2.frame = CGRectMake(ISScreen_Width / 4 + 15 + 2, ISScreen_Height / 6 - 27, ISScreen_Width / 2 / 4 - 8, 21);
+        self.lookTimesLabel2.textColor = [UIColor whiteColor];
+        self.lookTimesLabel2.font = [UIFont boldSystemFontOfSize:10];
+        self.likeImage2 = [[UIImageView alloc] init];
+        self.likeImage2.frame = CGRectMake(ISScreen_Width / 4 + 17 + 25, ISScreen_Height / 6 - 24, 15, 15);
+        self.likeImage2.image = [UIImage imageNamed:@"heart2"];
+        self.likeTimesLabel2 = [[UILabel alloc] init];
+        self.likeTimesLabel2.frame = CGRectMake(ISScreen_Width /  4 + 44 + 15, ISScreen_Height / 6 - 27, ISScreen_Width / 2 / 4 - 6, 21);
+        self.likeTimesLabel2.textColor = [UIColor whiteColor];
+        self.likeTimesLabel2.font = [UIFont boldSystemFontOfSize:10];
+        [self.contentView addSubview:self.buttonImage2];
+        [self.buttonImage2 addSubview:self.backImage2];
+        [self.backImage2 addSubview:self.videoNameLabel2];
+        [self.backImage2 addSubview:self.videoAuthorLabel2];
+        [self.backImage2 addSubview:self.lookImage2];
+        [self.backImage2 addSubview:self.lookTimesLabel2];
+        [self.backImage2 addSubview:self.likeImage2];
+        [self.backImage2 addSubview:self.likeTimesLabel2];
+        
+        
+        self.buttonImage3 = [[UIImageView alloc] initWithFrame:CGRectMake(0 + 4, ISScreen_Height / 3 + 4, ISScreen_Width / 2 - 6, ISScreen_Height / 6 - 6)];
+        self.buttonImage3.layer.masksToBounds = YES;
+        self.buttonImage3.layer.cornerRadius = 5.0;
+        self.buttonImage3.userInteractionEnabled = YES;
+        self.buttonImage3.contentMode = UIViewContentModeScaleAspectFill;
+        self.backImage3 = [[UIButton alloc] init];
+        self.backImage3.layer.masksToBounds = YES;
+        self.backImage3.layer.cornerRadius = 5.0;
+        self.backImage3.frame = CGRectMake(0, 0, self.buttonImage3.frame.size.width, self.buttonImage3.frame.size.height);
+        self.backImage3.backgroundColor = [UIColor clearColor];
+        self.videoNameLabel3 = [[UILabel alloc] init];
+        self.videoNameLabel3.frame = CGRectMake(6, ISScreen_Height / 6 - 44, ISScreen_Width / 2 - 12, 21);
+        self.videoNameLabel3.textColor = [UIColor whiteColor];
+        self.videoNameLabel3.font = [UIFont boldSystemFontOfSize:10];
+        self.videoAuthorLabel3 = [[UILabel alloc] init];
+        self.videoAuthorLabel3.frame = CGRectMake(6, ISScreen_Height / 6 - 27, ISScreen_Width / 4, 21);
+        self.videoAuthorLabel3.textColor = [UIColor whiteColor];
+        self.videoAuthorLabel3.font = [UIFont boldSystemFontOfSize:10];
+        self.lookImage3 = [[UIImageView alloc] init];
+        self.lookImage3.frame = CGRectMake(ISScreen_Width / 4, ISScreen_Height / 6 - 24, 15, 15);
+        self.lookImage3.image = [UIImage imageNamed:@"img_eye"];
+        self.lookTimesLabel3 = [[UILabel alloc] init];
+        self.lookTimesLabel3.frame = CGRectMake(ISScreen_Width / 4 + 15 + 2, ISScreen_Height / 6 - 27, ISScreen_Width / 2 / 4 - 8, 21);
+        self.lookTimesLabel3.textColor = [UIColor whiteColor];
+        self.lookTimesLabel3.font = [UIFont boldSystemFontOfSize:10];
+        self.likeImage3 = [[UIImageView alloc] init];
+        self.likeImage3.frame = CGRectMake(ISScreen_Width / 4 + 17 + 25, ISScreen_Height / 6 - 24, 15, 15);
+        self.likeImage3.image = [UIImage imageNamed:@"heart2"];
+        self.likeTimesLabel3 = [[UILabel alloc] init];
+        self.likeTimesLabel3.frame = CGRectMake(ISScreen_Width /  4 + 44 + 15, ISScreen_Height / 6 - 27, ISScreen_Width / 2 / 4 - 6, 21);
+        self.likeTimesLabel3.textColor = [UIColor whiteColor];
+        self.likeTimesLabel3.font = [UIFont boldSystemFontOfSize:10];
+        [self.contentView addSubview:self.buttonImage3];
+        [self.buttonImage3 addSubview:self.backImage3];
+        [self.backImage3 addSubview:self.videoNameLabel3];
+        [self.backImage3 addSubview:self.videoAuthorLabel3];
+        [self.backImage3 addSubview:self.lookImage3];
+        [self.backImage3 addSubview:self.lookTimesLabel3];
+        [self.backImage3 addSubview:self.likeImage3];
+        [self.backImage3 addSubview:self.likeTimesLabel3];
+        
+        
+        self.buttonImage4 = [[UIImageView alloc] initWithFrame:CGRectMake(ISScreen_Width / 2 + 2, ISScreen_Height / 6  + 2, ISScreen_Width / 2 - 6, ISScreen_Height / 3 - 4)];
+        self.buttonImage4.layer.masksToBounds = YES;
+        self.buttonImage4.layer.cornerRadius = 5.0;
+        self.buttonImage4.userInteractionEnabled = YES;
+        self.buttonImage4.contentMode = UIViewContentModeScaleAspectFill;
+        self.backImage4 = [[UIButton alloc] init];
+        self.backImage4.layer.masksToBounds = YES;
+        self.backImage4.layer.cornerRadius = 5.0;
+        self.backImage4.frame = CGRectMake(0, 0, self.buttonImage4.frame.size.width, self.buttonImage4.frame.size.height);
+        self.backImage4.backgroundColor = [UIColor clearColor];
+        self.videoNameLabel4 = [[UILabel alloc] init];
+        self.videoNameLabel4.frame = CGRectMake(6, ISScreen_Height / 3 - 44, ISScreen_Width / 2 - 12, 21);
+        self.videoNameLabel4.textColor = [UIColor whiteColor];
+        self.videoNameLabel4.font = [UIFont boldSystemFontOfSize:10];
+        self.videoAuthorLabel4 = [[UILabel alloc] init];
+        self.videoAuthorLabel4.frame = CGRectMake(6, ISScreen_Height / 3 - 27, ISScreen_Width / 4, 21);
+        self.videoAuthorLabel4.textColor = [UIColor whiteColor];
+        self.videoAuthorLabel4.font = [UIFont boldSystemFontOfSize:10];
+        self.lookImage4 = [[UIImageView alloc] init];
+        self.lookImage4.frame = CGRectMake(ISScreen_Width / 4, ISScreen_Height / 3 - 24, 15, 15);
+        self.lookImage4.image = [UIImage imageNamed:@"img_eye"];
+        self.lookTimesLabel4 = [[UILabel alloc] init];
+        self.lookTimesLabel4.frame = CGRectMake(ISScreen_Width / 4 + 15 + 2, ISScreen_Height / 3 - 27, ISScreen_Width / 2 / 4 - 8, 21);
+        self.lookTimesLabel4.textColor = [UIColor whiteColor];
+        self.lookTimesLabel4.font = [UIFont boldSystemFontOfSize:10];
+        self.likeImage4 = [[UIImageView alloc] init];
+        self.likeImage4.frame = CGRectMake(ISScreen_Width / 4 + 17 + 25, ISScreen_Height / 3 - 24, 15, 15);
+        self.likeImage4.image = [UIImage imageNamed:@"heart2"];
+        self.likeTimesLabel4 = [[UILabel alloc] init];
+        self.likeTimesLabel4.frame = CGRectMake(ISScreen_Width /  4 + 44 + 15, ISScreen_Height / 3 - 27, ISScreen_Width / 2 / 4 - 6, 21);
+        self.likeTimesLabel4.textColor = [UIColor whiteColor];
+        self.likeTimesLabel4.font = [UIFont boldSystemFontOfSize:10];
+        [self.contentView addSubview:self.buttonImage4];
+        [self.buttonImage4 addSubview:self.backImage4];
+        [self.backImage4 addSubview:self.videoNameLabel4];
+        [self.backImage4 addSubview:self.videoAuthorLabel4];
+        [self.backImage4 addSubview:self.lookImage4];
+        [self.backImage4 addSubview:self.lookTimesLabel4];
+        [self.backImage4 addSubview:self.likeImage4];
+        [self.backImage4 addSubview:self.likeTimesLabel4];
+        
+        /*
+         @property (nonatomic, strong) UIButton * backImage1;
+         @property (nonatomic, strong) UIImageView * buttonImage1;
+         @property (nonatomic, strong) UILabel * videoNameLabel1;
+         @property (nonatomic, strong) UILabel * videoAuthorLabel1;
+         @property (nonatomic, strong) UIImageView * lookImage1;
+         @property (nonatomic, strong) UILabel * lookTimesLabel1;
+         @property (nonatomic, strong) UIImageView * likeImage1;
+         @property (nonatomic, strong) UILabel * likeTimesLabel1;
+         
+         @property (nonatomic, strong) UIButton * backImage2;
+         @property (nonatomic, strong) UIImageView * buttonImage2;
+         @property (nonatomic, strong) UILabel * videoNameLabel2;
+         @property (nonatomic, strong) UILabel * videoAuthorLabel2;
+         @property (nonatomic, strong) UIImageView * lookImage2;
+         @property (nonatomic, strong) UILabel * lookTimesLabel2;
+         @property (nonatomic, strong) UIImageView * likeImage2;
+         @property (nonatomic, strong) UILabel * likeTimesLabel2;
+         
+         @property (nonatomic, strong) UIButton * backImage3;
+         @property (nonatomic, strong) UIImageView * buttonImage3;
+         @property (nonatomic, strong) UILabel * videoNameLabel3;
+         @property (nonatomic, strong) UILabel * videoAuthorLabel3;
+         @property (nonatomic, strong) UIImageView * lookImage3;
+         @property (nonatomic, strong) UILabel * lookTimesLabel3;
+         @property (nonatomic, strong) UIImageView * likeImage3;
+         @property (nonatomic, strong) UILabel * likeTimesLabel3;
+         
+         @property (nonatomic, strong) UIButton * backImage4;
+         @property (nonatomic, strong) UIImageView * buttonImage4;
+         @property (nonatomic, strong) UILabel * videoNameLabel4;
+         @property (nonatomic, strong) UILabel * videoAuthorLabel4;
+         @property (nonatomic, strong) UIImageView * lookImage4;
+         @property (nonatomic, strong) UILabel * lookTimesLabel4;
+         @property (nonatomic, strong) UIImageView * likeImage4;
+         @property (nonatomic, strong) UILabel * likeTimesLabel4;
+         */
+        /*
+         buttonImage 是图片
+         backImage 是按钮 每部分的父视图
+         self.lookImage4.image = [UIImage imageNamed:@"img_eye"];
+         */
+    }
+    return self;
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

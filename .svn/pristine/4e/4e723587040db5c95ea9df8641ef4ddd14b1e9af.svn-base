@@ -1,0 +1,158 @@
+//
+//  IcloudStoragePreviewViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/2.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "IcloudStoragePreviewViewController.h"
+
+
+#define Main_Screen_Height [[UIScreen mainScreen] bounds].size.height //主屏幕的高度
+#define Main_Screen_Width  [[UIScreen mainScreen] bounds].size.width  //主屏幕的宽度
+
+
+
+@interface IcloudStoragePreviewViewController ()
+{
+    //九宫格的宽
+    CGFloat cellWidth;
+    CGFloat cellHeight;
+    CGFloat margin;
+    
+}
+@end
+
+@implementation IcloudStoragePreviewViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+#pragma mark -- UICollectionViewDataSource
+
+//定义展示的Section的个数
+-(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
+{
+    return 2;
+}
+
+
+//定义展示的UICollectionViewCell的个数
+-(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    if (section == 0) {
+        return 11;
+    } else {
+        return 27;
+    }
+}
+//每个UICollectionView展示的内容
+-(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    static NSString * IcloudStoragePreviewIdentifier_pictures = @"IcloudStoragePreviewIdentifier_pictures";
+    
+    
+    static NSString * IcloudStoragePreviewIdentifier_video = @"IcloudStoragePreviewIdentifier_video";
+    
+    
+    if (indexPath.section == 0) {
+        
+        UICollectionViewCell * cell_pictures = [collectionView dequeueReusableCellWithReuseIdentifier:IcloudStoragePreviewIdentifier_pictures forIndexPath:indexPath];
+        
+        cell_pictures.backgroundColor = [UIColor greenColor];
+        return cell_pictures;
+    } else {
+        UICollectionViewCell *cell_video = [collectionView dequeueReusableCellWithReuseIdentifier:IcloudStoragePreviewIdentifier_video forIndexPath:indexPath];
+        
+        cell_video.backgroundColor = [UIColor orangeColor];
+        
+        return cell_video;
+    }
+}
+
+
+#pragma mark --UICollectionViewDelegateFlowLayout
+//定义每个UICollectionView 的大小
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    //    UIImage *image = szImage[indexPath.item];
+    //    float height = [self imgHeight:image.size.height Width:image.size.width];
+    //    return CGSizeMake(180, height);
+    
+    if (iPhone5) {
+        
+        cellWidth = (Main_Screen_Width-26)/3;
+        cellHeight =cellWidth;
+        
+    } else if(iPhone6) {
+        
+        cellWidth = (Main_Screen_Width-26)/3;
+        cellHeight =cellWidth;
+        
+    }
+    else if (iPhone6Plus){
+        
+        cellWidth = (Main_Screen_Width-26)/3;
+        cellHeight =cellWidth;
+    }
+    
+    cellWidth = (Main_Screen_Width-26)/3;
+    cellHeight =cellWidth;
+    //((self.homeCollectionView.frame.size.height)/3)*(1+0.2);
+    //
+    return CGSizeMake(cellWidth, cellHeight);
+    
+}
+
+//定义每个UICollectionView 的 margin//单元格中的间隙
+-(UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
+    return UIEdgeInsetsMake(5, 5, 5, 5);
+}
+
+
+#pragma mark --UICollectionViewDelegate
+
+//UICollectionView被选中时调用的方法
+-(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    UICollectionViewCell *cell = (UICollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+    
+    cell.backgroundColor = [UIColor greenColor];
+}
+
+//返回这个UICollectionView是否可以被选择
+-(BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    return YES;
+}
+
+
+-(UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
+{
+    //    CollectViewHeaderView *view = [collectionViewdequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeaderwithReuseIdentifier:@"cccc"forIndexPath:indexPath];
+    
+    UICollectionReusableView *sectionHeaderView  = [collectionView dequeueReusableSupplementaryViewOfKind: UICollectionElementKindSectionHeader withReuseIdentifier:@"IcloudStoragePreviewSectionHeaderViewIdentifier" forIndexPath:indexPath];
+    
+    return sectionHeaderView;
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

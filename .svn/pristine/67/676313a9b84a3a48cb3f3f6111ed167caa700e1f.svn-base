@@ -1,0 +1,33 @@
+//
+//  IcloudStorageTableViewCell.h
+//  M-Cut
+//
+//  Created by 刘海香 on 15/2/2.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "MJFriendCell.h"
+
+
+@interface IcloudStorageTableViewCell : MJFriendCell
+
+@property (retain, nonatomic) IBOutlet UIButton *selectionButton;
+
+@property (retain, nonatomic) IBOutlet UIImageView *icloudFolderImgv;
+
+@property (retain, nonatomic) IBOutlet UILabel *icloudFolderNameLabel;
+
+@property (retain, nonatomic) IBOutlet UIButton *pullDownButton;
+
+
+@property (retain, nonatomic) IBOutlet UIImageView *folderImageView;
+
+
+
+
+@property(nonatomic,assign)BOOL isExpand;
+
+
+//@property (retain, nonatomic) DownLoadAnddeleteButtonView *downLoadAnddeleteButtonView;
+@end

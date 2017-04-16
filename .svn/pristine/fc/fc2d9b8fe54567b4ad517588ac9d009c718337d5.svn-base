@@ -1,0 +1,42 @@
+//
+//  CustomAlertView.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/4/16.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "CustomLoginAlertView.h"
+// 添加微信登陆
+#import "WXApi.h"
+
+@implementation CustomLoginAlertView
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if( ![WXApi isWXAppInstalled]) {    // 如果没有安装微信
+        _WeChatLoginButton.hidden = YES;
+    }
+    if ([_WeChatLoginButton isHidden]) {
+        CGRect newframe = _iphoneLoginButtonClick.frame;
+        newframe.origin.y += 25;
+        [_iphoneLoginButtonClick setFrame:newframe];
+    }
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+
+}
+
+@end

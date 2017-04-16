@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="move" rowHeight="151" id="KXj-DK-2rf" customClass="MWICloudMoveCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KXj-DK-2rf" id="8em-Sg-8UZ">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icloud_folder" translatesAutoresizingMaskIntoConstraints="NO" id="SFq-Sd-8Uq">
+                        <rect key="frame" x="15" y="7" width="38" height="30"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="30" id="hbF-LA-2w6"/>
+                            <constraint firstAttribute="width" constant="38" id="mXM-mp-ab0"/>
+                        </constraints>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HTM-1A-NwQ" userLabel="文件名">
+                        <rect key="frame" x="63" y="7" width="237" height="21"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="21" id="TyM-9b-d3Y"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                        <color key="textColor" red="0.34901960780000002" green="0.3411764706" blue="0.3411764706" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="brc-1c-L6g" userLabel="创建时间">
+                        <rect key="frame" x="63" y="28" width="237" height="15"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="14.5" id="gsx-Fj-61W"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                        <color key="textColor" red="0.34901960780000002" green="0.3411764706" blue="0.3411764706" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KRr-S4-cFz" userLabel="lineView">
+                        <rect key="frame" x="10" y="42" width="310" height="1"/>
+                        <color key="backgroundColor" red="0.7803921568627451" green="0.7803921568627451" blue="0.7803921568627451" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="1" id="RqF-Fo-wqU"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="KRr-S4-cFz" secondAttribute="trailing" id="6VJ-5i-5S2"/>
+                    <constraint firstItem="SFq-Sd-8Uq" firstAttribute="top" secondItem="8em-Sg-8UZ" secondAttribute="top" constant="7" id="CNH-FQ-5GK"/>
+                    <constraint firstItem="HTM-1A-NwQ" firstAttribute="top" secondItem="8em-Sg-8UZ" secondAttribute="top" constant="7" id="GBt-Tj-LAN"/>
+                    <constraint firstItem="HTM-1A-NwQ" firstAttribute="leading" secondItem="SFq-Sd-8Uq" secondAttribute="trailing" constant="10" id="Kwe-zY-qPX"/>
+                    <constraint firstItem="brc-1c-L6g" firstAttribute="top" secondItem="HTM-1A-NwQ" secondAttribute="bottom" id="LjT-WL-pmN"/>
+                    <constraint firstItem="SFq-Sd-8Uq" firstAttribute="leading" secondItem="8em-Sg-8UZ" secondAttribute="leading" constant="15" id="QDE-Oc-02C"/>
+                    <constraint firstItem="brc-1c-L6g" firstAttribute="width" secondItem="HTM-1A-NwQ" secondAttribute="width" id="YDX-TV-JaK"/>
+                    <constraint firstAttribute="trailing" secondItem="HTM-1A-NwQ" secondAttribute="trailing" constant="20" id="YTL-Yw-CCx"/>
+                    <constraint firstItem="brc-1c-L6g" firstAttribute="leading" secondItem="HTM-1A-NwQ" secondAttribute="leading" id="ccA-K0-Zg7"/>
+                    <constraint firstItem="KRr-S4-cFz" firstAttribute="leading" secondItem="8em-Sg-8UZ" secondAttribute="leading" constant="10" id="ctU-C2-dvk"/>
+                    <constraint firstAttribute="bottom" secondItem="KRr-S4-cFz" secondAttribute="bottom" id="yhi-92-RV7"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="nameLabel" destination="HTM-1A-NwQ" id="JGP-ww-xze"/>
+                <outlet property="timeLabel" destination="brc-1c-L6g" id="URp-M7-BBJ"/>
+            </connections>
+            <point key="canvasLocation" x="443" y="264"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="icloud_folder" width="37" height="30"/>
+    </resources>
+</document>

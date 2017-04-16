@@ -1,0 +1,28 @@
+//
+//  UIButton+Extension.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/28.
+//  注意: 该分类依赖于"UIView+Extension.h"
+//
+
+#import <UIKit/UIKit.h>
+#import "UIView+Extension.h"
+#import "NSString+Extension.h"
+
+@interface UIButton (Extension)
+/**
+ *  返回一个按钮
+ */
++ (UIButton *)buttonWithTarget:(id)target action:(SEL)action title:(NSString *)title selectTitle:(NSString *)selectTitle color:(UIColor *)color font:(CGFloat)font;
+
+/**
+ *  返回一个有背景图片的按钮
+ */
++ (UIButton *)buttonWithTarget:(id)target action:(SEL)action image:(NSString *)image selectImage:(NSString *)selectImage;
+
+/**
+ *  返回一个有标题和图片的按钮
+ */
++ (UIButton *)buttonWithTarget:(id)target action:(SEL)action image:(NSString *)image title:(NSString *)title;
+@end

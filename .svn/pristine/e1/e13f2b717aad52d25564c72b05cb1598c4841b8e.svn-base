@@ -1,0 +1,45 @@
+//
+//  MWCoverView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/14.
+//
+//
+
+#import "MWCoverView.h"
+
+@implementation MWCoverView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.7];
+    }
+    return self;
+}
+
++ (instancetype)coverView {
+    return [[self alloc] initWithFrame:CGRectMake(0, 64, MWScreenWidth, MWScreenHeight - 64)];
+}
+
+- (void)show {
+    [[UIApplication sharedApplication].keyWindow addSubview:self];
+    if ([self.delegate respondsToSelector:@selector(coverViewDidshow)]) {
+        [self.delegate coverViewDidshow];
+    }
+}
+
+- (void)dismiss {
+    [self removeFromSuperview];
+    if ([self.delegate respondsToSelector:@selector(coverViewDismiss)]) {
+        [self.delegate coverViewDismiss];
+    }
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self removeFromSuperview];
+    if ([self.delegate respondsToSelector:@selector(coverViewDismiss)]) {
+        [self.delegate coverViewDismiss];
+    }
+}
+
+@end

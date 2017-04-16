@@ -1,0 +1,289 @@
+//
+//
+//  M-Cut
+//
+//  Created by apple on 16/5/31.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "SetNewViewController.h"
+#import "SoapOperation.h"
+#import "UserEntity.h"
+#import <UIImageView+WebCache.h>
+#import "APPUserPrefs.h"
+#import "FeedbackViewController.h"
+#import "ServiceTermsViewController.h"
+#import "AccountAndSafeViewController.h"
+//手机号绑定
+#import "TelephoneBindingViewController.h"
+//消息通知
+#import "NoticeSetViewController.h"
+#import "AccountBindingViewController.h"
+
+@interface cellData : NSObject
+@property (nonatomic, copy) NSString * title;
+@property (nonatomic, copy) NSString * titleDesc;
++ (id)initWithData1:(NSString *)cellTitle andTitleDesc:(NSString *)cellTitleDesc;
+@end
+
+@implementation cellData
++ (id)initWithData1:(NSString *)cellTitle andTitleDesc:(NSString *)cellTitleDesc{
+    cellData * myCellData = [cellData new];
+    myCellData.title = cellTitle;
+    myCellData.titleDesc = cellTitleDesc;
+    return myCellData;
+}
+@end
+
+@interface SetNewViewController ()<UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate, UIAlertViewDelegate>
+/** 界面文字数据源*/
+@property (nonatomic, strong) NSMutableArray * dataSource;
+/** 退出登录按钮*/
+@property (nonatomic, strong) UIButton * logoutButton;
+@property (weak, nonatomic) IBOutlet UITableView *setTable;
+@end
+
+@implementation SetNewViewController
+
+- (void)dealloc{
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+- (NSMutableArray *)dataSource{
+    if (!_dataSource) {
+        _dataSource = [NSMutableArray arrayWithObjects:[NSMutableArray new], [NSMutableArray new], nil];
+        [_dataSource[0] addObject:[cellData initWithData1:@"消息提醒" andTitleDesc:@"管理消息提醒"]];
+        [_dataSource[0] addObject:[cellData initWithData1:@"清空缓存" andTitleDesc:@"释放更多空间"]];
+        // 判断网络是否可用, 设置选择按钮
+        if ([APPUserPrefs Singleton].wwanable == YES) {
+            [_dataSource[0] addObject:[cellData initWithData1:@"播放和下载" andTitleDesc:@"允许非wifi环境下载/上传"]];
+        } else {
+            [_dataSource[0] addObject:[cellData initWithData1:@"播放和下载" andTitleDesc:@"不允许非wifi环境下载/上传"]];
+        }
+        [_dataSource[0] addObject:[cellData initWithData1:@"账号与安全" andTitleDesc:@""]];
+        [_dataSource[1] addObject:[cellData initWithData1:@"服务条款" andTitleDesc:@""]];
+        [_dataSource[1] addObject:[cellData initWithData1:@"意见反馈" andTitleDesc:@""]];
+    }
+    return _dataSource;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    [self initUI];
+}
+
+/** 初始化界面ui*/
+- (void)initUI{
+    self.title = @"设置";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    //设置退出登录
+    self.logoutButton = [UIButton new];
+    self.logoutButton.backgroundColor = [UIColor colorWithRed:255/255.0f green:78/255.0f blue:77/255.0f alpha:1];
+    [self.logoutButton setTitle:@"退出登录" forState:UIControlStateNormal];
+    [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.logoutButton addTarget:self action:@selector(logoutButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.logoutButton.frame = CGRectMake(44, 16, ISScreen_Width - 88, 44);
+    self.logoutButton.layer.masksToBounds = YES;
+    self.logoutButton.layer.cornerRadius = 8;
+    UIView * footerView = [UIView new];
+    footerView.frame = CGRectMake(0, 0, ISScreen_Width, 88);
+    [footerView addSubview:self.logoutButton];
+    footerView.backgroundColor = [UIColor clearColor];
+    self.setTable.tableFooterView = footerView;
+}
+
+/** 退出登录按钮点击方法*/
+- (void)logoutButtonAction{
+     [self popLogoutActionSheet];
+}
+
+/** 弹出退出登录提醒*/
+-(void)popLogoutActionSheet
+{
+    [[SoapOperation Singleton] WS_getcustomerinfoex2WithSuccess:^(MovierDCInterfaceSvc_VDCCustomerInfoEx *userInfo) {
+        BOOL isHavePW = [userInfo.nStatus intValue] & 4;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!isHavePW) {
+                //在这里呼出下方菜单按钮项
+                UIActionSheet * logoutActionSheet = [[UIActionSheet alloc]
+                                                     initWithTitle:nil
+                                                     delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:nil otherButtonTitles:@"退出登录", nil];
+                [logoutActionSheet showInView:self.view];
+            }else{
+                UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"您还未设置手机登录密码，设置后就可进行手机登陆哦～" delegate:self cancelButtonTitle:@"直接退出" otherButtonTitles:@"设置密码", nil];
+                [alert show];
+            }
+        });
+    } Fail:^(NSError *error) {
+        NSLog(@"设置界面下载用户信息失败------------%@", error);
+    }];
+}
+
+#pragma mark - uialertViewDelegate
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 0) {
+        [self logout];
+    }else{
+        TelephoneBindingViewController * telBindingVc = [TelephoneBindingViewController new];
+        [self.navigationController pushViewController:telBindingVc animated:YES];
+    }
+}
+
+#pragma mark - UIActionSheetDelegate
+- (void)willPresentActionSheet:(UIActionSheet *)actionSheet{
+    
+    for (UIView *view in actionSheet.subviews) {
+        if (view.tag == 0) {
+            UIButton *button = (UIButton *) view;
+            [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        } else {
+            UIButton *button = (UIButton *) view;
+            [button setImage:[UIImage imageNamed:@"login_button"] forState:UIControlStateNormal];
+            [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        }
+    }
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
+    //呼出的菜单按钮点击后的响应
+    if (buttonIndex == actionSheet.cancelButtonIndex){
+        NSLog(@"取消");
+    }
+    if (buttonIndex == 0) {
+        [self logout];
+    }
+}
+
+/** 退出登录*/
+- (void)logout{
+    NSLog(@"退出登录");
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"personalbacToff" object:nil];
+    [[UserEntity sharedSingleton] Applogout];
+    //ws_session 清空
+    [SoapOperation Singleton].WS_Session = nil;
+    //订单恢复
+    [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+/** 返回按钮点击方法*/
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - table 代理
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 60;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return [self.dataSource[section] count];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return self.dataSource.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return 24;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    UITableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
+    }
+    cellData * myCellData = self.dataSource[indexPath.section][indexPath.row];
+    cell.textLabel.text = myCellData.title;
+    cell.detailTextLabel.text = myCellData.titleDesc;
+    cell.detailTextLabel.textColor = [UIColor lightGrayColor];
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    if ([cell.textLabel.text isEqualToString:@"播放和下载"]) {
+        if ([APPUserPrefs Singleton].wwanable == YES) {
+            cell.detailTextLabel.text = @"允许非wifi环境下载/上传";
+        }else{
+            cell.detailTextLabel.text = @"不允许非wifi环境下载/上传";
+        }
+    }
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    UITableViewCell * cell = [tableView cellForRowAtIndexPath:indexPath];
+        if ([cell.textLabel.text isEqualToString:@"清空缓存"]) {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{NSString *cachPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask, YES) objectAtIndex:0];
+                NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:cachPath];
+                for (NSString *p in files) {
+                    NSError *error;
+                    NSString *path = [cachPath stringByAppendingPathComponent:p];
+                    if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                        [[NSFileManager defaultManager] removeItemAtPath:path error:&error];
+                    }
+                }
+                [self performSelectorOnMainThread:@selector(clearCacheSuccess) withObject:nil waitUntilDone:YES];});
+        }else if ([cell.textLabel.text isEqualToString:@"播放和下载"]){
+            [self setWifiAndPhoneNet];
+        }
+        else if ([cell.textLabel.text isEqualToString:@"账号与安全"]){
+            AccountBindingViewController * accountAndSafeVC = [AccountBindingViewController new];
+            [self.navigationController pushViewController:accountAndSafeVC animated:YES];
+        }
+        if ([cell.textLabel.text isEqualToString:@"服务条款"]) {
+            UIStoryboard *setStroyBoard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+            ServiceTermsViewController *serviceTermsVC =[setStroyBoard instantiateViewControllerWithIdentifier:@"ServiceTermsVCStoryBoardID"];
+            [self.navigationController pushViewController:serviceTermsVC animated:YES];
+        }else if ([cell.textLabel.text isEqualToString:@"意见反馈"]){
+            UIStoryboard *setStroyBoard = [UIStoryboard storyboardWithName:@"Setting" bundle:nil];
+            FeedbackViewController *feedbackVC = [setStroyBoard instantiateViewControllerWithIdentifier:@"FeedbackVCStoryBoardID"];
+            [self.navigationController pushViewController:feedbackVC animated:YES];
+        }else if ([cell.textLabel.text isEqualToString:@"消息提醒"]){
+            NoticeSetViewController * noticeSetVc = [NoticeSetViewController new];
+            [self.navigationController pushViewController:noticeSetVc animated:YES];
+        }
+}
+
+#pragma mark - 切换网络
+- (void)setWifiAndPhoneNet{
+    // 判断网络是否可用, 设置选择按钮
+    if ([APPUserPrefs Singleton].wwanable == YES) {
+        [APPUserPrefs Singleton].wwanable = NO;
+        [UIWindow showMessage:@"您已更改为不允许非wifi环境上传/下载" withTime:2.0];
+    } else {
+        [APPUserPrefs Singleton].wwanable = YES;
+        [UIWindow showMessage:@"您已更改为允许非wifi环境上传/下载" withTime:2.0];
+    }
+    [self.setTable reloadData];
+}
+
+#pragma mark - 清理缓存图片
+-(void)clearCacheSuccess
+{
+    [[SDImageCache sharedImageCache]clearDisk];
+    [[SDImageCache sharedImageCache]clearMemory];
+    [UIWindow showMessage:@"清理成功" withTime:1.0];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

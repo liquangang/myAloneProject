@@ -1,0 +1,656 @@
+//
+//  MyVideoViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/7/1.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MyVideoViewController.h"
+//用户信息部分cell
+#import "HeaderCell.h"
+//中间控制界面布局的cell
+#import "ControlCell.h"
+//视频cell
+#import "VideoCell.h"
+//接口类
+#import "SoapOperation.h"
+//用户信息类
+#import "UserEntity.h"
+//刷新类
+#import "MJRefresh.h"
+#import "CustomeClass.h"
+#import "Video.h"
+#import "HomeVideoDetailViewController.h"
+#import "ISConst.h"
+#import "MC_OrderAndMaterialCtrl.h"
+#import "VideoSecondCell.h"
+#import "AuditCell.h"
+#import "UploadCell.h"
+#import "HeaderChange.h"
+#import "VideoShowViewController.h"
+#import "VideoDetailViewController.h"
+
+@interface MyVideoViewController ()<UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIAlertViewDelegate>
+@property (weak, nonatomic) IBOutlet UIButton *operationButton;
+@property (weak, nonatomic) IBOutlet UITableView *videoTable;
+/** 存放展示在界面上影片的数据的数据*/
+@property (nonatomic, strong) NSMutableArray * videoMuArray;
+/** 背景图片*/
+@property (nonatomic, strong) UIImageView * headBackImage;
+/** 加载个人影片是否成功*/
+@property (nonatomic, assign) NSInteger donwloadTimes;
+/** 展示的cell的大小*/
+@property (nonatomic, copy) NSString * cellStatus;
+/** 展示的是收藏还是影片*/
+@property (nonatomic, copy) NSString * showType;
+/** 展示的是公开还是私密还是全部(0--私有，1--公有，3-所有影片)*/
+@property (nonatomic, assign) NSInteger shareType;
+/** 存放上传的影片*/
+@property (nonatomic, strong) NSMutableArray * uploadMuArray;
+/** 存放审核影片*/
+@property (nonatomic, strong) NSMutableArray * auditMuArray;
+/** kvo释放次数*/
+@property (nonatomic, assign) int deallocTimes;
+/** 用户信息数组*/
+@property (nonatomic, strong) NSMutableDictionary * userDataDic;
+/** 是否显示没有影片数据提示*/
+@property (nonatomic, assign) BOOL isShowNoVideoLabel;
+@end
+
+static NSString * headerCellId = @"uesrCell";
+
+@implementation MyVideoViewController
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    DEBUGSUCCESSLOG(@"dealloc")
+}
+
+#pragma mark - 数据源懒加载
+- (NSMutableArray *)videoMuArray{
+    if (!_videoMuArray) {
+        _videoMuArray = [NSMutableArray new];
+    }
+    return _videoMuArray;
+}
+
+- (NSMutableArray *)uploadMuArray{
+    if (!_uploadMuArray) {
+        _uploadMuArray = [NSMutableArray new];
+    }
+    return _uploadMuArray;
+}
+
+- (NSMutableArray *)auditMuArray{
+    if (!_auditMuArray) {
+        _auditMuArray = [NSMutableArray new];
+    }
+    return _auditMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self initUI];
+}
+
+-(void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [stockForKVO addObserver:self forKeyPath:@"upratio" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self downloadDataWithStart:0];
+}
+
+-(void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    self.deallocTimes++;
+    if (self.deallocTimes < 2) {
+        [stockForKVO removeObserver:self forKeyPath:@"upratio"] ;
+    }
+}
+
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if([keyPath isEqualToString:@"upratio"])
+    {
+        NSString *fratio = [NSString stringWithFormat:@"%@",[stockForKVO valueForKey:@"upratio"]];
+        
+        float f = [fratio floatValue];
+        NSLog(@"当前的上传进度是 --- %f", f);
+        
+        if (self.videoTable.numberOfSections)
+        {
+            WEAKSELF2
+            dispatch_async(dispatch_get_main_queue(), ^{
+                UploadCell * cell = [weakSelf.videoTable cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2]];
+                cell.uploadProgressView.progress = f;
+            });
+        }
+        
+        if (f == 1)
+        {
+            WEAKSELF2
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [weakSelf performSelector:@selector(downloadLocalData) withObject:nil afterDelay:3];
+            });
+        }
+        
+        
+    }
+}
+
+- (void)downloadLocalData{
+    /*
+     @interface NewNSOrderDetail : NSObject
+     @property (strong,nonatomic) NSString *createTime;//订单创建时间
+     @property (nonatomic) int order_id;//订单ID
+     @property (nonatomic) int order_st;//订单状态
+     @property (nonatomic) int customer;//拥有者
+     @property (nonatomic) float nVideoLength;//视频长度
+     @property (nonatomic) int nHeaderAndTailID;//片头片尾 风格 模板
+     @property (nonatomic) int nFilterID;//滤镜
+     @property (nonatomic) int nMusicID;//音乐
+     @property (nonatomic) int nMusicStart;//音乐开始
+     @property (nonatomic) int nMusicEnd;//音乐结束
+     @property (nonatomic) int nSubtitleID;//字幕
+     @property (strong,nonatomic) NSString *szCustomerSubtitle;//
+     @property (strong,nonatomic) NSString *szVideoName;//视频名
+     @property (nonatomic) int nShareType;//公开状态
+     @property (strong,nonatomic) NSMutableArray *stMaterialArr;//素材数组
+     @property (strong,nonatomic) NSMutableArray *stLabelForVideo;//Label数组
+     @property (strong,nonatomic) NSString* strVideoURL;//订单产生的视频网络地址
+     @property (strong,nonatomic) NSString *strVideoThumbnail;//缩略图url
+     @property (nonatomic) int oss_orderid;//oss订单号
+     @end
+     */
+    if ([self.userId isEqualToString:CURRENTUSERID]) {
+        NSArray *videoStateArray = [MC_OrderAndMaterialCtrl QueryAllMyOrder:
+                                    [[UserEntity sharedSingleton].customerId intValue]];
+        
+        NSMutableArray *uploadArray = [NSMutableArray array];
+        NSMutableArray *verifyArray = [NSMutableArray array];
+        
+        for (NewNSOrderDetail *db in videoStateArray)
+        {
+            if (db.order_st == NOWTRANSFER)
+            {
+                [uploadArray addObject:db];
+            }
+            else if(db.order_st == COMMITEDORDER)
+            {
+                [verifyArray addObject:db];
+            }
+        }
+        
+        [self.uploadMuArray removeAllObjects];
+        [self.uploadMuArray addObjectsFromArray:[uploadArray copy]];
+        [self.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:2] withRowAnimation:UITableViewRowAnimationFade];
+        [self.auditMuArray removeAllObjects];
+        [self.auditMuArray addObjectsFromArray:[verifyArray copy]];
+        [self.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+    }
+}
+
+#pragma mark - downloadData
+- (void)downloadDataWithStart:(NSInteger)startIndex{
+    WEAKSELF2
+    DEFAULTQUEUEANALYSISANDMAINQUEUEUPDATEUI({
+        weakSelf.isShowNoVideoLabel = YES;
+        
+        [CustomeClass hudShowWithView:weakSelf.view Tag:9];
+        //请求已经生成的影片内容并刷新数据
+        
+        if ([weakSelf.showType isEqualToString:@"影片"]) {
+            
+            //根据用户所选类型选择下载不同类型的影片
+            [[SoapOperation Singleton] WS_getvideosbyuseridWithUserId:weakSelf.userId ShareType:weakSelf.shareType Offset:startIndex Count:16 Success:^(NSMutableArray *serverDataArray) {
+                if (startIndex == 0) {
+                    [weakSelf.videoTable addFooterWithTarget:weakSelf action:@selector(footerRefresh)];
+                    [weakSelf.videoMuArray removeAllObjects];
+                }
+                [weakSelf.videoMuArray addObjectsFromArray:[serverDataArray copy]];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    [weakSelf.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                    if (serverDataArray.count <= 0) {
+                        [weakSelf.videoTable removeFooter];
+                        [CustomeClass showMessage:[NSString stringWithFormat:@"没有更多%@了", weakSelf.showType] ShowTime:1.5];
+                    }
+                    [weakSelf.videoTable footerEndRefreshing];
+                    [weakSelf downloadLocalData];
+                    [CustomeClass hudHiddenWithView:weakSelf.view Tag:9];
+                });
+            } Fail:^(NSError *error) {
+                [CustomeClass hudHiddenWithView:weakSelf.view Tag:9];
+                RELOADSERVERDATA( [weakSelf downloadDataWithStart:startIndex];)
+            }];
+        }else{
+            
+            //加载收藏的数据
+            [[SoapOperation Singleton] WS_getcollectvideosWithUserId:weakSelf.userId Offset:startIndex Count:16 Success:^(NSMutableArray *serverDataArray) {
+                if (startIndex == 0) {
+                    [weakSelf.videoTable addFooterWithTarget:weakSelf action:@selector(footerRefresh)];
+                    [weakSelf.videoMuArray removeAllObjects];
+                }
+                [weakSelf.videoMuArray addObjectsFromArray:[serverDataArray copy]];
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    [weakSelf.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                    if (serverDataArray.count <= 0) {
+                        [weakSelf.videoTable removeFooter];
+                        [CustomeClass showMessage:[NSString stringWithFormat:@"没有更多%@了", weakSelf.showType] ShowTime:1.5];
+                    }
+                    [weakSelf.videoTable headerEndRefreshing];
+                    [CustomeClass hudHiddenWithView:weakSelf.view Tag:9];
+                    
+                    [weakSelf.uploadMuArray removeAllObjects];
+                    [weakSelf.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:2] withRowAnimation:UITableViewRowAnimationFade];
+                    [weakSelf.auditMuArray removeAllObjects];
+                    [weakSelf.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+                    
+                });
+            } Fail:^(NSError *error) {
+                [CustomeClass hudHiddenWithView:weakSelf.view Tag:9];
+                RELOADSERVERDATA([weakSelf downloadDataWithStart:startIndex];)
+            }];
+        }
+    }, {})
+}
+
+
+#pragma mark - initUI
+- (void)initUI{
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    self.title = @"我的影片";
+    if (self.isShowOtherUserVideo) {
+        self.title = @"TA的影片";
+    }
+    self.cellStatus = @"大";
+    self.showType = @"影片";
+    //默认展示所有影片
+    self.shareType = 3;
+    
+    if (!self.isShowOtherUserVideo) {
+        self.userId = CURRENTUSERID;
+    }
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    [self.videoTable addFooterWithTarget:self action:@selector(footerRefresh)];
+    
+    self.donwloadTimes = 0;
+    
+    if (!self.isShowOtherUserVideo) {
+        //注册新影片生成的通知
+        REGISTEREDNOTI(reloadTableData:, NEWVIDEOBORN);
+    }
+    
+    //判断跟当前用户的关系显示相应的按钮
+    if (![self.userId isEqualToString:CURRENTUSERID]) {
+        WEAKSELF(weaKself);
+        [[SoapOperation Singleton] WS_getfriendrelationWithUserId:weaKself.userId Success:^(NSNumber *successInfo) {
+            DEBUGSUCCESSLOG(successInfo);
+            MAINQUEUEUPDATEUI({
+                /*
+                 0-无关系-关注，1-关注-取消关注，2-好友-取消关注，3-粉丝-互粉
+                 */
+                if ([successInfo intValue] == 1 || [successInfo intValue] == 2) {
+                    [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"cancleFollowImage"] forState:UIControlStateNormal];
+                }else if ([successInfo intValue] == 3){
+                    [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"addFollowImage2"] forState:UIControlStateNormal
+                     ];
+                }else{
+                    [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"addFollowImage2"] forState:UIControlStateNormal];
+                }
+            })
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error);
+        }];
+    }
+    
+    //注册cell
+    [self.videoTable registerNib:[UINib nibWithNibName:@"HeaderCell" bundle:nil]
+          forCellReuseIdentifier:@"userCell"];
+    [self.videoTable registerNib:[UINib nibWithNibName:@"ControlCell" bundle:nil]
+          forCellReuseIdentifier:@"controlCell"];
+    [self.videoTable registerNib:[UINib nibWithNibName:@"VideoCell" bundle:nil]
+          forCellReuseIdentifier:@"VideoCell"];
+    [self.videoTable registerNib:[UINib nibWithNibName:@"VideoSecondCell" bundle:nil]
+          forCellReuseIdentifier:@"VideoSecondCell"];
+    [self.videoTable registerNib:[UINib nibWithNibName:@"UploadCell" bundle:nil]
+          forCellReuseIdentifier:@"UploadCell"];
+    [self.videoTable registerNib:[UINib nibWithNibName:@"AuditCell" bundle:nil]
+          forCellReuseIdentifier:@"AuditCell"];
+}
+
+- (void)reloadTableData:(NSNotification *)noti{
+    [self downloadDataWithStart:0];
+}
+
+#pragma mark - 刷新方法
+- (void)footerRefresh{
+    self.donwloadTimes = 0;
+    [self downloadDataWithStart:self.videoMuArray.count];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - tableDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    if (section == 0) {
+        //个人信息部分
+        return 1;
+    }else if (section == 1){
+        //切换部分
+        return 1;
+    }else if (section == 4){
+        //影片展示部分
+        NSString * propmtStr = [NSString stringWithFormat:@"还没有%@", self.showType];
+        if (self.shareType == 0 && [self.showType isEqualToString:@"影片"]) {
+            propmtStr = @"还没有私密影片";
+        }else if (self.shareType == 1 && [self.showType isEqualToString:@"影片"]){
+            propmtStr = @"还没有公开影片";
+        }
+        if (self.isShowNoVideoLabel) {
+            BACKPROPMTVIEW(self.videoMuArray.count == 0, 1000, propmtStr, videoTable);
+        }
+        
+        return self.videoMuArray.count;
+    }else if (section == 2){
+        return self.uploadMuArray.count;
+    }else if (section == 3){
+        return self.auditMuArray.count;
+    }
+    return 0;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 5;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        return 125;
+    }else if (indexPath.section == 1){
+        return 60;
+    }else if (indexPath.section == 4){
+        if ([self.cellStatus isEqualToString:@"大"]) {
+            if (iPhone5_5S_5C) {
+                return 316;
+            }
+            return 356;
+        }else{
+            return 72;
+        }
+    }else if (indexPath.section == 2){
+        return 54;
+    }else if (indexPath.section == 3){
+        return 54;
+    }
+    return 0;
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section{
+    view.tintColor = [UIColor groupTableViewBackgroundColor];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        HeaderCell * cell = [HeaderCell getHeaderCellWithTable:tableView WithUserId:self.userId];
+        WEAKSELF2
+        [cell UpdateBackImage:^(UIImageView *backImage, NSMutableDictionary * userDataDic) {
+            weakSelf.headBackImage = backImage;
+            weakSelf.userDataDic = [[NSMutableDictionary alloc] initWithDictionary:[userDataDic copy]];
+            if ([weakSelf.userId isEqualToString:CURRENTUSERID]) {
+                [weakSelf updateBackHeaderImage];
+            }
+        }];
+        return cell;
+    }else if (indexPath.section == 1){
+        WEAKSELF(weakSelf);
+        ControlCell * cell = [ControlCell getControlCellWithTable:tableView
+                                                         Showtype:self.showType
+                                                           UserId:self.userId];
+        [cell showVideoBlock:^(NSString *videoType) {
+            [weakSelf showSelectVideoTypeVideoWithType:videoType];
+        }];
+        return cell;
+    }else if (indexPath.section == 4){
+        if ([self.cellStatus isEqualToString:@"大"]) {
+            if (self.videoMuArray.count > indexPath.row) {
+                return [VideoCell getVideoCellWithTable:tableView VideoInfo:self.videoMuArray[indexPath.row]];
+            }
+        }else{
+            if (self.videoMuArray.count > indexPath.row) {
+                return [VideoSecondCell getVideoSecondCellWithtable:tableView
+                                                          VideoInfo:self.videoMuArray[indexPath.row]];
+            }
+        }
+    }else if (indexPath.section == 2){
+        return [UploadCell getUploadCellWithTable:tableView VideoInfo:self.uploadMuArray[indexPath.row]];
+    }else if (indexPath.section == 3){
+        return [AuditCell getAuditCellWithTable:tableView VideoInfo:self.auditMuArray[indexPath.row]];
+    }
+    //返回默认cell
+    DEFAULTCELL
+}
+
+- (void)showSelectVideoTypeVideoWithType:(NSString *)videoType{
+    if ([videoType isEqualToString:@"更换cell"]) {
+        //更换展示形式
+        if ([self.cellStatus isEqualToString:@"大"]) {
+            self.cellStatus = @"小";
+        }else{
+            self.cellStatus = @"大";
+        }
+        //更新table
+        [self.videoTable reloadSections:[[NSIndexSet alloc] initWithIndex:4]
+                       withRowAnimation:UITableViewRowAnimationFade];
+        
+    }else if ([videoType isEqualToString:@"影片"]){
+        //展示用户的影片
+        self.showType = videoType;
+        [self downloadDataWithStart:0];
+    }else if ([videoType isEqualToString:@"收藏"]){
+        //展示用户的收藏影片
+        self.showType = videoType;
+        [self downloadDataWithStart:0];
+    }else if ([videoType isEqualToString:@"全部"]){
+        //展示用户的全部影片
+        self.showType = @"影片";
+        self.shareType = 3;
+        [self downloadDataWithStart:0];
+    }else if ([videoType isEqualToString:@"公开"]){
+        //展示用户的公开影片
+        self.showType = @"影片";
+        self.shareType = 1;
+        [self downloadDataWithStart:0];
+    }else if ([videoType isEqualToString:@"私密"]){
+        //展示用户的私密影片
+        self.showType = @"影片";
+        self.shareType = 0;
+        [self downloadDataWithStart:0];
+    }
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 4){
+        NSMutableDictionary *videoInfoEx = [self.videoMuArray objectAtIndex:indexPath.row];
+        [[Video Singleton] setVideoWithVideoInfo:videoInfoEx];
+        [self addVisitConunt];
+        VideoDetailViewController * videoDetailVc = [VideoDetailViewController new];
+        videoDetailVc.videoInfo = videoInfoEx;
+        [self.navigationController pushViewController:videoDetailVc animated:YES];
+        
+    }
+}
+
+- (void)addVisitConunt{
+    //调用增加观看数量的接口
+    [[SoapOperation Singleton] WS_IncreaseVisit:[NSNumber numberWithInt:[[Video Singleton].videoID intValue]]
+                                        Success:^(NSNumber *num) {
+        [Video Singleton].videoPlayCount = [NSString stringWithFormat:@"%@", num];
+    } Fail:^(NSError *error) {
+        DEBUGLOG(error);
+    }];
+}
+
+/** 修改背景图片*/
+- (void)updateBackHeaderImage{
+    UIActionSheet *sheet;
+    if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+    {
+        sheet  = [[UIActionSheet alloc] initWithTitle:@"选择"
+                                             delegate:self
+                                    cancelButtonTitle:@"取消"
+                               destructiveButtonTitle:nil
+                                    otherButtonTitles:@"拍照",@"从相册选择",nil];
+    }
+    else {
+        sheet = [[UIActionSheet alloc] initWithTitle:@"选择"
+                                            delegate:self
+                                   cancelButtonTitle:@"取消"
+                              destructiveButtonTitle:nil
+                                   otherButtonTitles:@"从相册选择", nil];
+    }
+    sheet.tag = 255;
+    [sheet showInView:self.view];
+}
+
+#pragma mark - actionDelegate
+-(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (actionSheet.tag == 255) {
+        NSUInteger sourceType = 0;
+        // 判断是否支持相机
+        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+            switch (buttonIndex) {
+                case 0:
+                    //照相
+                    sourceType = UIImagePickerControllerSourceTypeCamera;
+                    break;
+                case 1:
+                    // 相册
+                    sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    break;
+                case 2:
+                    // 取消
+                    return;
+            }
+        }
+        else {
+            if (buttonIndex == 0) {
+                sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+            } else {
+                return;
+            }
+        }
+        
+        // 跳转到相机或相册页面
+        UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+        imagePickerController.delegate = self;
+        imagePickerController.allowsEditing = YES;
+        imagePickerController.sourceType = sourceType;
+        [self presentViewController:imagePickerController animated:YES completion:^{}];
+    }
+}
+
+#pragma mark - image picker delegte
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:^{}];
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    NSData *imageData = UIImageJPEGRepresentation(image, .4);
+    NSString *status =[[HeaderChange Singleton] UploadBackgroundImageWithFilename:[UserEntity sharedSingleton].customerId Ext:@"jpg" Data:imageData];
+    //修改当前的背景图片
+    self.headBackImage.image = image;
+    
+    MovierDCInterfaceSvc_VDCKeyValue * keyValue = [MovierDCInterfaceSvc_VDCKeyValue new];
+    keyValue.szKey = @"background";
+    keyValue.szValue = status;
+    
+    //上传替换完成的背景图片信息
+    [[SoapOperation Singleton] WS_setuserinfoWithKeyValue:keyValue Success:^(NSNumber *successInfo) {
+        DEBUGSUCCESSLOG(successInfo)
+        [CustomeClass showMessage:@"上传成功" ShowTime:2];
+    } Fail:^(NSError *error) {
+        DEBUGLOG(error)
+        [CustomeClass showMessage:[NSString stringWithFormat:@"上传失败（%ld）", (long)error.code] ShowTime:2];
+    }];
+}
+
+//右下角button点击方法
+- (IBAction)operationButtonAction:(id)sender {
+    /*
+     0-无关系-关注，1-关注-取消关注，2-好友-取消关注，3-粉丝-互粉
+     
+     if ([successInfo intValue] == 1 || [successInfo intValue] == 2) {
+     [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"cancleFollowImage"] forState:UIControlStateNormal];
+     }else if ([successInfo intValue] == 3){
+     [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"addFansImage"] forState:UIControlStateNormal
+     ];
+     }else{
+     [weaKself.operationButton setBackgroundImage:[UIImage imageNamed:@"addFollowImage2"] forState:UIControlStateNormal];
+     }
+     */
+    WEAKSELF(weakSelf);
+    if ([self.operationButton.currentBackgroundImage isEqual:[UIImage imageNamed:@"cancleFollowImage"]]) {
+        //取消关注已经关注的人或者好友
+        //添加提示功能
+        UIAlertView * alertView = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"您确定要取消关注吗？" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:@"取消", nil];
+        [alertView show];
+        
+    }else {
+        //关注粉丝或者之前没有关系的人
+        
+        [[SoapOperation Singleton] WS_followWithCustomID:self.userId Success:^(NSNumber *num) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [CustomeClass showMessage:@"关注成功" ShowTime:2];
+                [weakSelf.operationButton setBackgroundImage:[UIImage imageNamed:@"cancleFollowImage"] forState:UIControlStateNormal];
+            });
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (error.code == 42) {
+                    [CustomeClass showMessage:@"关注成功" ShowTime:1.5];
+                    [weakSelf.operationButton setBackgroundImage:[UIImage imageNamed:@"cancleFollowImage"] forState:UIControlStateNormal];
+                }else{
+                    [CustomeClass showMessage:@"关注失败" ShowTime:1.5];
+                }
+            });
+        }];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    WEAKSELF(weakSelf);
+    if (buttonIndex == 0) {
+        //确定
+        [[SoapOperation Singleton] WS_unfollowWithCustomID:self.userId Success:^(NSNumber *num) {
+            DEBUGSUCCESSLOG(num)
+            [CustomeClass showMessage:@"取消关注成功" ShowTime:1.5];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [weakSelf.operationButton setBackgroundImage:[UIImage imageNamed:@"addFollowImage2"] forState:UIControlStateNormal];
+            });
+        } Fail:^(NSError *error) {
+            DEBUGLOG(error)
+            [CustomeClass showMessage:@"取消关注失败" ShowTime:1.5];
+        }];
+    }
+}
+@end

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10116" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="EditNickNameViewController">
+            <connections>
+                <outlet property="nickNameTextField" destination="YMu-1W-28G" id="Aao-sb-omF"/>
+                <outlet property="numLabel" destination="RWk-JS-c5L" id="WUE-xy-mNX"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="请输入1-10个字的昵称" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="YMu-1W-28G">
+                    <rect key="frame" x="0.0" y="0.0" width="600" height="66"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="66" id="e2Q-To-nJk"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <textInputTraits key="textInputTraits"/>
+                </textField>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RWk-JS-c5L">
+                    <rect key="frame" x="550" y="0.0" width="42" height="66"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="42" id="D5y-Ft-sig"/>
+                        <constraint firstAttribute="height" constant="66" id="yCZ-OT-JIk"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dg7-Ws-ykq">
+                    <rect key="frame" x="6" y="65" width="588" height="1"/>
+                    <color key="backgroundColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="1" id="abG-oU-OU9"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="YMu-1W-28G" secondAttribute="trailing" id="AZn-vc-rnZ"/>
+                <constraint firstAttribute="trailing" secondItem="Dg7-Ws-ykq" secondAttribute="trailing" constant="6" id="LWV-4w-y8j"/>
+                <constraint firstItem="YMu-1W-28G" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="Vue-Zi-lZ2"/>
+                <constraint firstItem="YMu-1W-28G" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="YzE-sQ-MAl"/>
+                <constraint firstItem="RWk-JS-c5L" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="geK-rE-tvb"/>
+                <constraint firstItem="Dg7-Ws-ykq" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="65" id="jL8-C2-c7e"/>
+                <constraint firstAttribute="trailing" secondItem="RWk-JS-c5L" secondAttribute="trailing" constant="8" id="m56-p5-sZm"/>
+                <constraint firstItem="Dg7-Ws-ykq" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="6" id="x7k-yx-19F"/>
+            </constraints>
+        </view>
+    </objects>
+</document>

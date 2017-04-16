@@ -1,0 +1,205 @@
+//
+//  ISNavigationView.m
+//  INSHOW
+//
+//  Created by 李亚飞 on 15/11/12.
+//  Copyright © 2015年 李亚飞. All rights reserved.
+//
+
+#import "ISNavigationView.h"
+
+// 自身的高度
+#define ISNavigationViewHeight 35
+// 在导航条上显示的按钮个数 (包含右边的下拉按钮)
+#define ISShowButtonCount 6
+
+// 内部按钮的宽高
+#define ISNavigationButtonWidth (ISScreen_Width / ISShowButtonCount)
+#define ISNavigationButtonHeight 30
+#define ISNavigationButtonFont [UIFont systemFontOfSize:15]
+
+#define ISSLIDERVIEWCOLOR   ISRGBColor(255, 78, 77)
+
+
+@interface ISNavigationView ()
+/**  存放初始化的按钮 */
+@property (weak, nonatomic) UIScrollView *contentView;
+/**  当前选择的按钮 */
+@property (weak, nonatomic) UIButton *selectedButton;
+/**  下拉按钮 */
+@property (weak, nonatomic) UIButton *dropButton;
+
+/**  存放  标签按钮数组 */
+@property (weak, nonatomic) NSMutableArray *buttons;
+
+/**  按钮下面的滚动条, 随着按钮点击改变位置 */
+@property (weak, nonatomic) UIView *sliderView;
+@property (assign, nonatomic) NSInteger totalButtonCount;
+@end
+
+@implementation ISNavigationView
+
+#pragma mark --- 初始化方法
+- (instancetype)init {
+    if (self = [super init]) {
+        [self setup];
+    }
+    return self;
+}
+
+- (void)setup {
+    // 1. 设置自身的尺寸
+    self.frame = CGRectMake(0, 0, ISScreen_Width, ISNavigationViewHeight);
+    
+    // 2. 创建内容的视图  contentView
+//    CGFloat scrollW = ISScreen_Width - ISNavigationButtonWidth;
+    CGFloat scrollW = ISScreen_Width;
+//    UIScrollView *contentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, scrollW, ISNavigationViewHeight)];
+    UIScrollView *contentView = [[UIScrollView alloc] initWithFrame:CGRectMake(-10, 0, scrollW, ISNavigationViewHeight)];
+    [self addSubview:contentView];
+    self.contentView = contentView;
+    // 取消 contentView 的弹簧属性
+    self.contentView.alwaysBounceHorizontal = NO;
+    self.contentView.showsHorizontalScrollIndicator = NO;
+    
+    // 3. 创建滚动条, 初始位置在第一个
+    CGFloat sliderW = ISNavigationButtonWidth;
+    CGFloat sliderH = 3;
+    CGFloat sliderY = ISNavigationButtonHeight + (ISNavigationViewHeight - ISNavigationButtonHeight - sliderH) * 0.5;
+    UIView *sliderView = [[UIView alloc] initWithFrame:CGRectMake(0, sliderY, sliderW, sliderH)];
+    sliderView.backgroundColor = [UIColor colorWithRed:255 green:78 blue:77 alpha:1.0];
+    [self.contentView addSubview:sliderView];
+    self.sliderView = sliderView;
+}
+
++ (instancetype)navigationView {
+    return [[self alloc] init];
+}
+
++ (instancetype)navigationViewWithTitles:(NSArray *)titles {
+    ISNavigationView *nav = [[self alloc] init];
+    
+    // 初始化导航按钮
+    [nav setupButtonsWithTitles:titles];
+    
+    // 初始化下拉按钮
+//    [nav setupDropButton];
+    
+    return nav;
+}
+
+/**  初始化导航按钮 */
+- (void)setupButtonsWithTitles:(NSArray *)titles {
+    CGFloat buttonY = 0;
+    NSInteger count = titles.count;
+    self.totalButtonCount = count;
+    self.contentView.contentSize = CGSizeMake(ISNavigationButtonWidth * count, 0);
+    
+    for (NSInteger i = 0; i < count; i++) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        // 按钮尺寸
+        CGFloat buttonX = i * ISNavigationButtonWidth;
+        button.frame = CGRectMake(buttonX, buttonY, ISNavigationButtonWidth, ISNavigationButtonHeight);
+        [button setTitle:titles[i] forState:UIControlStateNormal];
+        button.titleLabel.font = ISFont_16;
+        [button setTitleColor:ISRGBColor(255, 255, 255) forState:UIControlStateNormal];
+//        button.backgroundColor = ISTestRandomColor;
+        [button addTarget:self action:@selector(buttonClick:) forControlEvents:UIControlEventTouchDown];
+        button.tag = i;
+        [self.buttons addObject:button];
+        [self.contentView addSubview:button];
+        // 设置初始时选中的按钮为第一个按钮
+        if (i == 0) {
+            button.selected = YES;
+            self.selectedButton = button;
+        }
+    }
+}
+
+/**  titles      更新标题 */
+- (void)removeTitles {
+    [self.buttons removeAllObjects];
+}
+
+/**  初始化下拉按钮 */
+- (void)setupDropButton {
+    UIButton *dropButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    CGFloat dropX = ISScreen_Width - ISNavigationButtonWidth;
+    dropButton.frame = CGRectMake(dropX, 0, ISNavigationButtonWidth, ISNavigationButtonHeight);
+    [dropButton addTarget:self action:@selector(dropButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    //由于现在 dropButton 没有点击事件, 先将 dropButton 的交互性关闭
+    dropButton.userInteractionEnabled = NO;
+//    [dropButton setImage:[UIImage imageNamed:@"(-back"] forState:UIControlStateNormal];
+    [self addSubview:dropButton];
+}
+
+- (void)setTitles:(NSArray *)titles {
+    _titles = titles;
+    
+    // 初始化按钮
+    [self setupButtonsWithTitles:titles];
+}
+
+#pragma mark --- 响应事件, 有外部控制器执行
+/**  导航按钮点击事件 */
+- (void)buttonClick:(UIButton *)button {
+    // 0. 改变按钮的选中状态
+    self.selectedButton.selected = NO;
+    button.selected = !button.selected;
+    self.selectedButton = button;
+    
+    // 1. 设置 sliderView 和 contentView 的滚动
+    [self scrollToButton:button];
+    
+    // 2. 通知代理
+    if ([self.delegate respondsToSelector:@selector(navigationView:didClickButton:)]) {
+        [self.delegate navigationView:self didClickButton:button];
+    }
+}
+
+/**  下拉按钮点击事件 */
+- (void)dropButtonClick:(UIButton *)dropButton {
+    // 通知代理
+    if ([self.delegate respondsToSelector:@selector(navigationView:didClickDropButton:)]) {
+        [self.delegate navigationView:self didClickDropButton:dropButton];
+    }
+}
+
+/**  滚动到选中的 button 的位置 */
+- (void)scrollToButton:(UIButton *)button {
+    // 1.1 改变 scrollView 的显示范围
+    CGFloat content_visiable_min = ISScreen_Width * 0.5 - ISNavigationButtonWidth;
+    CGFloat button_min = CGRectGetMinX(button.frame);
+    CGFloat x = button_min - content_visiable_min;
+    CGFloat content_center_x = (ISScreen_Width - ISNavigationButtonWidth) * 0.5;
+    // contentView 一半可以显示多少个按钮
+    NSInteger count = ISShowButtonCount / 2;
+    // 1.2 右侧临界按钮的 tag
+    NSInteger rightTag = self.totalButtonCount - count;
+    // 1.3 找到左侧\右侧  临界位置
+    if (button_min < content_center_x) {    // 当按钮尺寸的最小x值小于 contentView 的中点, 就不要再向左移动了
+        x = 0;
+    }  else if (button.tag >= rightTag) {   // 当找到临界点后, 就不要再往右侧偏移了
+#pragma mark  ----- contentView 显示的按钮个数为偶数个 (导航条上显示的按钮个数为奇数个)
+        x = (rightTag - count) * ISNavigationButtonWidth;
+        
+#pragma mark  ----- contentView 显示的按钮个数为奇数个 (导航条上显示的按钮个数为偶数个)
+//        x = (rightTag - count + 1) * ISNavigationButtonWidth;
+    }
+    
+    // 2 改变滚动条的位置
+    CGFloat loc = CGRectGetMinX(button.frame);
+    if (loc < ISNavigationButtonWidth * 0.5) {    // 如果位置 loc 小于一个按钮的宽度的一半, 就设置滚动到0
+        loc = 0.0;
+    }
+    
+    // 3 设置 sliderView 和 contentView 的滚动动画\时间
+    [UIView animateWithDuration:0.25 animations:^{
+        self.sliderView.transform = CGAffineTransformMakeTranslation(loc, 0);
+        
+        self.contentView.contentOffset = CGPointMake(x, 0);
+    }];
+}
+@end

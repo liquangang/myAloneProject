@@ -1,0 +1,31 @@
+//
+//  PreviewViewController.h
+//  M-Cut
+//
+//  Created by 李亚飞 on 15/11/3.
+//  Copyright © 2015年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@class ALAsset;
+
+@interface PreviewViewController : UIViewController
+/**  传递进来对应 cell 的内容 */
+@property (strong, nonatomic) ALAsset *asset;
+/**  当前选中的所有素材  路径 */
+@property (strong, nonatomic) NSMutableArray *paths;
+
+/**  传递进来对应 cell 位置按钮的状态 */
+@property (assign, nonatomic) BOOL status;
+/**  选择的素材个数 */
+@property (assign, nonatomic) NSInteger count;
+
+///**  传递进来对应 cell 的位置 */
+//@property (strong, nonatomic) NSIndexPath *indexPath;
+//@property (copy, nonatomic) void(^ChooseBlock) (NSIndexPath *indexPath, BOOL isSelected);
+//- (void)materialStatus:(void(^)(NSIndexPath *indexPath, BOOL isSelected))choose;
+
+
+@property (copy, nonatomic) void(^ChooseBlock) (BOOL isSelected);
+- (void)materialStatus:(void(^)(BOOL isSelected))choose;
+@end

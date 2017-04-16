@@ -1,0 +1,352 @@
+//
+//  MWChooseAlbumViewController.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//
+
+#import "MWChooseAlbumViewController.h"
+#import "MWICloudModel.h"
+#import "MWChooseAlbumCell.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+
+// 底部视图
+#import "MWFooterUploadView.h"
+
+// 云空间选择文件夹界面
+#import "MWMoveViewController.h"
+// 文件数据模型
+#import "MWICloudModel.h"
+
+@interface MWChooseAlbumViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWFooterUploadViewDelegate>
+/**   collectionView 的数据源 */
+@property (strong, nonatomic) NSMutableArray *data;
+/**  存放选中的图片模型数据 */
+@property (strong, nonatomic) NSMutableArray *chooses;
+/**  存放云空间的文件夹模型 */
+@property (strong, nonatomic) NSMutableArray *files;
+
+@property (weak, nonatomic) UICollectionView *collectionView;
+
+/**  底部视图 */
+@property (weak, nonatomic) MWFooterUploadView *footerView;
+
+@end
+
+@implementation MWChooseAlbumViewController
+
+static NSString *reuseIdentifier = @"chooseAlbum";
+
+- (NSMutableArray *)data {
+    if (!_data) {
+        self.data = [NSMutableArray array];
+    }
+    return _data;
+}
+
+- (NSMutableArray *)chooses {
+    if (!_chooses) {
+        self.chooses = [NSMutableArray array];
+    }
+    return _chooses;
+}
+
+/**
+ *  测试数据(初始数据)
+ */
+- (NSMutableArray *)files {
+    if (!_files) {
+        // 读取plist文件
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"files.plist" ofType:nil];
+        NSArray *array = [NSArray arrayWithContentsOfFile:path];
+        
+        NSMutableArray *f = [NSMutableArray array];
+        for (NSDictionary *dict in array) {
+            MWICloudModel *model = [MWICloudModel modelWithDict:dict];
+            if ([model.file_type isEqualToString:FileTypeFolder]) {    // 只取出文件夹
+                [f addObject:model];
+            }
+        }
+        _files = f;
+    }
+    return _files;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = MWICloudColor(199, 199, 199);
+    
+    // 设置导航条
+    [self setupNav];
+    
+    // 从系统相册中加载图片或视频缩略图
+    [self album];
+    
+    // 创建 collectionView 视图
+    [self setupCollectionView];
+    
+    // 创建底部视图
+    [self setupFooterView];
+}
+
+/**  设置导航条 */
+- (void)setupNav {
+    // 设置中间视图
+    NSString *title = [self.type isEqualToString:@"ALAssetTypePhoto"] ? @"选择照片" : @"选择视频";
+    [self setupTitleView:title];
+    
+    // 左边返回按钮
+    UIButton *leftBarButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [leftBarButton setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [leftBarButton setTitle:@"选择相册" forState: UIControlStateNormal];
+    leftBarButton.titleLabel.font = [UIFont systemFontOfSize:15];
+    // 按钮尺寸是随便写的, 没有计算
+    leftBarButton.frame = CGRectMake(0, 0, 80, 25);
+    [leftBarButton addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftBarButton];
+    
+    // 右边全选按钮
+    UIButton *rightBarButton = [UIButton buttonWithTarget:self action:@selector(choose:) title:@"全选" selectTitle:@"全不选" color:MWICloudColor(255, 255, 255) font:15];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:rightBarButton];
+}
+
+/**  创建 collectionView 视图 */
+- (void)setupCollectionView {
+    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+    
+    CGFloat collectionViewX = 0;
+    CGFloat collectionViewY = 0;
+    CGFloat collectionViewW = MWScreenWidth;
+    CGFloat collectionViewH = MWScreenHeight - MWICloudUploadViewHeight - MWICloudNavigationHeight;
+    CGRect frame = CGRectMake(collectionViewX, collectionViewY, collectionViewW, collectionViewH);
+    
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:frame collectionViewLayout:layout];
+    [collectionView registerClass:[MWChooseAlbumCell class] forCellWithReuseIdentifier:reuseIdentifier];
+    
+    collectionView.delegate = self;
+    collectionView.dataSource = self;
+    collectionView.backgroundColor = [UIColor whiteColor];
+    
+    [self.view addSubview:collectionView];
+    self.collectionView = collectionView;
+}
+
+/**  创建底部视图 */
+- (void)setupFooterView {
+    MWFooterUploadView *footerView = [MWFooterUploadView uploadView];
+    CGFloat footerX = 0;
+    CGFloat footerW = MWScreenWidth;
+    CGFloat footerH = MWICloudUploadViewHeight;
+    CGFloat footerY = MWScreenHeight - MWICloudUploadViewHeight - MWICloudNavigationHeight;
+    footerView.frame = CGRectMake(footerX, footerY, footerW, footerH);
+    
+    footerView.delegate = self;
+    [self.view addSubview:footerView];
+    self.footerView = footerView;
+}
+
+/**
+ *  返回相册
+ */
+- (void)back {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+/**
+ *  全选\全不选, 只能利用内存数据控制, 否则看不到的 cell 不能被选中
+ */
+- (void)choose:(UIButton *)rightBarButton {
+    // 清空选择数组中的数据
+    [self.chooses removeAllObjects];
+    if (rightBarButton.selected == NO) {    // 普通状态, 点击后变为选中状态, 选中所有的 cell
+        for (MWICloudModel *model in self.data) {
+            model.isSelected = YES;
+            [self.chooses addObject:model];
+        }
+    } else {    // 选中状态, 点击后变为普通状态, 取消所有 cell 的选中
+        for (MWICloudModel *model in self.data) {
+            model.isSelected = NO;
+        }
+    }
+    // 改变底部按钮的标题
+    [self.footerView setTitleWithFilesCount:self.chooses.count];
+    rightBarButton.selected = !rightBarButton.selected;
+    [self.collectionView reloadData];
+}
+
+/**
+ *  创建titleView
+ */
+- (void)setupTitleView:(NSString *)title {
+    UILabel *titleView = [[UILabel alloc] init];
+    titleView.text = title;
+    titleView.font = [UIFont systemFontOfSize:20];
+    titleView.textColor = MWICloudColor(255, 255, 255);
+    titleView.size = [titleView.text sizeWithWidth:MAXFLOAT font:titleView.font];
+    self.navigationItem.titleView = titleView;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/**  从系统相册中加载图片或视频缩略图 */
+- (void)album {
+    ALAssetsLibrary *assetsLibrary = [[ALAssetsLibrary alloc] init];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        // 遍历所有相册
+        /*
+         * 文件类型 : ALAssetTypeVideo, ALAssetTypePhoto, ALAssetTypeUnknown
+         * 文件URL : [result valueForProperty:ALAssetPropertyAssetURL]
+         */
+        [assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAll usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+            // 遍历每个相册中的项ALAsset
+            if (group && [[group valueForProperty:ALAssetsGroupPropertyName] isEqualToString:self.albumName]){  // 找到点击的相册
+                [group enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index,BOOL *stop) {
+                    // 相册名称
+                    if ([self.type isEqualToString:ALAssetTypePhoto]){  // 图片
+                        // 保存 相册的图片 到模型中
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypePhoto]) {
+                            ALAssetRepresentation *repre = [result defaultRepresentation];
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+//                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+//                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+                            model.file_name = repre.filename;
+                            model.path = [NSString stringWithFormat:@"%@", repre.url];
+                            model.size = repre.size;
+                            model.file_type = FileTypePic;
+                            // path : assets-library://asset/asset.JPG?id=D16DF397-1678-488D-986B-73917D027D4A&ext=JPG
+                            [self.data addObject:model];
+                        }
+                    } else if ([self.type isEqualToString:ALAssetTypeVideo]){   // 视频
+                        if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypeVideo]) {
+                            ALAssetRepresentation *repre = [result defaultRepresentation];
+                            // 保存 视频的缩略图 到模型中
+                            MWICloudModel *model = [[MWICloudModel alloc] init];
+                            model.image = [UIImage imageWithCGImage:result.thumbnail];
+//                            model.albumName = [group valueForProperty:ALAssetsGroupPropertyName];
+                            model.photosCount = group.numberOfAssets;
+//                            model.path = [result valueForProperty:ALAssetPropertyAssetURL];
+                            model.file_name = repre.filename;
+                            model.path = [NSString stringWithFormat:@"%@", repre.url];
+                            model.size = repre.size;
+                            model.file_type = FileTypeVideo;
+                            // path : assets-library://asset/asset.MOV?id=BE1B0408-B6A7-4934-89CE-3CB58A9A55EF&ext=MOV
+                            [self.data addObject:model];
+                        }
+                    }
+                }];
+                dispatch_async(dispatch_get_main_queue(), ^{
+//                    for (MWAlbumModel *model in self.data) {
+//                        NSLog(@"%@---path", model.path);
+//                    }
+                    [self.collectionView reloadData];
+                });
+            }
+            // [self.collectionView reloadData] 数据会刷新两次
+        }
+                                   failureBlock:^(NSError *error) {
+                                       NSLog(@"Failed to enumerate the asset groups.");
+                                   }];
+    });
+}
+
+
+#pragma mark <UICollectionViewDataSource>
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    return self.data.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    MWChooseAlbumCell *cell = [MWChooseAlbumCell cellWithCollectionView:collectionView indexPath:indexPath];
+    cell.model = self.data[indexPath.row];
+    return cell;
+}
+
+#pragma mark <UICollectionViewDelegate>
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+    CGFloat width = MWScreenWidth * 0.2;
+    return CGSizeMake(width, width);
+}
+
+- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
+    return UIEdgeInsetsMake(5, 5, 5, 5);
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    // 点击 cell, 内部按钮选中, 再点击内部按钮取消选中
+    MWChooseAlbumCell *cell = (MWChooseAlbumCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
+    
+    if (cell.chooseButton.selected == YES) {    //  当前状态是选中状态, 点击之后变为非选中状态
+        [self.chooses removeObject:cell.model];
+        cell.chooseButton.selected = NO;
+    } else {       //  当前状态是非选中状态, 点击之后变为选中状态
+        [self.chooses addObject:cell.model];
+        cell.chooseButton.selected = YES;
+    }
+    
+    // 通知底部视图, 改变按钮的标题
+    [self.footerView setTitleWithFilesCount:self.chooses.count];
+}
+
+#pragma mark -- MWFooterUploadViewDelegate 底部视图代理方法
+- (void)footerUploadView:(MWFooterUploadView *)uploadView didClickButton:(MWFooterUploadViewButtonType)type {
+    switch (type) {
+        case MWFooterUploadViewButtonTypeICloud:
+            [self iCloudClick];
+            break;
+            
+        case MWFooterUploadViewButtonTypeUpload:
+            [self uploadClick];
+            break;
+            
+        default:
+            break;
+    }
+}
+
+/**
+ *  云空间按钮点击, 跳转到云空间 选择文件夹 界面, (MWMoveViewController)
+ */
+- (void)iCloudClick {
+    MWMoveViewController *move = [[MWMoveViewController alloc] init];
+    // 给 控制器传递数据源 : 云空间中的文件夹
+#warning 使用云空间的 plist 文件数据
+    
+    // 单例中保存的文件数组, 是当前选中的文件, 相册中的数据
+    [MWICloudFolderTool sharedMWICloudFolderTool].chooses = self.chooses;
+    [self.chooses removeAllObjects];
+    move.files = self.files;
+    move.isTransFromAlbum = YES;
+    [self.navigationController pushViewController:move animated:YES];
+}
+
+/**
+ *  上传按钮点击, 将选中的数据添加到上传列表中, 返回云空间主界面
+ */
+- (void)uploadClick {
+    // 1. 计算需要上传的文件的总大小
+    
+    // 2. 和云空间剩余容量比较
+    
+#warning 云空间容量不足提醒未做
+//    [[UIApplication sharedApplication].keyWindow showMessage:@"空间容量不足, 请及时扩容"];
+    
+    // 将 self.choose 中的文件属性 isuploading 设置为 yes
+    for (MWICloudModel *model in self.chooses) {
+        model.isUploading = YES;
+    }
+    
+    // 单例中保存的文件数组, 是当前选中的文件, 相册中的数据
+    [MWICloudFolderTool sharedMWICloudFolderTool].uploadList = self.chooses;
+    [[UIApplication sharedApplication].keyWindow showMessage:@"添加至上传列表" withTime:2.0];
+    
+    // 返回云空间主界面
+    [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+@end

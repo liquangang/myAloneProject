@@ -1,0 +1,30 @@
+//
+//  ElectrialCollectionViewCell2.m
+//  M-Cut
+//
+//  Created by apple on 16/10/24.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "ElectrialCollectionViewCell2.h"
+
+@implementation ElectrialCollectionViewCell2
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
++ (instancetype)ElectrialCollectionViewCell2WithCollectionView:(UICollectionView *)superCollectionView
+                                                   ResuableStr:(NSString *)resuableStr
+                                                         Index:(NSIndexPath *)index
+{
+    ElectrialCollectionViewCell2 * cell = [superCollectionView dequeueReusableCellWithReuseIdentifier:resuableStr
+                                                                                         forIndexPath:index];
+    if (!cell) {
+        cell = XIBCELL(@"ElectrialCollectionViewCell2")
+    }
+    return cell;
+}
+
+@end

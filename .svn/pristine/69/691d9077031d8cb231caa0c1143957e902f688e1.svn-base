@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10116" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="CutProIdentifier_cell" id="gTV-IL-0wX" customClass="ISCutProCell">
+            <rect key="frame" x="0.0" y="0.0" width="232" height="132"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="232" height="132"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="55C-Bi-VEx">
+                        <rect key="frame" x="0.0" y="6" width="228" height="126"/>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ztJ-6c-hiv">
+                        <rect key="frame" x="5" y="112" width="15" height="15"/>
+                        <color key="backgroundColor" red="1" green="0.30588235294117649" blue="0.30196078431372547" alpha="0.5" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="15" id="TKF-Sx-88P"/>
+                            <constraint firstAttribute="width" constant="15" id="xEN-nC-fJj"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="e0C-4M-u6V">
+                        <rect key="frame" x="209" y="0.0" width="23" height="23"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="23" id="8XK-6x-F2W"/>
+                            <constraint firstAttribute="height" constant="23" id="vhL-2E-E7K"/>
+                        </constraints>
+                        <state key="normal" backgroundImage="delete"/>
+                        <connections>
+                            <action selector="deleteClick:" destination="gTV-IL-0wX" eventType="touchUpInside" id="Zhe-BT-mMv"/>
+                        </connections>
+                    </button>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ylb-WU-l0y">
+                        <rect key="frame" x="18" y="110" width="204" height="17"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="17" id="kHM-s0-Aw9"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstItem="55C-Bi-VEx" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="6" id="0YQ-ni-Aix"/>
+                <constraint firstAttribute="bottom" secondItem="55C-Bi-VEx" secondAttribute="bottom" id="4QW-1v-nSt"/>
+                <constraint firstItem="ylb-WU-l0y" firstAttribute="leading" secondItem="ztJ-6c-hiv" secondAttribute="trailing" id="8Wt-ug-Xm3"/>
+                <constraint firstItem="55C-Bi-VEx" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="PCs-N6-loC"/>
+                <constraint firstAttribute="trailing" secondItem="ylb-WU-l0y" secondAttribute="trailing" constant="8" id="RXP-bH-46G"/>
+                <constraint firstItem="e0C-4M-u6V" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="aVw-uD-w9c"/>
+                <constraint firstAttribute="bottom" secondItem="ylb-WU-l0y" secondAttribute="bottom" constant="5" id="kea-nH-EIN"/>
+                <constraint firstItem="ztJ-6c-hiv" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="5" id="qBe-Ms-puW"/>
+                <constraint firstAttribute="trailing" secondItem="e0C-4M-u6V" secondAttribute="trailing" id="qh0-Bs-BiK"/>
+                <constraint firstAttribute="trailing" secondItem="55C-Bi-VEx" secondAttribute="trailing" constant="4" id="rXN-QA-tJu"/>
+                <constraint firstAttribute="bottom" secondItem="ztJ-6c-hiv" secondAttribute="bottom" constant="5" id="wES-rJ-tei"/>
+            </constraints>
+            <size key="customSize" width="227" height="117"/>
+            <connections>
+                <outlet property="deleteButton" destination="e0C-4M-u6V" id="gwk-Gc-1e6"/>
+                <outlet property="indexLabel" destination="ztJ-6c-hiv" id="aDQ-xG-9Lc"/>
+                <outlet property="photo" destination="55C-Bi-VEx" id="EWv-Pu-FQm"/>
+                <outlet property="timeLabel" destination="ylb-WU-l0y" id="bfh-T7-WOU"/>
+            </connections>
+            <point key="canvasLocation" x="281.5" y="445.5"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="delete" width="17" height="17"/>
+    </resources>
+</document>

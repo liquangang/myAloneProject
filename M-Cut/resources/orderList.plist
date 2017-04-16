@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>orderNum</key>
+		<string>000001</string>
+		<key>capacity</key>
+		<integer>15</integer>
+		<key>effectTime</key>
+		<string>2015-10-10至2016-10-10</string>
+		<key>money</key>
+		<integer>75</integer>
+		<key>state</key>
+		<string>已取消</string>
+	</dict>
+	<dict>
+		<key>orderNum</key>
+		<string>000002</string>
+		<key>capacity</key>
+		<integer>30</integer>
+		<key>effectTime</key>
+		<string>2015-10-10至2016-10-10</string>
+		<key>money</key>
+		<integer>150</integer>
+		<key>state</key>
+		<string>已完成</string>
+	</dict>
+	<dict>
+		<key>orderNum</key>
+		<string>000003</string>
+		<key>capacity</key>
+		<integer>15</integer>
+		<key>effectTime</key>
+		<string>2015-10-10至2016-10-10</string>
+		<key>money</key>
+		<integer>75</integer>
+		<key>state</key>
+		<string>已完成</string>
+	</dict>
+	<dict>
+		<key>orderNum</key>
+		<string>000004</string>
+		<key>capacity</key>
+		<integer>30</integer>
+		<key>effectTime</key>
+		<string>2015-10-10至2016-10-10</string>
+		<key>money</key>
+		<integer>150</integer>
+		<key>state</key>
+		<string>已取消</string>
+	</dict>
+	<dict>
+		<key>orderNum</key>
+		<string>000005</string>
+		<key>capacity</key>
+		<integer>100</integer>
+		<key>effectTime</key>
+		<string>2015-10-10至2016-10-10</string>
+		<key>money</key>
+		<integer>480</integer>
+		<key>state</key>
+		<string>已取消</string>
+	</dict>
+</array>
+</plist>

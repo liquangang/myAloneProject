@@ -1,0 +1,292 @@
+//
+//  MyVideoViewController.m
+//  M-Cut
+//
+//  Created by apple on 16/7/1.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import "MyVideoViewController.h"
+//用户信息部分cell
+#import "HeaderCell.h"
+//中间控制界面布局的cell
+#import "ControlCell.h"
+//视频cell
+#import "VideoCell.h"
+//接口类
+#import "SoapOperation.h"
+//用户信息类
+#import "UserEntity.h"
+//刷新类
+#import "MJRefresh.h"
+#import "CustomeClass.h"
+#import "Video.h"
+#import "HomeVideoDetailViewController.h"
+
+@interface MyVideoViewController ()<UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
+@property (weak, nonatomic) IBOutlet UITableView *videoTable;
+/** 界面影片数据源*/
+@property (nonatomic, strong) NSMutableArray * videoMuArray;
+/** 背景图片*/
+@property (nonatomic, strong) UIImageView * headBackImage;
+/** 加载个人影片是否成功*/
+@property (nonatomic, assign) NSInteger donwloadTimes;
+@end
+
+static NSString * headerCellId = @"uesrCell";
+
+@implementation MyVideoViewController
+
+#pragma mark - 数据源懒加载
+- (NSMutableArray *)videoMuArray{
+    if (!_videoMuArray) {
+        _videoMuArray = [NSMutableArray new];
+    }
+    return _videoMuArray;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self initUI];
+    
+    [self downloadData];
+}
+
+#pragma mark - downloadData
+- (void)downloadData{
+    //请求已经生成的影片内容并刷新数据
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetPersonalVideos:nil Customer:@([[UserEntity sharedSingleton].customerId integerValue]) Start:@(self.videoMuArray.count) Count:@(30) Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+        [weakSelf.videoMuArray addObjectsFromArray:[array.item copy]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf.videoTable reloadData];
+            if (array.item.count <= 0) {
+                [weakSelf.videoTable removeFooter];
+                [CustomeClass showMessage:@"没有更多影片了" ShowTime:1.5];
+            }
+            [weakSelf.videoTable footerEndRefreshing];
+            [weakSelf.videoTable headerEndRefreshing];
+        });
+    } Fail:^(NSError *error) {
+        weakSelf.donwloadTimes++;
+        NSLog(@"下载个人视频数据失败---%@", error);
+        if (weakSelf.donwloadTimes < 3) {
+            [weakSelf downloadData];
+        }
+    }];
+}
+
+
+#pragma mark - initUI
+- (void)initUI{
+    self.title = @"我的影片";
+    
+    //返回按钮
+    UIButton * backBtn = [UIButton new];
+    backBtn.frame = CGRectMake(0, 0, 20, 20);
+    [backBtn setImage:[UIImage imageNamed:@"backbutton"] forState:UIControlStateNormal];
+    [backBtn addTarget:self action:@selector(backButtonAction) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+    self.navigationController.interactivePopGestureRecognizer.delegate = (id)self;
+    
+    [self.videoTable addFooterWithTarget:self action:@selector(footerRefresh)];
+    [self.videoTable addHeaderWithTarget:self action:@selector(headerRefresh)];
+    
+    self.donwloadTimes = 0;
+}
+
+#pragma mark - 刷新方法
+- (void)footerRefresh{
+    self.donwloadTimes = 0;
+    [self downloadData];
+}
+
+- (void)headerRefresh{
+    self.donwloadTimes = 0;
+    __weak typeof(self) weakSelf = self;
+    [[SoapOperation Singleton] WS_GetPersonalVideos:nil Customer:@([[UserEntity sharedSingleton].customerId integerValue]) Start:@(0) Count:@(30) Success:^(MovierDCInterfaceSvc_VDCVideoInfoExArray *array) {
+        [weakSelf.videoMuArray removeAllObjects];
+        [weakSelf.videoMuArray addObjectsFromArray:[array.item copy]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf.videoTable reloadData];
+            if (array.item.count <= 0) {
+                [weakSelf.videoTable removeFooter];
+                [CustomeClass showMessage:@"没有更多影片了" ShowTime:1.5];
+            }
+            [weakSelf.videoTable footerEndRefreshing];
+            [weakSelf.videoTable headerEndRefreshing];
+        });
+    } Fail:^(NSError *error) {
+        weakSelf.donwloadTimes++;
+        NSLog(@"下载个人视频数据失败---%@", error);
+        if (weakSelf.donwloadTimes < 3) {
+            [weakSelf downloadData];
+        }
+    }];
+}
+
+#pragma mark - 返回按钮方法
+- (void)backButtonAction{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - tableDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    if (section == 0) {
+        //个人信息部分
+        return 1;
+    }else if (section == 1){
+        //切换部分
+        return 1;
+    }else{
+        //影片展示部分
+        return self.videoMuArray.count;
+    }
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 3;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        return 125;
+    }else if (indexPath.section == 1){
+        return 40;
+    }else{
+        if (iPhone5_5S_5C) {
+            return 316;
+        }
+        return 356;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section{
+    view.tintColor = [UIColor groupTableViewBackgroundColor];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (indexPath.section == 0) {
+        HeaderCell * cell = [HeaderCell getHeaderCellWithTable:tableView];
+        [cell UpdateBackImage:^(UIImageView *backImage) {
+            self.headBackImage = backImage;
+            [self updateBackHeaderImage];
+        }];
+        return cell;
+    }else if (indexPath.section == 1){
+        return [ControlCell getControlCellWithTable:tableView];
+    }else{
+        return [VideoCell getVideoCellWithTable:tableView VideoInfo:self.videoMuArray[indexPath.row]];
+    }
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 0 || indexPath.section == 1)
+    {
+        return;
+    }
+    MovierDCInterfaceSvc_VDCVideoInfoEx *collectpageVideoOrder = [[MovierDCInterfaceSvc_VDCVideoInfoEx alloc] init];
+    collectpageVideoOrder = [self.videoMuArray objectAtIndex:indexPath.row];
+    [Video Singleton].videoID = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoID intValue]];
+    [Video Singleton].videoName = collectpageVideoOrder.szVideoName;
+    [Video Singleton].ownerID = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nOwnerID intValue]];
+    [Video Singleton].ownerName = collectpageVideoOrder.szOwnerName;
+    [Video Singleton].ownerAcatar = collectpageVideoOrder.szAcatar;
+    [Video Singleton].videoLabelName = collectpageVideoOrder.szVideoName;
+    [Video Singleton].videoCreateTime = collectpageVideoOrder.szCreateTime;
+    [Video Singleton].videoThumbnailUrl = [collectpageVideoOrder.szThumbnail stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    [Video Singleton].videoReferenceUrl = [collectpageVideoOrder.szReference stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    [Video Singleton].videoNumberOfPraise = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nPraise intValue]];
+    [Video Singleton].videoNumberOfShare = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nShareNum intValue]];
+    [Video Singleton].videoNumberOfFavorite = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nFavoritesNum intValue]];
+    [Video Singleton].videoCollectStatus =  [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoStatus intValue]];
+    [Video Singleton].videoShare = [NSString stringWithFormat:@"%d",[collectpageVideoOrder.nVideoShare intValue]];
+    int videoID = [collectpageVideoOrder.nVideoID intValue];
+    [[SoapOperation Singleton] WS_IncreaseVisit:@(videoID) Success:^(NSNumber *num) {
+        [Video Singleton].videoPlayCount = [NSString stringWithFormat:@"%@", num];
+    } Fail:^(NSError *error) {
+        NSLog(@"------%s-----%@", __func__, error);
+    }];
+    // PersonalMovieDetailPreviewViewController 点击个人图标无反应
+    HomeVideoDetailViewController *detail = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"MovieDetailPreviewStoryboardID1"];
+    detail.isTransFromPersonal = YES;
+    detail.isVideoPublic = [Video Singleton].videoShare;
+    detail.videoId = videoID;
+    NSLog(@"videoID--------%d", videoID);
+    [self.navigationController pushViewController:detail animated:YES];
+}
+
+/** 修改背景图片*/
+- (void)updateBackHeaderImage{
+        UIActionSheet *sheet;
+        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+        {
+            sheet  = [[UIActionSheet alloc] initWithTitle:@"选择"
+                                                 delegate:self
+                                        cancelButtonTitle:@"取消"
+                                   destructiveButtonTitle:nil
+                                        otherButtonTitles:@"拍照",@"从相册选择",nil];
+        }
+        else {
+            sheet = [[UIActionSheet alloc] initWithTitle:@"选择"
+                                                delegate:self
+                                       cancelButtonTitle:@"取消"
+                                  destructiveButtonTitle:nil
+                                       otherButtonTitles:@"从相册选择", nil];
+        }
+        sheet.tag = 255;
+        [sheet showInView:self.view];
+}
+
+#pragma mark - actionDelegate
+-(void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (actionSheet.tag == 255) {
+        NSUInteger sourceType = 0;
+        // 判断是否支持相机
+        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+            switch (buttonIndex) {
+                case 0:
+                    //照相
+                    sourceType = UIImagePickerControllerSourceTypeCamera;
+                    break;
+                case 1:
+                    // 相册
+                    sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    break;
+                case 2:
+                    // 取消
+                    return;
+            }
+        }
+        else {
+            if (buttonIndex == 0) {
+                sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+            } else {
+                return;
+            }
+        }
+        
+        // 跳转到相机或相册页面
+        UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+        imagePickerController.delegate = self;
+        imagePickerController.allowsEditing = YES;
+        imagePickerController.sourceType = sourceType;
+        [self presentViewController:imagePickerController animated:YES completion:^{}];
+    }
+}
+
+#pragma mark - image picker delegte
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:^{}];
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+//    NSData *imageData = UIImageJPEGRepresentation(image, .4);
+//    NSString *status =[headerChage UploadUserHeader:[NSString stringWithFormat:@"%d", [[UserEntity sharedSingleton].customerId intValue]]
+//                                                EXt:@"jpg"
+//                                           Yourdata:imageData];
+    self.headBackImage.image = image;
+}
+@end

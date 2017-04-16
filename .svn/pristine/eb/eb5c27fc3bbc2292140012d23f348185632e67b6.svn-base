@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>Id</key>
+		<integer>0</integer>
+		<key>name</key>
+		<string>热门</string>
+	</dict>
+	<dict>
+		<key>Id</key>
+		<integer>1</integer>
+		<key>name</key>
+		<string>活动</string>
+	</dict>
+	<dict>
+		<key>Id</key>
+		<integer>2</integer>
+		<key>name</key>
+		<string>浪漫</string>
+	</dict>
+	<dict>
+		<key>Id</key>
+		<integer>3</integer>
+		<key>name</key>
+		<string>旅行</string>
+	</dict>
+	<dict>
+		<key>Id</key>
+		<integer>11</integer>
+		<key>name</key>
+		<string>运动</string>
+	</dict>
+	<dict>
+		<key>Id</key>
+		<integer>12</integer>
+		<key>name</key>
+		<string>热门</string>
+	</dict>
+</array>
+</plist>

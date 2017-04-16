@@ -1,0 +1,23 @@
+//
+//  PersonalInfoRightTableViewCell.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/3/4.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "PersonalInfoRightTableViewCell.h"
+#import "PersonalInformationSet.h"
+
+@implementation PersonalInfoRightTableViewCell
+
+- (void)awakeFromNib {
+    // Initialization code
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+}
+
+@end

@@ -1,0 +1,25 @@
+//
+//  MWICloudListCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/15.
+//
+//  上传或下载完成的 cell --- 选择状态
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel, MWICloudEditListCell;
+
+@protocol MWICloudEditListCellDelegate <NSObject>
+
+@optional
+/**  编辑状态   下载上传完成 cell 的代理方法 */
+- (void)iCloudEditListCell:(MWICloudEditListCell *)editListCell didClickChooseButton:(UIButton *)button;
+@end
+
+
+@interface MWICloudEditListCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+@property (weak, nonatomic) id<MWICloudEditListCellDelegate> delegate;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

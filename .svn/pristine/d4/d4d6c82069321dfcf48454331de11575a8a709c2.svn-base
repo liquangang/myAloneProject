@@ -1,0 +1,13 @@
+//
+//  VideoShowViewController.h
+//  M-Cut
+//
+//  Created by arbin on 16/7/19.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#define MaxInputNumber 110
+@interface VideoShowViewController : UIViewController
+@property (nonatomic, strong) NSMutableDictionary * videoInfo;
+@end

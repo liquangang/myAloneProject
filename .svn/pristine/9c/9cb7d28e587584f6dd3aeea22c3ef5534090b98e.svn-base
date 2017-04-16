@@ -1,0 +1,17 @@
+//
+//  Video2.h
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/4/22.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "VideoInformationObject.h"
+//别人的视频列表的视频对象
+@interface Video2 : VideoInformationObject
+
+
++ (Video2 *)Singleton;
+
+@end

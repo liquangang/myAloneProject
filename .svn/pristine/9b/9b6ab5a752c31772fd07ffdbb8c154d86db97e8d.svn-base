@@ -1,0 +1,81 @@
+//
+//  MWChooseAlbumCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/13.
+//
+//
+
+#import "MWChooseAlbumCell.h"
+#import "MWICloudModel.h"
+
+@interface MWChooseAlbumCell()
+/**  图片 */
+@property (weak, nonatomic) UIImageView *iconView;
+
+@end
+
+@implementation MWChooseAlbumCell
+
++ (instancetype)cellWithCollectionView:(UICollectionView *)collection indexPath:(NSIndexPath *)indexPath {
+    static NSString *reuseIdentifier = @"chooseAlbum";
+    MWChooseAlbumCell *cell = [collection dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
+    return cell;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self setupView];
+    }
+    return self;
+}
+
+- (void)setupView {
+    
+    // 图片
+    UIImageView *iconView = [[UIImageView alloc] init];
+    [self.contentView addSubview:iconView];
+    self.iconView = iconView;
+    
+    // 选择按钮
+    UIButton *chooseButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [chooseButton setImage:[UIImage imageNamed:@"icloug_no-choice"] forState:UIControlStateNormal];
+    [chooseButton setImage:[UIImage imageNamed:@"icloud_-choice"] forState:UIControlStateSelected];
+    [chooseButton addTarget:self action:@selector(choose:) forControlEvents:UIControlEventTouchUpInside];
+    [self.contentView addSubview:chooseButton];
+    self.chooseButton = chooseButton;
+}
+
+- (void)choose:(UIButton *)button {
+    button.selected = !button.selected;
+}
+
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    
+    CGFloat width = MWScreenWidth * 0.2;
+    // 图片要缩放到的尺寸
+    CGSize size = CGSizeMake(width, width);
+    
+#warning 不能使用 self.frame, 在设置图片之前需要先设置 imageView 的尺寸
+    self.iconView.frame = CGRectMake(0, 0, width, width);
+//    NSLog(@"%@---self.frame", NSStringFromCGRect(self.frame));
+//    self.iconView.frame = self.frame;
+    
+    UIImage *image = [model.image imageScaleToSize:size];
+    self.iconView.image = image;
+    
+    // 按钮与 cell 的右面, 下面间距
+    CGFloat padding = 2;
+    CGFloat buttonWH = 22;
+    CGFloat buttonX = self.frame.size.width - padding - buttonWH;
+    CGFloat buttonY = self.frame.size.height - padding - buttonWH;
+    
+    // 按钮状态和模型的状态保持一致
+    self.chooseButton.selected = model.isSelected;
+    self.chooseButton.frame = CGRectMake(buttonX, buttonY, buttonWH, buttonWH);
+}
+
+
+@end

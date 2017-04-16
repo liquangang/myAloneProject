@@ -1,0 +1,142 @@
+//
+//  ICloudCell.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/25.
+//
+//
+
+#import "ICloudCell.h"
+#import "MWICloudModel.h"
+
+@interface ICloudCell ()
+/** 文件名 */
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+/** 创建时间 */
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+/** 下拉按钮点击 */
+- (IBAction)dropdownClick:(UIButton *)button;
+
+/** 系统文件夹下拉菜单, 暴露给外部使用 */
+@property (weak, nonatomic) IBOutlet UIView *systemFolderView;
+/** 系统文件夹下拉菜单下载按钮点击 */
+- (IBAction)systemDownloadClick:(UIButton *)button;
+
+/** 普通文件夹下拉菜单, 暴露给外部使用 */
+@property (weak, nonatomic) IBOutlet UIView *normalFolderView;
+/** 普通文件夹下拉菜单下载按钮点击 */
+- (IBAction)normalDownloadClick:(UIButton *)button;
+/** 普通文件夹下拉菜单删除按钮点击 */
+- (IBAction)normalDeleteClick:(UIButton *)button;
+/** 普通文件夹下拉菜单更多按钮点击 */
+- (IBAction)normalMoreClick:(UIButton *)button;
+
+/** 系统文件夹的高度约束  */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *systemViewHeight;
+/** 普通文件夹的高度约束  */
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *normalViewHeight;
+
+@end
+
+@implementation ICloudCell
+
++ (instancetype)cellWithTableView:(UITableView *)tableView {
+    static NSString *ID = @"dropdown";
+    ICloudCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
+    if (!cell) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"ICloudCell" owner:nil options:nil] lastObject];
+    }
+    return cell;
+}
+
+- (void)setModel:(MWICloudModel *)model {
+    _model = model;
+    self.nameLabel.text = model.file_name;
+    self.timeLabel.text = model.file_createtime;
+}
+
+- (void)awakeFromNib {
+    // cell 初始状态下拉菜单隐藏
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+    self.systemFolderView.hidden = YES;
+    self.normalFolderView.hidden = YES;
+    self.systemViewHeight.constant = 0;
+    self.normalViewHeight.constant = 0;
+}
+
+- (void)frameRecovery:(ICloudCell *)cell {
+    cell.systemFolderView.hidden = YES;
+    cell.normalFolderView.hidden = YES;
+    cell.dropdownBtn.selected = NO;
+}
+
+/** 下拉按钮点击 */
+- (IBAction)dropdownClick:(UIButton *)button {
+    if (button.selected == YES) {    // 当前是选中状态, 点击后变为普通状态
+        self.frameChange(self, 44, NO);
+        self.systemFolderView.hidden = YES;
+        self.normalFolderView.hidden = YES;
+        [UIView animateWithDuration:1 animations:^{
+            self.systemViewHeight.constant = 0;
+            self.normalViewHeight.constant = 0;
+        }];
+        button.selected = NO;
+    } else {     // 按钮默认状态, 点击后变为选中状态, 显示下拉视图
+        self.frameChange(self, 97, YES);
+        // 判断显示哪个视图
+        if ([self.model.file_name containsString:@"系统"]) {  // 如果是系统文件夹,显示只有下载按钮的 view
+            self.systemFolderView.hidden = NO;
+            self.normalFolderView.hidden = YES;
+            [UIView animateWithDuration:1 animations:^{
+                self.systemViewHeight.constant = 53;
+                self.normalViewHeight.constant = 0;
+            }];
+        } else {    // 如果不是系统文件夹,显示有3个按钮的 view
+            self.systemFolderView.hidden = YES;
+            self.normalFolderView.hidden = NO;
+            [UIView animateWithDuration:1 animations:^{
+                self.systemViewHeight.constant = 0;
+                self.normalViewHeight.constant = 53;
+            }];
+        }
+        button.selected = YES;
+    }
+    [self updateConstraints];
+}
+
+/**
+ *  点击 cell 内部按钮后, cell 的尺寸发生改变
+ */
+- (void)frameChange:(void(^) (ICloudCell *cell,  CGFloat height, BOOL isExpan))frameChange {
+    self.frameChange = frameChange;
+}
+
+/** 系统文件夹下拉菜单下载按钮点击 */
+- (IBAction)systemDownloadClick:(UIButton *)button {
+    if ([self.delegate respondsToSelector:@selector(iCloudCell:buttonType:)]) {
+        [self.delegate iCloudCell:self buttonType:ICloudCellButtonTypeSystemFolderDownload];
+    }
+}
+
+/** 普通文件夹下拉菜单下载按钮点击 */
+- (IBAction)normalDownloadClick:(UIButton *)button {
+    if ([self.delegate respondsToSelector:@selector(iCloudCell:buttonType:)]) {
+        [self.delegate iCloudCell:self buttonType:ICloudCellButtonTypeNormalFolderDownload];
+    }
+}
+
+/** 普通文件夹下拉菜单删除按钮点击 */
+- (IBAction)normalDeleteClick:(UIButton *)button {
+    if ([self.delegate respondsToSelector:@selector(iCloudCell:buttonType:)]) {
+        [self.delegate iCloudCell:self buttonType:ICloudCellButtonTypeNormalFolderDelete];
+    }
+}
+
+/** 普通文件夹下拉菜单更多按钮点击 */
+- (IBAction)normalMoreClick:(UIButton *)button {
+    if ([self.delegate respondsToSelector:@selector(iCloudCell:buttonType:)]) {
+        [self.delegate iCloudCell:self buttonType:ICloudCellButtonTypeNormalFolderMore];
+    }
+}
+
+@end

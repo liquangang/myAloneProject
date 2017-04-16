@@ -1,0 +1,16 @@
+//
+//  NameAndColor.h
+//  table by selfcell
+//
+//  Created by Xu Wenbing on 12-8-30.
+//  Copyright (c) 2012年 Xu Wenbing. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MusicCell : UITableViewCell
+
+@property (weak, nonatomic) IBOutlet UILabel *MusicName;
+@property (weak, nonatomic) IBOutlet UIWebView *playview;
+@property (weak, nonatomic) IBOutlet UIImageView *seleImageView;
+@end

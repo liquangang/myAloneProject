@@ -1,0 +1,56 @@
+//
+//  MWICloudHeaderView.m
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/9/24.
+//
+//
+
+#import "MWICloudHeaderView.h"
+
+@interface MWICloudHeaderView()
+
+- (IBAction)addClick;
+- (IBAction)sortClick;
+- (IBAction)uploadClick;
+- (IBAction)searchClick;
+- (IBAction)listClick;
+
+@end
+
+@implementation MWICloudHeaderView
+
++ (instancetype)icloudHeaderView {
+    return [[[NSBundle mainBundle] loadNibNamed:@"MWICloudHeaderView" owner:nil options:nil] lastObject];
+}
+
+- (IBAction)addClick {
+    if ([self.delegate respondsToSelector:@selector(iCludeHeaderView:buttonType:)]) {
+        [self.delegate iCludeHeaderView:self buttonType:MWICloudHeaderViewButtonTypeAdd];
+    }
+}
+
+- (IBAction)sortClick {
+    if ([self.delegate respondsToSelector:@selector(iCludeHeaderView:buttonType:)]) {
+        [self.delegate iCludeHeaderView:self buttonType:MWICloudHeaderViewButtonTypeSort];
+    }
+}
+
+- (IBAction)uploadClick {
+    if ([self.delegate respondsToSelector:@selector(iCludeHeaderView:buttonType:)]) {
+        [self.delegate iCludeHeaderView:self buttonType:MWICloudHeaderViewButtonTypeUpload];
+    }
+}
+
+- (IBAction)searchClick {
+    if ([self.delegate respondsToSelector:@selector(iCludeHeaderView:buttonType:)]) {
+        [self.delegate iCludeHeaderView:self buttonType:MWICloudHeaderViewButtonTypeSearch];
+    }
+}
+
+- (IBAction)listClick {
+    if ([self.delegate respondsToSelector:@selector(iCludeHeaderView:buttonType:)]) {
+        [self.delegate iCludeHeaderView:self buttonType:MWICloudHeaderViewButtonTypeList];
+    }
+}
+@end

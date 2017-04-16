@@ -1,0 +1,56 @@
+//
+//  EmailViewController.m
+//  M-Cut
+//
+//  Created by zhangxiaotian on 15/7/24.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "EmailViewController.h"
+#import "APPUserPrefs.h"
+
+@interface EmailViewController ()
+
+@end
+
+@implementation EmailViewController
+
+@synthesize textField;
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    textField.text = szEmails;
+    
+}
+
+- (IBAction)emailSaveButtonAction:(id)sender {
+    if ([ValidateFuc validateEmail:textField.text]) {
+        if (self.emailBlock) {
+            self.emailBlock(textField.text);
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }else{
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示:" message:@"输入的邮箱格式有误,请重新输入。" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
+    }
+    
+}
+
+- (IBAction)emailCancelButtonAction:(id)sender {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+    [textField resignFirstResponder];
+}
+
+-(BOOL)textFieldShouldReturn:(UITextField *)textField{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+@end

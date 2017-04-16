@@ -1,0 +1,64 @@
+//
+//  M-CutPrefix.pch
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/22.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#ifndef M_Cut_M_CutPrefix_pch
+#define M_Cut_M_CutPrefix_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+#import "UIViewExt.h"
+
+// ------------------------ICloud 云空间使用-------------------------
+// 自定义RGB颜色
+#define MWICloudColor(r, g, b) [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:1.0]
+// 屏幕宽高
+#define MWScreenWidth [UIScreen mainScreen].bounds.size.width
+#define MWScreenHeight [UIScreen mainScreen].bounds.size.height
+
+/** 顶部视图的高度 */
+#define MWICloudHeaderViewHeight 50
+/** 底部文件操作视图的高度 */
+#define MWICloudFooterViewHeight 49
+/**  导航的高度 */
+#define MWICloudNavigationHeight 64
+/** 主界面扩展视图高度 */
+#define MWICloudExpanViewHeight 70
+/** 底部tabBar 的高度 */
+#define MWICloudTabBarHeight 49
+/** 底部上传视图的高度 */
+#define MWICloudUploadViewHeight 70
+
+// 分类
+#import "UIBarButtonItem+Extension.h"
+#import "UIView+Extension.h"
+#import "UIButton+Extension.h"
+#import "NSString+Extension.h"
+#import "UIAlertView+Extension.h"
+#import "UIImage+Extension.h"
+#import "UIWindow+Extension.h"
+
+// 自定义按钮, 上传下载列表使用
+#import "MWButton.h"
+
+// 文件夹管理工具类
+#import "MWICloudFolderTool.h"
+
+// 系统使用常量文件
+#import "ISConst.h"
+// ------------------------ICloud 云空间使用-------------------------
+
+// 个人界面未播放视频个数改变的通知
+#define PersonalNotPlayVideoCountFromDB @"PersonalNotPlayVideoCountFromDB"
+#define PersonalNotPlayVideoCountLogin @"PersonalNotPlayVideoCountLogin"
+#define PersonalNotPlayVideoPlay @"PersonalNotPlayVideoPlay"
+#define PersonalNotPlayVideoAdd @"PersonalNotPlayVideoAdd"
+
+// 上传文件素材  进度改变
+#define UploadFileProgressChange @"UploadFileProgressChange"
+#define UploadFileFinished @"UploadFileFinished"
+#endif

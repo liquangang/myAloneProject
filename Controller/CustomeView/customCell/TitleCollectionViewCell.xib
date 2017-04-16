@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="TitleCollectionViewCell">
+            <rect key="frame" x="0.0" y="0.0" width="407" height="247"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="407" height="247"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ifh-WS-19h">
+                        <state key="normal">
+                            <color key="titleColor" red="0.18039215689999999" green="0.18039215689999999" blue="0.2274509804" alpha="1" colorSpace="calibratedRGB"/>
+                        </state>
+                        <connections>
+                            <action selector="titleButtonAction:" destination="gTV-IL-0wX" eventType="touchUpInside" id="CjG-s4-RLf"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="ifh-WS-19h" secondAttribute="bottom" id="vsA-MY-5zJ"/>
+                <constraint firstItem="ifh-WS-19h" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="wOL-8j-Tj2"/>
+                <constraint firstItem="ifh-WS-19h" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="xPW-eS-UCQ"/>
+                <constraint firstAttribute="trailing" secondItem="ifh-WS-19h" secondAttribute="trailing" id="zwo-My-cIo"/>
+            </constraints>
+            <size key="customSize" width="407" height="247"/>
+            <connections>
+                <outlet property="titleButton" destination="ifh-WS-19h" id="ZN9-P2-EwI"/>
+            </connections>
+            <point key="canvasLocation" x="-260" y="-342"/>
+        </collectionViewCell>
+    </objects>
+</document>

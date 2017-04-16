@@ -1,0 +1,39 @@
+//
+//  MWDropdownMenu.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/10.
+//  云空间顶部视图排序按钮点击的下拉视图
+//
+
+#import <UIKit/UIKit.h>
+
+@class MWDropdownMenu;
+
+@protocol MWDropdownMenuDelegate <NSObject>
+@optional
+- (void)dropdownMenuDismiss:(MWDropdownMenu *)menu;
+- (void)dropdownMenuDidshow:(MWDropdownMenu *)menu;
+@end
+
+@interface MWDropdownMenu : UIView
+/**  背景图片 */
+@property (copy, nonatomic) NSString *image;
+/**   调整间距  */
+@property (assign, nonatomic) CGFloat spaceX;
+@property (assign, nonatomic) CGFloat spaceY;
+
+/**   代理  */
+@property (nonatomic, weak) id<MWDropdownMenuDelegate> delegate;
+
+/**  创建窗口 */
++ (instancetype)menu;
+/**  显示窗口 */
+- (void)showFrom:(UIView *)from;
+/**  隐藏窗口 */
+- (void)dismiss;
+/**  内容 */
+@property (nonatomic, strong) UIView *content;
+/**  内容控制器 */
+@property (nonatomic, strong) UIViewController *contentController;
+@end

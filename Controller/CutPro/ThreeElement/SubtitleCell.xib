@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="89" id="KGk-i7-Jjw" customClass="SubtitleCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="89"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <frame key="frameInset" width="320" height="88"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="682-lk-hoV">
+                        <constraints>
+                            <constraint firstAttribute="width" constant="50" id="3Tr-fI-9WH"/>
+                            <constraint firstAttribute="height" constant="50" id="6QV-EK-xed"/>
+                        </constraints>
+                        <state key="normal" image="write">
+                            <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        </state>
+                        <connections>
+                            <action selector="EditSubtitle:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="hv9-tU-5rg"/>
+                        </connections>
+                    </button>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3S0-xs-9Jy">
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="frame-1" highlightedImage="frame_h" translatesAutoresizingMaskIntoConstraints="NO" id="hgH-gm-mK7"/>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" highlightedImage="selected" translatesAutoresizingMaskIntoConstraints="NO" id="gq8-rL-1S3">
+                        <constraints>
+                            <constraint firstAttribute="width" constant="20" id="A0T-tU-EJG"/>
+                            <constraint firstAttribute="height" constant="20" id="yu7-Hh-Pf2"/>
+                        </constraints>
+                    </imageView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="hgH-gm-mK7" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="1" id="6lB-Qz-Mjp"/>
+                    <constraint firstItem="3S0-xs-9Jy" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="50" id="7g7-Mg-5Z5"/>
+                    <constraint firstItem="682-lk-hoV" firstAttribute="leading" secondItem="3S0-xs-9Jy" secondAttribute="trailing" constant="8" symbolic="YES" id="DCg-cB-ftp"/>
+                    <constraint firstItem="682-lk-hoV" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" constant="13" id="Fgw-kw-nJd"/>
+                    <constraint firstItem="3S0-xs-9Jy" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="NjP-1a-516"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="hgH-gm-mK7" secondAttribute="trailing" constant="1" id="Np9-ig-Qt1"/>
+                    <constraint firstItem="3S0-xs-9Jy" firstAttribute="bottom" secondItem="H2p-sc-9uM" secondAttribute="bottomMargin" id="SFL-Cq-6uD"/>
+                    <constraint firstItem="hgH-gm-mK7" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" constant="1" id="SgZ-Ny-D5m"/>
+                    <constraint firstItem="gq8-rL-1S3" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="V3M-R7-deL"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="682-lk-hoV" secondAttribute="trailing" id="YIX-6Z-6K6"/>
+                    <constraint firstItem="gq8-rL-1S3" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="10" id="dxO-T8-Bh3"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="hgH-gm-mK7" secondAttribute="bottom" constant="1" id="ljO-s9-zdF"/>
+                    <constraint firstItem="3S0-xs-9Jy" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" id="ny4-K2-vFq"/>
+                    <constraint firstItem="hgH-gm-mK7" firstAttribute="leading" secondItem="gq8-rL-1S3" secondAttribute="trailing" constant="3" id="w0T-wj-tlo"/>
+                    <constraint firstItem="682-lk-hoV" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="zaS-e0-dGt"/>
+                </constraints>
+                <variation key="default">
+                    <mask key="constraints">
+                        <exclude reference="w0T-wj-tlo"/>
+                        <exclude reference="NjP-1a-516"/>
+                        <exclude reference="Fgw-kw-nJd"/>
+                    </mask>
+                </variation>
+            </tableViewCellContentView>
+            <color key="backgroundColor" red="0.85882352941176465" green="0.85882352941176465" blue="0.85882352941176465" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <connections>
+                <outlet property="FirstT" destination="3S0-xs-9Jy" id="6hy-2C-eYF"/>
+                <outlet property="seleImageView" destination="gq8-rL-1S3" id="tOg-Sx-JrE"/>
+            </connections>
+            <point key="canvasLocation" x="413" y="-42"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="frame-1" width="347" height="64"/>
+        <image name="frame_h" width="347" height="64"/>
+        <image name="selected" width="22" height="22"/>
+        <image name="write" width="25" height="25"/>
+    </resources>
+</document>

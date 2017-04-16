@@ -1,0 +1,379 @@
+//
+//  MyFriendsViewController.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/1/11.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "MyFriendsViewController.h"
+#import "UIViewExt.h"
+
+@interface MyFriendsViewController ()
+@property (retain, nonatomic) IBOutlet UIButton *rightItem;
+
+@end
+
+@implementation MyFriendsViewController
+
+//-(instancetype)init
+//-(id)initWithCoder:(NSCoder *)aDecoder
+//-(instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+
+//-(void)awakeFromNib
+//-(id)awakeAfterUsingCoder:(NSCoder *)aDecoder
+
+- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil{
+
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+
+}
+-(void)awakeFromNib{
+
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:_rightItem];
+    //设置默认值
+    _hasNewFfriends = YES;
+    _isMyFriendsTabView = YES;
+    
+    
+  
+    //新的好友
+    NSArray *array = [[NSArray alloc] initWithObjects:@"Tree", @"Flower",
+                      @"Grass", @"Fence", @"House", @"Table", @"Chair",
+                      @"Book", @"Swing" , nil];
+    self.listData = array;
+    
+    
+    
+    
+    
+    
+    //分区和索引数组
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"ListData" ofType:@"plist"];
+    self.dic = [NSDictionary dictionaryWithContentsOfFile:path];
+    
+    self.keys = [self.dic allKeys];
+    self.keys = [self.keys sortedArrayUsingSelector:@selector(compare:)];
+    
+    
+    
+    self.myFriendsTabView.contentInset = UIEdgeInsetsMake(-1.0f, 0.0f, 0.0f, 0.0);
+   // self.myFriendsTabView.contentInset = UIEdgeInsetsMake(<#CGFloat top#>, <#CGFloat left#>, <#CGFloat bottom#>, <#CGFloat right#>)
+    
+    [self.view insertSubview:_myFriendsTabView aboveSubview: _GroupTabView];
+   // _GroupTabView.hidden = YES;
+    
+    
+    //设置选中的滑条
+    _selecteImage = [UIImage imageNamed:@"selectedButton_imageView.png"];
+    _selectedButtonImgView = [[UIImageView alloc] initWithImage:_selecteImage];
+    _selectedButtonImgView.frame = CGRectMake(0, _friendsListButton.bottom-_selecteImage.size.height, _friendsListButton.width, _selecteImage.size.height);
+    [self.view addSubview:_selectedButtonImgView];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+//tableView有多少分区
+//返回有多少个Sections
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    if (_isMyFriendsTabView) {
+        
+        return [self.keys count]+1;
+    }else{
+    
+         return 1;
+    }
+}
+
+//每个分区对应多少行
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    if (_isMyFriendsTabView) {
+        if (_hasNewFfriends) {
+            
+            if (section == 0 ) {
+                return [self.listData count];
+            } else {
+                NSString *key = self.keys[section-1];//通过第几个分区拿到对应的key
+                NSArray *arr = [self.dic objectForKey:key];//通过这个key获得对应的Array
+                return [arr count];
+            }
+        } else {
+            
+            NSString *key = self.keys[section];//通过第几个分区拿到对应的key
+            NSArray *arr = [self.dic objectForKey:key];//通过这个key获得对应的Array
+            return [arr count];
+        }
+    }else{
+    
+        return [self.listData count];
+    }
+}
+
+
+//新建某一行并返回
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (_isMyFriendsTabView) {
+        static NSString *MyFriendsIdentifier = @"MyFriendsIdentifier";
+        static NSString *MyFriendsIdentifier_NewFriends = @"MyFriendsIdentifier_NewFriends";
+        
+        if (_hasNewFfriends) {
+            if (indexPath.section == 0) {
+                
+                UITableViewCell *cell_NewFriends = [tableView dequeueReusableCellWithIdentifier:MyFriendsIdentifier_NewFriends];
+                
+                if (cell_NewFriends == nil) {
+                    cell_NewFriends = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:MyFriendsIdentifier_NewFriends];
+                    
+                    UIImage *image= [ UIImage imageNamed:@"cutPro_tab.png" ];
+                    UIButton *addButton = [ UIButton buttonWithType:UIButtonTypeCustom ];
+                    addButton.frame = CGRectMake( 0.0 , 0.0 , image.size.width , image.size.height );;
+                    [addButton setTitle:@"添加" forState:UIControlStateNormal];
+                    
+                    //              [button setBackgroundImage:image forState:UIControlStateNormal ];
+                    //              button. backgroundColor = [UIColor clearColor ];
+                    
+                    [addButton setImage:image forState:UIControlStateNormal];
+                    [addButton addTarget:self action:@selector(addButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+                    cell_NewFriends.accessoryView = addButton;
+                }
+                cell_NewFriends.imageView.image = [UIImage imageNamed:@"friends_tab.png"];
+                cell_NewFriends.textLabel.text = _listData[indexPath.row];
+                return cell_NewFriends;
+            } else {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyFriendsIdentifier];
+                if (cell == nil) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:MyFriendsIdentifier];
+                }
+                NSString *key = self.keys[indexPath.section-1];
+                NSArray *arr = [self.dic objectForKey:key];
+                cell.imageView.image = [UIImage imageNamed:@"favourate_tab.png"];
+                cell.textLabel.text = arr[indexPath.row];
+                return cell;
+            }
+        } else {
+            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyFriendsIdentifier];
+            if (cell == nil) {
+                cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:MyFriendsIdentifier];
+            }
+
+            NSString *key = self.keys[indexPath.section];
+            NSArray *arr = [self.dic objectForKey:key];
+            cell.imageView.image = [UIImage imageNamed:@"favourate_tab.png"];
+            cell.textLabel.text = arr[indexPath.row];
+            return cell;
+        }
+
+    }else{
+    
+    
+        static NSString *MyFriendsIdentifier_GroupFriends = @"MyFriendsIdentifier_GroupFriends";
+        UITableViewCell *cell_Groupfriends = [tableView dequeueReusableCellWithIdentifier:MyFriendsIdentifier_GroupFriends];
+        if (cell_Groupfriends == nil) {
+            cell_Groupfriends= [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:MyFriendsIdentifier_GroupFriends];
+            UIImage *image= [ UIImage imageNamed:@"file.png" ];
+            UIButton *fileButton = [ UIButton buttonWithType:UIButtonTypeCustom ];
+            fileButton.frame = CGRectMake( 0.0 , 0.0 , image.size.width , image.size.height );;
+            //[fileButton setTitle:@"添加" forState:UIControlStateNormal];
+            
+            //              [button setBackgroundImage:image forState:UIControlStateNormal ];
+            //              button. backgroundColor = [UIColor clearColor ];
+            
+            [fileButton setImage:image forState:UIControlStateNormal];
+            [fileButton addTarget:self action:@selector(fileButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+            cell_Groupfriends.accessoryView = fileButton;
+        }
+        cell_Groupfriends.imageView.image = [UIImage imageNamed:@"movier-logo.png"];
+        cell_Groupfriends.textLabel.text = _listData[indexPath.row];
+        return cell_Groupfriends;
+
+    }
+}
+
+
+
+- (CGFloat) tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    
+    if (_isMyFriendsTabView) {
+        if (_hasNewFfriends) {
+            
+            if (section == 0)
+                return 1.0f;
+            return 15.0f;
+            
+        } else {
+            return 15.0f;
+        }
+    }else{
+         return 0;
+    }
+}
+
+- (UIView*) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    if (_isMyFriendsTabView) {
+        if (_hasNewFfriends) {
+            
+            if (section == 0) {
+                UIView *view = [[UIView alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 375.0f, 0.0f)];
+                return view;
+            }
+            return nil;
+            
+        } else {
+            return nil;
+        }
+    }else{
+        return nil;
+    }
+}
+
+//在每个分区上显示什么内容
+-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    if (_isMyFriendsTabView) {
+        if (_hasNewFfriends) {
+            //        if (section == 0) {
+            //             return @"新的好友";
+            //        } else {
+            //            return self.keys[section-1];
+            //        }
+            
+            
+            if (section == 0) {
+                return nil;
+            } else {
+                return self.keys[section-1];
+            }
+        } else {
+            
+            return self.keys[section];
+        }
+
+    } else{
+            return nil;
+    }
+}
+
+
+
+
+//索引分区只是要添加这一个代理方法即可实现
+
+- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
+    if (_isMyFriendsTabView) {
+          return _keys;
+    } else{
+        
+        return nil;
+    }
+}
+
+
+//- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+//
+////返回指定的section 的 header  的 title，如果这个section header  有返回view，那么title就不起作用了。
+//
+//- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+//{
+//    if (tableView == tableView_)
+//    {
+//        if (section == 0)
+//        {
+//            return @"title 1";
+//        }
+//        else if (section == 1)
+//        {
+//            return @"title 2";
+//        }
+//        else
+//        {
+//            return nil;
+//        }
+//    }
+//    else  
+//    {  
+//        return nil;  
+//    }  
+//}
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+- (IBAction)friendsListButtonAction:(id)sender {
+   
+    [_rightItem setImage:[UIImage imageNamed:@"addFriends_button.png"] forState:UIControlStateNormal];
+   _selectedButtonImgView.frame = CGRectMake(0, _friendsListButton.bottom-_selecteImage.size.height, _friendsListButton.width, _selecteImage.size.height);;
+    
+    
+    
+    _isMyFriendsTabView = !_isMyFriendsTabView;
+     [_myFriendsTabView reloadData];
+    
+    [self.view insertSubview:_myFriendsTabView aboveSubview: _GroupTabView];
+    
+    //_GroupTabView.hidden = !_friendsListButton.hidden;
+   
+    
+}
+
+
+- (IBAction)GroudButtonAction:(id)sender {
+    [_rightItem setImage:[UIImage imageNamed:@"addGroupFriends_button.png"] forState:UIControlStateNormal];
+    _selectedButtonImgView.frame = CGRectMake(_GroupButton.left, _GroupButton.bottom- _selecteImage.size.height,_GroupButton.width , _selecteImage.size.height);
+    
+    
+    _isMyFriendsTabView = !_isMyFriendsTabView;
+   // _GroupTabView.hidden = !_friendsListButton.hidden;
+    [_GroupTabView reloadData];
+    [self.view insertSubview:_GroupTabView aboveSubview:_myFriendsTabView];
+    
+}
+                                                
+
+- (void)addButtonAction:(UIButton *)button{
+    
+    UITableViewCell *cell = (UITableViewCell*)button.superview;
+
+    NSInteger row = [_myFriendsTabView indexPathForCell:cell].row;
+}
+
+- (void)fileButtonAction:(UIButton *)button{
+    
+    UITableViewCell *cell = (UITableViewCell*)button.superview;
+    
+    NSInteger row = [_myFriendsTabView indexPathForCell:cell].row;
+}
+
+
+- (void)dealloc {
+    [_myFriendsTabView release];
+    [_friendsListButton release];
+    [_GroupButton release];
+    [_GroupTabView release];
+    [_rightItem release];
+    [super dealloc];
+}
+@end
+

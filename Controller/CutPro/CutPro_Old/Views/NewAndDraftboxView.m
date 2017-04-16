@@ -1,0 +1,39 @@
+//
+//  NewAndDraftboxView.m
+//  M-Cut
+//
+//  Created by 刘海香 on 15/5/28.
+//  Copyright (c) 2015年 Crab movier. All rights reserved.
+//
+
+#import "NewAndDraftboxView.h"
+#import "DraftboxTableViewController.h"
+
+@implementation NewAndDraftboxView
+@synthesize delegate;
+
+- (IBAction)newcreate:(id)sender {
+    if([delegate respondsToSelector:@selector(newCreateOrder)])
+    {
+        [delegate newCreateOrder];
+    }
+}
+
+- (IBAction)Draftboxbutton:(id)sender {
+//    BOOL monitor = [delegate respondsToSelector:@selector(jumpview)];
+    if([delegate respondsToSelector:@selector(jumpview)])
+    {
+        [delegate jumpview];
+    }
+}
+
+- (void)awakeFromNib{
+//    NSLog(@"唤醒xib视图");
+    [super awakeFromNib];
+}
+
+- (void)layoutSubviews{
+    [super layoutSubviews];
+}
+
+@end

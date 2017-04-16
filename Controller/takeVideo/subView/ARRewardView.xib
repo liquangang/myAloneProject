@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ARRewardView">
+            <connections>
+                <outlet property="arPropertyImage" destination="GCe-Ec-fbw" id="EtC-HV-DRB"/>
+                <outlet property="chestImage" destination="mwz-l2-a0u" id="Gh2-cc-MTv"/>
+                <outlet property="couponImage" destination="qex-pM-AuR" id="HcU-Kx-cgo"/>
+                <outlet property="propmtImage" destination="nAj-PY-bPR" id="y2W-gZ-ulg"/>
+                <outlet property="virtualElectricImage" destination="GCO-7J-YEM" id="A4U-9k-MuG"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <imageView clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="qex-pM-AuR">
+                    <constraints>
+                        <constraint firstAttribute="height" constant="118" id="eXy-on-nZU"/>
+                        <constraint firstAttribute="width" constant="252" id="r32-x3-M9j"/>
+                    </constraints>
+                </imageView>
+                <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="nAj-PY-bPR">
+                    <constraints>
+                        <constraint firstAttribute="height" constant="180" id="MLb-4L-Be7"/>
+                        <constraint firstAttribute="width" constant="280" id="pZ7-Q8-bv2"/>
+                    </constraints>
+                </imageView>
+                <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="mwz-l2-a0u">
+                    <constraints>
+                        <constraint firstAttribute="width" constant="188" id="CAM-PZ-tmj"/>
+                        <constraint firstAttribute="height" constant="188" id="H5Q-na-u3c"/>
+                    </constraints>
+                </imageView>
+                <imageView clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="GCO-7J-YEM">
+                    <constraints>
+                        <constraint firstAttribute="height" constant="120" id="NXS-fE-gGy"/>
+                        <constraint firstAttribute="width" constant="300" id="iYC-qL-DXg"/>
+                    </constraints>
+                </imageView>
+                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="GCe-Ec-fbw">
+                    <constraints>
+                        <constraint firstAttribute="height" constant="188" id="LiE-KV-BvU"/>
+                        <constraint firstAttribute="width" constant="188" id="MY0-Q9-z8V"/>
+                    </constraints>
+                </imageView>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="nAj-PY-bPR" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="Mmy-L2-ddE"/>
+                <constraint firstItem="nAj-PY-bPR" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="Nj4-wz-iYt"/>
+                <constraint firstItem="mwz-l2-a0u" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="c4G-CS-0SA"/>
+                <constraint firstItem="mwz-l2-a0u" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="hVs-rB-qRZ"/>
+                <constraint firstItem="GCe-Ec-fbw" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="o7f-tQ-lnB"/>
+                <constraint firstItem="GCO-7J-YEM" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="pzR-51-pjq"/>
+                <constraint firstItem="GCe-Ec-fbw" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="qdR-Ud-53l"/>
+                <constraint firstItem="GCO-7J-YEM" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="uge-gR-m3f"/>
+                <constraint firstItem="qex-pM-AuR" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="vRD-bu-tzm"/>
+                <constraint firstItem="qex-pM-AuR" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="xCx-uv-4iQ"/>
+            </constraints>
+            <point key="canvasLocation" x="-433" y="370"/>
+        </view>
+    </objects>
+</document>

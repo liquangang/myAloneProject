@@ -1,0 +1,20 @@
+//
+//  LoginInfo.h
+//  M-Cut
+//
+//  Created by Crab shell on 12/27/14.
+//  Copyright (c) 2014 Crab movier. All rights reserved.
+//
+
+#ifndef M_Cut_LoginInfo_h
+#define M_Cut_LoginInfo_h
+
+#import <Foundation/Foundation.h>
+@class UserEntity;
+
+@protocol LoginDelegate <NSObject>
+
+-(void)PassValue:(UserEntity *)value;
+@end
+
+#endif

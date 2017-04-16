@@ -1,0 +1,16 @@
+//
+//  MWAlbumCell.h
+//  ICloudSpace
+//
+//  Created by 李亚飞 on 15/10/12.
+//
+//
+
+#import <UIKit/UIKit.h>
+@class MWICloudModel;
+
+@interface MWAlbumCell : UITableViewCell
+@property (strong, nonatomic) MWICloudModel *model;
+
++ (instancetype)cellWithTableView:(UITableView *)tableView;
+@end

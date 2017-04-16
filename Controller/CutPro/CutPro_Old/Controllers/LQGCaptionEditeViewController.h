@@ -1,0 +1,21 @@
+//
+//  LQGCaptionEditeViewController.h
+//  M-Cut
+//
+//  Created by Admin on 16/3/21.
+//  Copyright © 2016年 Crab movier. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@protocol LQGCaptionEditeViewControllerDelegate <NSObject>
+
+- (void)changeText:(NSString *)text;
+
+@end
+
+@interface LQGCaptionEditeViewController : UIViewController
+@property (nonatomic, weak) id<LQGCaptionEditeViewControllerDelegate> delegate;
+@property (weak, nonatomic) IBOutlet UITextView *textView;
+@property (nonatomic, copy) NSString * stringText;
+@end
